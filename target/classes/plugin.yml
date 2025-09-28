@@ -1,0 +1,7 @@
+name: opengrinding
+version: '1.0-SNAPSHOT'
+main: nl.grapjeje.opengrinding.Opengrinding
+api-version: '1.21'
+authors: [ GrapJeje ]
+description: A grinding plugin for openMinetopia
+website: grapjeje.nl
