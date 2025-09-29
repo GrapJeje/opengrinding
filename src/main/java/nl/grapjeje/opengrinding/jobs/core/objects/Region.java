@@ -1,6 +1,7 @@
 package nl.grapjeje.opengrinding.jobs.core.objects;
 
-import nl.grapjeje.opengrinding.jobs.core.enums.RegionFlags;
+import lombok.Getter;
+import nl.grapjeje.opengrinding.jobs.Jobs;
 import org.bukkit.Location;
 
 import java.util.List;
@@ -9,7 +10,8 @@ public class Region {
     private final Location min;
     private final Location max;
 
-    private List<RegionFlags> flags;
+    @Getter
+    private List<Jobs> jobs;
 
     public Region(Location loc1, Location loc2) {
         if (!loc1.getWorld().equals(loc2.getWorld()))
