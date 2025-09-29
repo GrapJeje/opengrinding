@@ -1,7 +1,8 @@
 database:
-  enabled: false
-  host: localhost
+  enabled: true
+  type: "sqlite"
+  host: "localhost"
   port: 3306
-  database: minecraft
-  user: root
-  password: secret
+  database: "opengrinding"
+  user: "root"
+  password: ""
