@@ -1,10 +1,10 @@
 package nl.grapjeje.opengrinding.jobs.mining;
 
-import nl.grapjeje.opengrinding.jobs.Job;
+import nl.grapjeje.core.modules.Module;
 
-public class MiningJob extends Job {
+public class MiningModule extends Module {
 
-    public MiningJob() {
+    public MiningModule() {
         super("mining");
     }
 
