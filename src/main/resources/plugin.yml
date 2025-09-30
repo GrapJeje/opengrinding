@@ -15,3 +15,5 @@ dependencies:
 commands:
   opengrinding:
     description: Credit command
+  grindingregion:
+    description: Region command

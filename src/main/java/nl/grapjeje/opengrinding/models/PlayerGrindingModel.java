@@ -27,6 +27,7 @@ public class PlayerGrindingModel extends StormModel {
     private Double value;
 
     public Jobs getJob() {
+        if (jobName == null) return null;
         return Jobs.valueOf(jobName);
     }
 

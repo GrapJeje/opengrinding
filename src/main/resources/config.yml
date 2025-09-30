@@ -1,8 +1,2 @@
-database:
-  enabled: true
-  type: "sqlite"
-  host: "localhost"
-  port: 3306
-  database: "opengrinding"
-  user: "root"
-  password: ""
+jobs:
+  mining: true
