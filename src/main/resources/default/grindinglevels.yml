@@ -2,7 +2,7 @@ jobs:
   mining:
     max-level: 40
     ore-unlock-interval: 5
-    formula: 250 + (<level> − 50) * 250
+    formula: 250 + (level - 50) * 250
     points-per-coal: 1
     points-per-iron: 2
     points-per-copper: 3

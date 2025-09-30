@@ -19,42 +19,21 @@ import java.util.concurrent.CompletableFuture;
 public class GrindingPlayer {
     @Getter
     private final MinetopiaPlayer player;
-    private final PlayerGrindingModel playerGrindingModel;
+    private final PlayerGrindingModel model;
 
     public GrindingPlayer(UUID uuid, PlayerGrindingModel playerGrindingModel) {
         this.player = PlayerManager.getInstance().getOnlineMinetopiaPlayer(Bukkit.getPlayer(uuid));
-        this.playerGrindingModel = playerGrindingModel;
+        this.model = playerGrindingModel;
     }
 
     public CompletableFuture<Void> save() {
-        return CompletableFuture.runAsync(() -> StormDatabase.getInstance().saveStormModel(playerGrindingModel));
+        return CompletableFuture.runAsync(() -> StormDatabase.getInstance().saveStormModel(model));
     }
 
     /* ---------- Progression ---------- */
-
-    public int getLevel() {
-        return playerGrindingModel.getLevel();
-    }
-
-    public double getXp() {
-        return playerGrindingModel.getValue();
-    }
-
-    public void setProgress(Jobs job, int level, double xp) {
-        int oldLevel = playerGrindingModel.getLevel();
-        double oldXp = playerGrindingModel.getValue();
-
-        if (oldXp != xp) new PlayerValueChangeEvent(this, job, oldXp, xp).callEvent();
-        if (oldLevel != level) new PlayerLevelChangeEvent(this, job, oldLevel, level).callEvent();
-
-        playerGrindingModel.setLevel(level);
-        playerGrindingModel.setValue(xp);
-        this.save();
-    }
-
     public void addProgress(Jobs job, double xp) {
-        double oldXp = playerGrindingModel.getValue();
-        int oldLevel = playerGrindingModel.getLevel();
+        double oldXp = model.getValue();
+        int oldLevel = model.getLevel();
         double newXp = oldXp + xp;
 
         new PlayerValueChangeEvent(this, job, oldXp, newXp).callEvent();
@@ -63,7 +42,7 @@ public class GrindingPlayer {
 
         int currentLevel = oldLevel;
         while (currentLevel < config.getMaxLevel()) {
-            int xpNeeded = getXpForLevel(currentLevel, config);
+            int xpNeeded = this.getXpForLevel(currentLevel + 1, config);
             if (newXp >= xpNeeded) {
                 newXp -= xpNeeded;
                 currentLevel++;
@@ -72,9 +51,8 @@ public class GrindingPlayer {
             } else break;
         }
 
-        playerGrindingModel.setLevel(currentLevel);
-        playerGrindingModel.setValue(newXp);
-        this.save();
+        model.setLevel(currentLevel);
+        model.setValue(newXp);
     }
 
     private int getXpForLevel(int level, GrindingLevelsConfiguration config) {

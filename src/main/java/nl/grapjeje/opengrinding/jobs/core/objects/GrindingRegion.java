@@ -58,10 +58,18 @@ public class GrindingRegion {
 
         if (min == null || max == null || !loc.getWorld().equals(min.getWorld())) return false;
 
-        return loc.getBlockX() >= min.getBlockX() && loc.getBlockX() <= max.getBlockX()
-                && loc.getBlockY() >= min.getBlockY() && loc.getBlockY() <= max.getBlockY()
-                && loc.getBlockZ() >= min.getBlockZ() && loc.getBlockZ() <= max.getBlockZ();
+        int minX = Math.min(min.getBlockX(), max.getBlockX());
+        int maxX = Math.max(min.getBlockX(), max.getBlockX());
+        int minY = Math.min(min.getBlockY(), max.getBlockY());
+        int maxY = Math.max(min.getBlockY(), max.getBlockY());
+        int minZ = Math.min(min.getBlockZ(), max.getBlockZ());
+        int maxZ = Math.max(min.getBlockZ(), max.getBlockZ());
+
+        return loc.getBlockX() >= minX && loc.getBlockX() <= maxX
+                && loc.getBlockY() >= minY && loc.getBlockY() <= maxY
+                && loc.getBlockZ() >= minZ && loc.getBlockZ() <= maxZ;
     }
+
 
     public void addJob(Jobs job) {
         List<Jobs> jobs = new ArrayList<>(this.getJobs());
@@ -81,5 +89,25 @@ public class GrindingRegion {
 
     public boolean allowsJob(Jobs job) {
         return this.getJobs().contains(job);
+    }
+
+    public static boolean isInRegionWithJob(Location loc, Jobs job) {
+        try {
+            List<GrindingRegionModel> allRegions = StormDatabase.getInstance().getStorm()
+                    .buildQuery(GrindingRegionModel.class)
+                    .execute()
+                    .join()
+                    .stream()
+                    .toList();
+
+            for (GrindingRegionModel model : allRegions) {
+                GrindingRegion region = new GrindingRegion(model);
+                if (region.contains(loc) && region.allowsJob(job))
+                    return true;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
     }
 }

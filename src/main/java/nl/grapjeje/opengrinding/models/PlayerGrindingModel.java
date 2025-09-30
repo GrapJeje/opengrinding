@@ -20,11 +20,11 @@ public class PlayerGrindingModel extends StormModel {
     @Column(name = "job_name")
     private String jobName;
 
-    @Column(name = "level", defaultValue = "1")
-    private Integer level;
+    @Column(name = "level", defaultValue = "0")
+    private Integer level = 0;
 
     @Column(name = "value", defaultValue = "0")
-    private Double value;
+    private Double value = 0.0;
 
     public Jobs getJob() {
         if (jobName == null) return null;
