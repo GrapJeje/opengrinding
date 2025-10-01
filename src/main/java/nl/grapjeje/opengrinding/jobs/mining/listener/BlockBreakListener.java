@@ -10,10 +10,11 @@ import nl.grapjeje.opengrinding.jobs.core.CoreModule;
 import nl.grapjeje.opengrinding.jobs.core.objects.GrindingPlayer;
 import nl.grapjeje.opengrinding.jobs.core.objects.GrindingRegion;
 import nl.grapjeje.opengrinding.jobs.mining.MiningModule;
-import nl.grapjeje.opengrinding.models.GrindingRegionModel;
+import nl.grapjeje.opengrinding.jobs.mining.objects.MiningOres;
 import nl.grapjeje.opengrinding.models.PlayerGrindingModel;
 import nl.openminetopia.modules.data.storm.StormDatabase;
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.block.Block;
@@ -22,7 +23,6 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.inventory.ItemStack;
-import org.jetbrains.annotations.NotNull;
 
 import java.time.Duration;
 import java.util.ArrayList;
@@ -44,13 +44,12 @@ public class BlockBreakListener implements Listener {
         // TODO: Add raw ore blocks and deepslate
     }
 
-    // TODO: Add bedrock instead of air
-    // TODO: Add a cooldown system om ores
-
     @EventHandler
     public void onBlockBreak(BlockBreakEvent e) {
         Player player = e.getPlayer();
-        if (!GrindingRegion.isInRegionWithJob(e.getBlock().getLocation(), Jobs.MINING)) return;
+        Block block = e.getBlock();
+        Location location = block.getLocation();
+        if (!GrindingRegion.isInRegionWithJob(location, Jobs.MINING)) return;
 
         Material heldItem = player.getInventory().getItemInMainHand().getType();
         if (!heldItem.name().endsWith("PICKAXE")) return;
@@ -104,10 +103,15 @@ public class BlockBreakListener implements Listener {
             return;
         }
 
-        ItemStack item = MiningModule.getBlockHead(e.getBlock());
-        player.getInventory().addItem(item);
+        ItemStack item = MiningModule.getBlockHead(block);
+        if (item != null)
+            player.getInventory().addItem(item);
+        else player.sendMessage(MessageUtil.filterMessage("<warning>⚠ Er is een fout opgetreden bij het geven van de ore"));
 
-        Material blockType = e.getBlock().getType();
+        block.setType(Material.BEDROCK);
+        MiningModule.getOres().add(new MiningOres(location, block.getType(), System.currentTimeMillis()));
+
+        Material blockType = block.getType();
         String baseName = blockType.name()
                 .replace("_ORE", "")
                 .toLowerCase();

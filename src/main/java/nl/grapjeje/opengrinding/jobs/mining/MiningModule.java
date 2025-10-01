@@ -8,6 +8,8 @@ import nl.grapjeje.opengrinding.OpenGrinding;
 import nl.grapjeje.opengrinding.jobs.mining.listener.BlockBreakListener;
 import nl.grapjeje.opengrinding.jobs.mining.objects.MiningOres;
 import nl.grapjeje.opengrinding.jobs.mining.objects.Ore;
+import nl.grapjeje.opengrinding.jobs.mining.timers.OreTimer;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.inventory.ItemStack;
@@ -27,11 +29,18 @@ public class MiningModule extends Module {
     @Override
     protected void onEnable() {
         OpenGrinding.getFramework().registerListener(BlockBreakListener::new);
+
+        new OreTimer(5);
     }
 
     @Override
     protected void onDisable() {
-
+        Bukkit.getLogger().info("Replace all ores...");
+        for (MiningOres ore : ores) {
+            if (ore != null && ore.location() != null)
+                ore.location().getBlock().setType(ore.material());
+        }
+        ores.clear();
     }
 
     public static ItemStack getBlockHead(Block brokenBlock) {
