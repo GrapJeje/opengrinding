@@ -2,7 +2,6 @@ jobs:
   mining:
     max-level: 40
     ore-unlock-interval: 5
-    formula: 250 + (level - 50) * 250
     points-per-coal: 1
     points-per-iron: 2
     points-per-copper: 3
@@ -11,6 +10,7 @@ jobs:
     points-per-lapis: 4
     points-per-diamond: 5
     points-per-emerald: 6
+    formula: (100 * level) + ( (level / 5) * 50 )
     overrides:
       0: 0
       1: 0

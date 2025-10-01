@@ -5,8 +5,7 @@ import nl.grapjeje.core.Config;
 import org.bukkit.configuration.ConfigurationSection;
 
 import java.io.File;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 @Getter
 public class GrindingLevelsConfiguration extends Config {
@@ -14,7 +13,7 @@ public class GrindingLevelsConfiguration extends Config {
     private final int maxLevel;
     private final int oreUnlockInterval;
     private final String formula;
-    private final Map<String, Integer> pointsPerOre = new HashMap<>();
+    private final Map<String, Integer> pointsPerOre = new LinkedHashMap<>();
     private final Map<Integer, Integer> overrides = new HashMap<>();
 
     public GrindingLevelsConfiguration(File file) {
@@ -43,5 +42,10 @@ public class GrindingLevelsConfiguration extends Config {
                 overrides.put(level, value);
             }
         }
+    }
+
+    public int getRequiredLevelForOre(String oreName) {
+        List<String> ores = new ArrayList<>(this.getPointsPerOre().keySet());
+        return ores.indexOf(oreName.toLowerCase()) * this.getOreUnlockInterval();
     }
 }

@@ -32,13 +32,12 @@ public class GrindingPlayer {
 
     /* ---------- Progression ---------- */
     public void addProgress(Jobs job, double xp) {
+        GrindingLevelsConfiguration config = CoreModule.getGrindingLevelsConfiguration();
+
         double oldXp = model.getValue();
         int oldLevel = model.getLevel();
         double newXp = oldXp + xp;
-
         new PlayerValueChangeEvent(this, job, oldXp, newXp).callEvent();
-
-        GrindingLevelsConfiguration config = CoreModule.getGrindingLevelsConfiguration();
 
         int currentLevel = oldLevel;
         while (currentLevel < config.getMaxLevel()) {
@@ -56,8 +55,9 @@ public class GrindingPlayer {
     }
 
     private int getXpForLevel(int level, GrindingLevelsConfiguration config) {
-        if (config.getOverrides().containsKey(level))
-            return config.getOverrides().get(level);
+        Integer override = config.getOverrides().get(level);
+        if (override != null && override > 0) return override;
+
         double result = new ExpressionBuilder(config.getFormula())
                 .variable("level")
                 .build()

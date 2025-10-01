@@ -16,6 +16,7 @@ import nl.openminetopia.modules.data.storm.StormDatabase;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.Sound;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -43,8 +44,8 @@ public class BlockBreakListener implements Listener {
         // TODO: Add raw ore blocks and deepslate
     }
 
-    // TODO: Checken op level
-    // TODO: Checken op whitelist
+    // TODO: Add bedrock instead of air
+    // TODO: Add a cooldown system om ores
 
     @EventHandler
     public void onBlockBreak(BlockBreakEvent e) {
@@ -53,6 +54,40 @@ public class BlockBreakListener implements Listener {
 
         Material heldItem = player.getInventory().getItemInMainHand().getType();
         if (!heldItem.name().endsWith("PICKAXE")) return;
+
+        Optional<PlayerGrindingModel> playerModel;
+        try {
+            playerModel = StormDatabase.getInstance().getStorm()
+                    .buildQuery(PlayerGrindingModel.class)
+                    .where("player_uuid", Where.EQUAL, player.getUniqueId())
+                    .where("job_name", Where.EQUAL, Jobs.MINING.name())
+                    .limit(1)
+                    .execute()
+                    .join()
+                    .stream()
+                    .findFirst();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            player.sendMessage(MessageUtil.filterMessage("<warning>⚠ Er is een fout opgetreden bij het ophalen van jouw spelersdata!"));
+            return;
+        }
+
+        PlayerGrindingModel model;
+        if (playerModel.isEmpty()) {
+            model = new PlayerGrindingModel();
+            model.setPlayerUuid(player.getUniqueId());
+            model.setJob(Jobs.MINING);
+            model.setLevel(0);
+            model.setValue(0.0);
+            Bukkit.getLogger().info("New player grind model made for " + player.getName());
+        } else model = playerModel.get();
+
+        if (!this.canMine(e.getBlock())) return;
+        if (!this.canMineLevel(e.getBlock(), model)) {
+            player.sendMessage(MessageUtil.filterMessage("<warning>⚠ Jij bent hiet niet hoog genoeg level voor!"));
+            e.setCancelled(true);
+            return;
+        }
 
         e.setDropItems(false);
         e.setExpToDrop(0);
@@ -72,39 +107,12 @@ public class BlockBreakListener implements Listener {
         ItemStack item = MiningModule.getBlockHead(e.getBlock());
         player.getInventory().addItem(item);
 
-        Optional<PlayerGrindingModel> playerModel;
-        try {
-            playerModel = StormDatabase.getInstance().getStorm()
-                    .buildQuery(PlayerGrindingModel.class)
-                    .where("player_uuid", Where.EQUAL, player.getUniqueId())
-                    .where("job_name", Where.EQUAL, Jobs.MINING.name())
-                    .limit(1)
-                    .execute()
-                    .join()
-                    .stream()
-                    .findFirst();
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            player.sendMessage(MessageUtil.filterMessage("<warning>⚠ Er is een fout opgetreden bij het ophalen van jouw spelersdata!"));
-            return;
-        }
-
         Material blockType = e.getBlock().getType();
         String baseName = blockType.name()
                 .replace("_ORE", "")
                 .toLowerCase();
 
         int points = CoreModule.getGrindingLevelsConfiguration().getPointsPerOre().getOrDefault(baseName, 0);
-
-        PlayerGrindingModel model;
-        if (playerModel.isEmpty()) {
-            model = new PlayerGrindingModel();
-            model.setPlayerUuid(player.getUniqueId());
-            model.setJob(Jobs.MINING);
-            model.setLevel(0);
-            model.setValue(0.0);
-            Bukkit.getLogger().info("New player grind model made for " + player.getName());
-        } else model = playerModel.get();
 
         GrindingPlayer gp = new GrindingPlayer(player.getUniqueId(), model);
         gp.addProgress(Jobs.MINING, points);
@@ -119,5 +127,16 @@ public class BlockBreakListener implements Listener {
                 return false;
         }
         return true;
+    }
+
+    private boolean canMine(Block block) {
+        return whitelist.contains(block.getType());
+    }
+
+    private boolean canMineLevel(Block block, PlayerGrindingModel playerModel) {
+        String oreName = block.getType().name().toLowerCase().replace("_ore", "");
+        int playerLevel = playerModel.getLevel();
+        int neededLevel = CoreModule.getGrindingLevelsConfiguration().getRequiredLevelForOre(oreName);
+        return playerLevel >= neededLevel;
     }
 }
