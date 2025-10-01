@@ -17,3 +17,5 @@ commands:
     description: Credit command
   grindingregion:
     description: Region command
+  sell:
+    description: Sell command
