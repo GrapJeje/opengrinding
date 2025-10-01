@@ -2,6 +2,8 @@ package nl.grapjeje.opengrinding.jobs.core.objects;
 
 import lombok.Getter;
 import net.objecthunter.exp4j.ExpressionBuilder;
+import nl.grapjeje.core.text.MessageUtil;
+import nl.grapjeje.opengrinding.OpenGrinding;
 import nl.grapjeje.opengrinding.jobs.Jobs;
 import nl.grapjeje.opengrinding.jobs.core.CoreModule;
 import nl.grapjeje.opengrinding.jobs.core.configuration.GrindingLevelsConfiguration;
@@ -27,7 +29,10 @@ public class GrindingPlayer {
     }
 
     public CompletableFuture<Void> save() {
-        return CompletableFuture.runAsync(() -> StormDatabase.getInstance().saveStormModel(model));
+        CoreModule.getPlayerCache().put(model.getPlayerUuid(), model);
+        return CompletableFuture.runAsync(() ->
+                StormDatabase.getInstance().saveStormModel(model)
+        );
     }
 
     /* ---------- Progression ---------- */
@@ -37,7 +42,10 @@ public class GrindingPlayer {
         double oldXp = model.getValue();
         int oldLevel = model.getLevel();
         double newXp = oldXp + xp;
-        new PlayerValueChangeEvent(this, job, oldXp, newXp).callEvent();
+        double finalNewXp = newXp;
+        Bukkit.getScheduler().runTask(OpenGrinding.getInstance(), () -> {
+            new PlayerValueChangeEvent(this, job, oldXp, finalNewXp).callEvent();
+        });
 
         int currentLevel = oldLevel;
         while (currentLevel < config.getMaxLevel()) {
@@ -45,7 +53,11 @@ public class GrindingPlayer {
             if (newXp >= xpNeeded) {
                 newXp -= xpNeeded;
                 currentLevel++;
-                new PlayerLevelChangeEvent(this, job, oldLevel, currentLevel).callEvent();
+                int finalOldLevel = oldLevel;
+                int finalCurrentLevel = currentLevel;
+                Bukkit.getScheduler().runTask(OpenGrinding.getInstance(), () -> {
+                    new PlayerLevelChangeEvent(this, job, finalOldLevel, finalCurrentLevel).callEvent();
+                });
                 oldLevel = currentLevel;
             } else break;
         }

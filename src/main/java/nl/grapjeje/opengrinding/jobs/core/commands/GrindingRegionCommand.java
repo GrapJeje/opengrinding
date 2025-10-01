@@ -13,6 +13,7 @@ import nl.grapjeje.opengrinding.jobs.Jobs;
 import nl.grapjeje.opengrinding.jobs.core.objects.GrindingRegion;
 import nl.grapjeje.opengrinding.models.GrindingRegionModel;
 import nl.openminetopia.modules.data.storm.StormDatabase;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -106,43 +107,49 @@ public class GrindingRegionCommand implements Command {
         }
 
         String name = args[1];
-        Optional<GrindingRegionModel> existing;
-        try {
-            existing = StormDatabase.getInstance().getStorm()
-                    .buildQuery(GrindingRegionModel.class)
-                    .where("name", Where.EQUAL, name)
-                    .limit(1)
-                    .execute()
-                    .join()
-                    .stream()
-                    .findFirst();
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            player.sendMessage(MessageUtil.filterMessage("<warning>⚠ Er is een fout opgetreden bij het controleren van de region!"));
-            return;
-        }
 
-        if (existing.isPresent()) {
-            player.sendMessage(MessageUtil.filterMessage("<warning>⚠ Region <bold>" + name + " <!bold><warning>bestaat al!"));
-            return;
-        }
+        Bukkit.getScheduler().runTaskAsynchronously(OpenGrinding.getInstance(), () -> {
+            Optional<GrindingRegionModel> existing;
+            try {
+                existing = StormDatabase.getInstance().getStorm()
+                        .buildQuery(GrindingRegionModel.class)
+                        .where("name", Where.EQUAL, name)
+                        .limit(1)
+                        .execute()
+                        .join()
+                        .stream()
+                        .findFirst();
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                Bukkit.getScheduler().runTask(OpenGrinding.getInstance(), () ->
+                        player.sendMessage(MessageUtil.filterMessage("<warning>⚠ Er is een fout opgetreden bij het controleren van de region!"))
+                );
+                return;
+            }
+            if (existing.isPresent()) {
+                Bukkit.getScheduler().runTask(OpenGrinding.getInstance(), () ->
+                        player.sendMessage(MessageUtil.filterMessage("<warning>⚠ Region <bold>" + name + " <!bold><warning>bestaat al!"))
+                );
+                return;
+            }
+            Bukkit.getScheduler().runTask(OpenGrinding.getInstance(), () -> {
+                selections.put(player.getUniqueId(), new RegionSelection(name));
 
-        selections.put(player.getUniqueId(), new RegionSelection(name));
-
-        ItemStack tool = new ItemStack(Material.BLAZE_ROD);
-        ItemMeta meta = tool.getItemMeta();
-        if (meta != null) {
-            meta.itemName(MessageUtil.filterMessage("<green>Grinding Region Stick"));
-            List<Component> lore = List.of(
-                    MessageUtil.filterMessage("<yellow>Left-click <gray>to select first corner"),
-                    MessageUtil.filterMessage("<yellow>Right-click <gray>to select second corner")
-            );
-            meta.lore(lore);
-            tool.setItemMeta(meta);
-        }
-        player.getInventory().addItem(tool);
-        player.sendMessage(MessageUtil.filterMessage("<green>Je hebt een selection tool gekregen voor region <bold>" + name + "<!bold>"));
-        player.sendMessage(MessageUtil.filterMessage("<gray>⬤ Klik links/rechts met de rod om de punten te selecteren en maak de region met /grindingregion finish"));
+                ItemStack tool = new ItemStack(Material.BLAZE_ROD);
+                ItemMeta meta = tool.getItemMeta();
+                if (meta != null) {
+                    meta.itemName(MessageUtil.filterMessage("<green>Grinding Region Stick"));
+                    meta.lore(List.of(
+                            MessageUtil.filterMessage("<yellow>Left-click <gray>to select first corner"),
+                            MessageUtil.filterMessage("<yellow>Right-click <gray>to select second corner")
+                    ));
+                    tool.setItemMeta(meta);
+                }
+                player.getInventory().addItem(tool);
+                player.sendMessage(MessageUtil.filterMessage("<green>Je hebt een selection tool gekregen voor region <bold>" + name + "<!bold>"));
+                player.sendMessage(MessageUtil.filterMessage("<gray>⬤ Klik links/rechts met de rod om de punten te selecteren en maak de region met /grindingregion finish"));
+            });
+        });
     }
 
     private void handleCancel(Player player) {
@@ -172,35 +179,43 @@ public class GrindingRegionCommand implements Command {
         }
 
         String name = args[1];
-        Optional<GrindingRegionModel> regionOpt;
-        try {
-            regionOpt = StormDatabase.getInstance().getStorm()
-                    .buildQuery(GrindingRegionModel.class)
-                    .where("name", Where.EQUAL, name)
-                    .limit(1)
-                    .execute()
-                    .join()
-                    .stream()
-                    .findFirst();
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            player.sendMessage(MessageUtil.filterMessage("<warning>⚠ Er is een fout opgetreden bij het controleren van de region!"));
-            return;
-        }
-
-        if (regionOpt.isEmpty()) {
-            player.sendMessage(MessageUtil.filterMessage("<warning>⚠ Region <bold>" + name + " <!bold><warning>bestaat niet!"));
-            return;
-        }
-
-        try {
-            StormDatabase.getInstance().getStorm().delete(regionOpt.get());
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            player.sendMessage(MessageUtil.filterMessage("<warning>⚠ Er is een fout opgetreden bij het verwijdern van de region!"));
-            return;
-        }
-        player.sendMessage(MessageUtil.filterMessage("<red>Region <bold>" + name + "<!bold> is verwijderd."));
+        Bukkit.getScheduler().runTaskAsynchronously(OpenGrinding.getInstance(), () -> {
+            Optional<GrindingRegionModel> regionOpt;
+            try {
+                regionOpt = StormDatabase.getInstance().getStorm()
+                        .buildQuery(GrindingRegionModel.class)
+                        .where("name", Where.EQUAL, name)
+                        .limit(1)
+                        .execute()
+                        .join()
+                        .stream()
+                        .findFirst();
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                Bukkit.getScheduler().runTask(OpenGrinding.getInstance(), () ->
+                        player.sendMessage(MessageUtil.filterMessage("<warning>⚠ Er is een fout opgetreden bij het controleren van de region!"))
+                );
+                return;
+            }
+            if (regionOpt.isEmpty()) {
+                Bukkit.getScheduler().runTask(OpenGrinding.getInstance(), () ->
+                        player.sendMessage(MessageUtil.filterMessage("<warning>⚠ Region <bold>" + name + " <!bold><warning>bestaat niet!"))
+                );
+                return;
+            }
+            try {
+                StormDatabase.getInstance().getStorm().delete(regionOpt.get());
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                Bukkit.getScheduler().runTask(OpenGrinding.getInstance(), () ->
+                        player.sendMessage(MessageUtil.filterMessage("<warning>⚠ Er is een fout opgetreden bij het verwijderen van de region!"))
+                );
+                return;
+            }
+            Bukkit.getScheduler().runTask(OpenGrinding.getInstance(), () ->
+                    player.sendMessage(MessageUtil.filterMessage("<red>Region <bold>" + name + "<!bold> is verwijderd."))
+            );
+        });
     }
 
     private void handleAddJob(Player player, String[] args) {
@@ -211,42 +226,47 @@ public class GrindingRegionCommand implements Command {
 
         String regionName = args[1];
         String jobName = args[2].toUpperCase();
-
         Jobs job = Arrays.stream(Jobs.values())
                 .filter(j -> j.name().equalsIgnoreCase(jobName))
                 .findFirst()
                 .orElse(null);
-
         if (job == null) {
             player.sendMessage(MessageUtil.filterMessage("<warning>⚠ Onbekende job: <yellow>" + jobName));
             return;
         }
 
-        Optional<GrindingRegionModel> regionOpt;
-        try {
-            regionOpt = StormDatabase.getInstance().getStorm()
-                    .buildQuery(GrindingRegionModel.class)
-                    .where("name", Where.EQUAL, regionName)
-                    .limit(1)
-                    .execute()
-                    .join()
-                    .stream()
-                    .findFirst();
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            player.sendMessage(MessageUtil.filterMessage("<warning>⚠ Er is een fout opgetreden bij het controleren van de region!"));
-            return;
-        }
+        Bukkit.getScheduler().runTaskAsynchronously(OpenGrinding.getInstance(), () -> {
+            Optional<GrindingRegionModel> regionOpt;
+            try {
+                regionOpt = StormDatabase.getInstance().getStorm()
+                        .buildQuery(GrindingRegionModel.class)
+                        .where("name", Where.EQUAL, regionName)
+                        .limit(1)
+                        .execute()
+                        .join()
+                        .stream()
+                        .findFirst();
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                Bukkit.getScheduler().runTask(OpenGrinding.getInstance(), () ->
+                        player.sendMessage(MessageUtil.filterMessage("<warning>⚠ Er is een fout opgetreden bij het controleren van de region!"))
+                );
+                return;
+            }
+            if (regionOpt.isEmpty()) {
+                Bukkit.getScheduler().runTask(OpenGrinding.getInstance(), () ->
+                        player.sendMessage(MessageUtil.filterMessage("<warning>⚠ Region <yellow>" + regionName + " <warning>bestaat niet!"))
+                );
+                return;
+            }
+            GrindingRegion region = new GrindingRegion(regionOpt.get());
+            region.addJob(job);
+            region.save();
 
-        if (regionOpt.isEmpty()) {
-            player.sendMessage(MessageUtil.filterMessage("<warning>⚠ Region <yellow>" + regionName + " <warning>bestaat niet!"));
-            return;
-        }
-
-        GrindingRegion region = new GrindingRegion(regionOpt.get());
-        region.addJob(job);
-        region.save();
-        player.sendMessage(MessageUtil.filterMessage("<green>Job <bold>" + jobName + "<!bold> toegevoegd aan region <bold>" + regionName + "<!bold>"));
+            Bukkit.getScheduler().runTask(OpenGrinding.getInstance(), () ->
+                    player.sendMessage(MessageUtil.filterMessage("<green>Job <bold>" + jobName + "<!bold> toegevoegd aan region <bold>" + regionName + "<!bold>"))
+            );
+        });
     }
 
     private void handleRemoveJob(Player player, String[] args) {
@@ -257,7 +277,6 @@ public class GrindingRegionCommand implements Command {
 
         String regionName = args[1];
         String jobName = args[2].toUpperCase();
-
         Jobs job = Arrays.stream(Jobs.values())
                 .filter(j -> j.name().equalsIgnoreCase(jobName))
                 .findFirst()
@@ -267,32 +286,38 @@ public class GrindingRegionCommand implements Command {
             player.sendMessage(MessageUtil.filterMessage("<warning>⚠ Onbekende job: <yellow>" + jobName));
             return;
         }
+        Bukkit.getScheduler().runTaskAsynchronously(OpenGrinding.getInstance(), () -> {
+            Optional<GrindingRegionModel> regionOpt;
+            try {
+                regionOpt = StormDatabase.getInstance().getStorm()
+                        .buildQuery(GrindingRegionModel.class)
+                        .where("name", Where.EQUAL, regionName)
+                        .limit(1)
+                        .execute()
+                        .join()
+                        .stream()
+                        .findFirst();
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                Bukkit.getScheduler().runTask(OpenGrinding.getInstance(), () ->
+                        player.sendMessage(MessageUtil.filterMessage("<warning>⚠ Er is een fout opgetreden bij het controleren van de region!"))
+                );
+                return;
+            }
+            if (regionOpt.isEmpty()) {
+                Bukkit.getScheduler().runTask(OpenGrinding.getInstance(), () ->
+                        player.sendMessage(MessageUtil.filterMessage("<warning>⚠ Region <yellow>" + regionName + " <warning>bestaat niet!"))
+                );
+                return;
+            }
+            GrindingRegion region = new GrindingRegion(regionOpt.get());
+            region.removeJob(job);
+            region.save();
 
-        Optional<GrindingRegionModel> regionOpt;
-        try {
-            regionOpt = StormDatabase.getInstance().getStorm()
-                    .buildQuery(GrindingRegionModel.class)
-                    .where("name", Where.EQUAL, regionName)
-                    .limit(1)
-                    .execute()
-                    .join()
-                    .stream()
-                    .findFirst();
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            player.sendMessage(MessageUtil.filterMessage("<warning>⚠ Er is een fout opgetreden bij het controleren van de region!"));
-            return;
-        }
-
-        if (regionOpt.isEmpty()) {
-            player.sendMessage(MessageUtil.filterMessage("<warning>⚠ Region <yellow>" + regionName + " <warning>bestaat niet!"));
-            return;
-        }
-
-        GrindingRegion region = new GrindingRegion(regionOpt.get());
-        region.removeJob(job);
-        region.save();
-        player.sendMessage(MessageUtil.filterMessage("<red>Job <bold>" + jobName + "<!bold> verwijderd van region <bold>" + regionName + "<!bold>"));
+            Bukkit.getScheduler().runTask(OpenGrinding.getInstance(), () ->
+                    player.sendMessage(MessageUtil.filterMessage("<red>Job <bold>" + jobName + "<!bold> verwijderd van region <bold>" + regionName + "<!bold>"))
+            );
+        });
     }
 
     private void handleList(Player player, String[] args) {
@@ -303,40 +328,25 @@ public class GrindingRegionCommand implements Command {
             } catch (NumberFormatException ignored) {
             }
         }
-
         List<GrindingRegionModel> all;
         try {
-            all = StormDatabase.getInstance().getStorm()
-                    .buildQuery(GrindingRegionModel.class)
-                    .execute()
-                    .join()
-                    .stream().toList();
+            all = StormDatabase.getInstance().getStorm().buildQuery(GrindingRegionModel.class).execute().join().stream().toList();
         } catch (Exception ex) {
             ex.printStackTrace();
             player.sendMessage(MessageUtil.filterMessage("<warning>⚠ Er is een fout opgetreden bij het ophalen van de regions!"));
             return;
         }
-
         if (all.isEmpty()) {
             player.sendMessage(MessageUtil.filterMessage("<warning>⚠ Er zijn nog geen regions."));
             return;
         }
-
         int totalPages = (int) Math.ceil(all.size() / (double) PAGE_SIZE);
         if (page > totalPages) page = totalPages;
-
         player.sendMessage(MessageUtil.filterMessage("<red>--- Grinding Regions (Page " + page + "/" + totalPages + ") ---"));
-
-        all.stream()
-                .skip((long) (page - 1) * PAGE_SIZE)
-                .limit(PAGE_SIZE)
-                .forEach(r -> player.sendMessage(MessageUtil.filterMessage(
-                        "<gray>- <white>" + r.getName() +
-                                " <dark_gray>(Jobs: <yellow>" +
-                                (r.getJobs() == null || r.getJobs().isEmpty() ? "geen" :
-                                        String.join(", ", r.getJobs().stream().map(Enum::name).toList()))
-                                + "<dark_gray>)"
-                )));
+        all.stream().skip((long) (page - 1) * PAGE_SIZE).limit(PAGE_SIZE)
+                .forEach(r -> player.sendMessage(MessageUtil.filterMessage("<gray>- <white>" + r.getName() +
+                        " <dark_gray>(Jobs: <yellow>" + (r.getJobs() == null || r.getJobs().isEmpty() ? "geen" :
+                        String.join(", ", r.getJobs().stream().map(Enum::name).toList())) + "<dark_gray>)")));
     }
 
     @Override
@@ -386,7 +396,6 @@ public class GrindingRegionCommand implements Command {
         }
         return Collections.emptyList();
     }
-
 
     @Getter
     @Setter

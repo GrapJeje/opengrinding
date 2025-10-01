@@ -43,9 +43,7 @@ public class MiningModule extends Module {
         ores.clear();
     }
 
-    public static ItemStack getBlockHead(Block brokenBlock) {
-        Material blockType = brokenBlock.getType();
-
+    public static ItemStack getBlockHead(Material blockType) {
         String enumName = blockType.name().replace("_ORE", "");
         Ore ore;
         try {
