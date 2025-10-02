@@ -22,8 +22,6 @@ public final class OpenGrinding extends JavaPlugin {
     private static OpenGrinding instance;
     @Getter
     private static Framework framework;
-    @Getter
-    private static ModuleLoader moduleLoader;
 
     @Override
     public void onEnable() {
@@ -32,15 +30,16 @@ public final class OpenGrinding extends JavaPlugin {
         framework = Framework.init(this);
         this.registerStormModels();
 
+        framework.registerModuleloader();
         framework.registerModule(CoreModule::new);
         framework.registerModule(MiningModule::new);
 
-        moduleLoader = new ModuleLoader();
+        framework.getModuleLoader().enableModules();
     }
 
     @Override
     public void onDisable() {
-        moduleLoader.disableModules();
+        framework.getModuleLoader().disableModules();
         if (Main.getDb() != null) Main.getDb().close();
     }
 

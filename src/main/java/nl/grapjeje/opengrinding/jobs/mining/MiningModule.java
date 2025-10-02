@@ -43,6 +43,17 @@ public class MiningModule extends Module {
         ores.clear();
     }
 
+//    @Override
+//    public boolean isDisabled() {
+//        boolean enabledInConfig = OpenGrinding.getInstance()
+//                .getConfig()
+//                .getBoolean("modules.mining.enabled", false);
+//        if (!enabledInConfig)
+//            this.setDisabled();
+//
+//        return super.isDisabled();
+//    }
+
     public static ItemStack getBlockHead(Material blockType) {
         String enumName = blockType.name().replace("_ORE", "");
         Ore ore;

@@ -52,6 +52,8 @@ public class SellCommand implements Command {
             return;
         }
 
+        if (args == null || args.length == 0) return;
+
         String sub = args[0].toLowerCase();
         switch (sub) {
             case "mining" -> this.handleMiningCommand(player);

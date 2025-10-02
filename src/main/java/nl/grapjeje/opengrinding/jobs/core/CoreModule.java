@@ -29,7 +29,7 @@ public class CoreModule extends Module {
     private static final Map<UUID, PlayerGrindingModel> playerCache = new HashMap<>();
 
     public CoreModule() {
-        super("core");
+        super("core", true);
     }
 
     @Override

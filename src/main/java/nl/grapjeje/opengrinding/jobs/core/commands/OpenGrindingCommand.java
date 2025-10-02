@@ -1,5 +1,6 @@
 package nl.grapjeje.opengrinding.jobs.core.commands;
 
+import nl.grapjeje.core.Framework;
 import nl.grapjeje.core.command.CreditCommand;
 import nl.grapjeje.opengrinding.OpenGrinding;
 
@@ -23,5 +24,10 @@ public class OpenGrindingCommand implements CreditCommand {
     @Override
     public String getVersion() {
         return OpenGrinding.getInstance().getDescription().getVersion();
+    }
+
+    @Override
+    public Framework getFramework() {
+        return OpenGrinding.getFramework();
     }
 }
