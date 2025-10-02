@@ -98,7 +98,7 @@ public class MiningJobConfiguration extends Config implements JobConfig {
     public double getXpForLevel(int level) {
         if (levelOverrides.containsKey(level))
             return levelOverrides.get(level);
-        return (100 * level) + ((level / 5) * 50);
+        return (100 * level) + (((double) level / 5) * 50);
     }
 
     @Override
