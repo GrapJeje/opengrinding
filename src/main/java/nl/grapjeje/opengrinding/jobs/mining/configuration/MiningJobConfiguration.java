@@ -3,6 +3,7 @@ package nl.grapjeje.opengrinding.jobs.mining.configuration;
 import lombok.Getter;
 import nl.grapjeje.core.Config;
 import nl.grapjeje.opengrinding.jobs.core.configuration.JobConfig;
+import nl.grapjeje.opengrinding.jobs.mining.objects.Ore;
 import org.bukkit.configuration.ConfigurationSection;
 
 import java.io.File;
@@ -20,7 +21,7 @@ public class MiningJobConfiguration extends Config implements JobConfig {
     private boolean openBuyShop;
     private boolean buyEnabled;
 
-    private final Map<String, Ore> ores;
+    private final Map<nl.grapjeje.opengrinding.jobs.mining.objects.Ore, Ore> ores;
     private final Map<String, Pickaxe> pickaxes;
 
     private int maxLevel;
@@ -45,7 +46,7 @@ public class MiningJobConfiguration extends Config implements JobConfig {
         this.sellEnabled = sellSection != null && sellSection.getBoolean("enabled", true);
 
         ConfigurationSection openBuy = config.getConfigurationSection("economy.sell");
-        this.buyEnabled = openBuy != null && openBuy.getBoolean("open-buy-shop", true);
+        this.openBuyShop = openBuy != null && openBuy.getBoolean("open-buy-shop", true);
 
         ConfigurationSection buySection = config.getConfigurationSection("economy.buy");
         this.buyEnabled = buySection != null && buySection.getBoolean("enabled", true);
@@ -56,13 +57,17 @@ public class MiningJobConfiguration extends Config implements JobConfig {
             for (String key : oreSection.getKeys(false)) {
                 ConfigurationSection section = oreSection.getConfigurationSection(key);
                 if (section != null) {
-                    Ore ore = new Ore(
-                            key,
-                            section.getDouble("sell-price"),
-                            section.getInt("points"),
-                            section.getInt("unlock-level")
-                    );
-                    ores.put(key, ore);
+                    try {
+                        nl.grapjeje.opengrinding.jobs.mining.objects.Ore oreEnum = nl.grapjeje.opengrinding.jobs.mining.objects.Ore.valueOf(key.toUpperCase());
+                        Ore oreRecord = new Ore(
+                                key,
+                                section.getDouble("sell-price"),
+                                section.getInt("points"),
+                                section.getInt("unlock-level")
+                        );
+                        ores.put(oreEnum, oreRecord);
+                    } catch (IllegalArgumentException ignored) {
+                    }
                 }
             }
         }

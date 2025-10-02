@@ -55,23 +55,15 @@ public class SellCommand implements Command {
             player.sendMessage(MessageUtil.filterMessage("<warning>⚠ Dit item kun je hier niet verkopen!"));
             return;
         }
+
         SkullMeta meta = (SkullMeta) itemInHand.getItemMeta();
         if (meta == null || meta.getPlayerProfile() == null) {
             player.sendMessage(MessageUtil.filterMessage("<warning>⚠ Dit item kun je hier niet verkopen!"));
             return;
         }
+
         UUID skullUuid = meta.getPlayerProfile().getId();
-        Ore matchedOre = null;
-        for (Ore ore : Ore.values()) {
-            if (ore.getUuid().equals(skullUuid)) {
-                matchedOre = ore;
-                break;
-            }
-        }
-        if (matchedOre == null) {
-            player.sendMessage(MessageUtil.filterMessage("<warning>⚠ Dit item kun je hier niet verkopen!"));
-            return;
-        }
+
         MiningModule miningModule = OpenGrinding.getFramework().getModuleLoader()
                 .getModules().stream()
                 .filter(m -> m instanceof MiningModule)
@@ -83,24 +75,42 @@ public class SellCommand implements Command {
             player.sendMessage(MessageUtil.filterMessage("<warning>⚠ De mining module is momenteel uitgeschakeld!"));
             return;
         }
-        MiningJobConfiguration miningConfig = MiningModule.getConfig();
-        if (!miningConfig.isSellEnabled()) {
+
+        MiningJobConfiguration config = MiningModule.getConfig();
+        if (!config.isSellEnabled()) {
             player.sendMessage(MessageUtil.filterMessage("<warning>⚠ Je kunt momenteel niks verkopen! Contacteer een beheerder als jij denkt dat dit een fout is."));
             return;
         }
 
-        double pricePerOne = miningConfig.getSellPrices()
-                .getOrDefault(matchedOre.name().toLowerCase(), -1.0);
-        if (pricePerOne <= 0) {
+        Optional<Ore> enumOre = Arrays.stream(Ore.values()).filter(ore -> ore.getUuid().equals(skullUuid)).findFirst();
+        if (enumOre.isEmpty()) {
+            player.sendMessage(MessageUtil.filterMessage("<warning>⚠ Dit item kun je hier niet verkopen!"));
+            return;
+        }
+
+        var oreRecord = config.getOres().values().stream()
+                .filter(record -> Objects.equals(record.name(), enumOre.get().name().toLowerCase()))
+                .findFirst()
+                .orElse(null);
+
+        if (oreRecord == null || oreRecord.sellPrice() <= 0) {
             player.sendMessage(MessageUtil.filterMessage("<warning>⚠ Dit item heeft geen verkoopwaarde!"));
             return;
         }
+
+        double pricePerOne = oreRecord.sellPrice();
+
         double amount = pricePerOne * itemInHand.getAmount();
         giveCash(player, amount);
 
         player.getInventory().removeItem(itemInHand);
-        String itemName = PlainTextComponentSerializer.plainText().serialize(itemInHand.getItemMeta().displayName());
-        player.sendMessage(MessageUtil.filterMessage("<green>Je hebt succesvol <bold>" + itemInHand.getAmount() + " " + itemName + "<!bold> verkocht voor <bold>" + amount + "<!bold>!"));
+        String itemName = PlainTextComponentSerializer.plainText()
+                .serialize(Objects.requireNonNull(itemInHand.getItemMeta().displayName()));
+
+        player.sendMessage(MessageUtil.filterMessage(
+                "<green>Je hebt succesvol <bold>" + itemInHand.getAmount() + " " + itemName +
+                        "<!bold> verkocht voor <bold>" + amount + "<!bold>!"
+        ));
     }
 
     private void giveCash(Player player, double amount) {
@@ -109,14 +119,31 @@ public class SellCommand implements Command {
             if (accountModel == null) {
                 player.sendMessage(MessageConfiguration.component("banking_account_not_found"));
             } else {
-                TransactionUpdateEvent event = new TransactionUpdateEvent(player.getUniqueId(), player.getName(), TransactionType.SET, amount, accountModel, "Sold ores", System.currentTimeMillis());
+                TransactionUpdateEvent event = new TransactionUpdateEvent(
+                        player.getUniqueId(),
+                        player.getName(),
+                        TransactionType.SET,
+                        amount,
+                        accountModel,
+                        "Sold ores",
+                        System.currentTimeMillis()
+                );
                 if (EventUtils.callCancellable(event)) {
                     player.sendMessage(ChatUtils.color("<red>De transactie is geannuleerd door een plugin."));
                 } else {
                     accountModel.setBalance(accountModel.getBalance() + amount);
                     accountModel.save();
-                    TransactionsModule transactionsModule = (TransactionsModule)OpenMinetopia.getModuleManager().get(TransactionsModule.class);
-                    transactionsModule.createTransactionLog(System.currentTimeMillis(), player.getUniqueId(), player.getName(), TransactionType.SET, amount, accountModel.getUniqueId(), "Sold ores");
+                    TransactionsModule transactionsModule =
+                            (TransactionsModule) OpenMinetopia.getModuleManager().get(TransactionsModule.class);
+                    transactionsModule.createTransactionLog(
+                            System.currentTimeMillis(),
+                            player.getUniqueId(),
+                            player.getName(),
+                            TransactionType.SET,
+                            amount,
+                            accountModel.getUniqueId(),
+                            "Sold ores"
+                    );
                 }
             }
         });
