@@ -17,10 +17,7 @@ import nl.grapjeje.opengrinding.jobs.mining.configuration.MiningJobConfiguration
 import nl.grapjeje.opengrinding.jobs.mining.objects.Ore;
 import nl.grapjeje.opengrinding.models.PlayerGrindingModel;
 import nl.openminetopia.modules.data.storm.StormDatabase;
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.Sound;
+import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -58,6 +55,7 @@ public class BlockBreakListener implements Listener {
             player.sendMessage(MessageUtil.filterMessage("<warning>⚠ De mining module is momenteel uitgeschakeld!"));
             return;
         }
+        if (player.getGameMode() == GameMode.CREATIVE || player.getGameMode() == GameMode.SURVIVAL) return;
 
         Block block = e.getBlock();
         Location location = block.getLocation();
@@ -89,6 +87,7 @@ public class BlockBreakListener implements Listener {
                     e.setCancelled(true);
                     block.setType(originalType);
                     player.sendMessage(MessageUtil.filterMessage("<warning>⚠ Jij bent niet hoog genoeg level voor dit blok! (Nodig: " + oreRecord.unlockLevel() + ")"));
+                    player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 0.5F, 1.0F);
                 });
                 return;
             }

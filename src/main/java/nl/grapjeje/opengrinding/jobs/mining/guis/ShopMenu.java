@@ -185,7 +185,7 @@ public class ShopMenu extends Menu {
                 if (EventUtils.callCancellable(event)) {
                     player.sendMessage(ChatUtils.color("<red>De transactie is geannuleerd door een plugin."));
                 } else {
-                    accountModel.setBalance(accountModel.getBalance() + amount);
+                    accountModel.setBalance(accountModel.getBalance() - amount);
                     accountModel.save();
                     TransactionsModule transactionsModule =
                             (TransactionsModule) OpenMinetopia.getModuleManager().get(TransactionsModule.class);

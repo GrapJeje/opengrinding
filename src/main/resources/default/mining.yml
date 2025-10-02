@@ -3,7 +3,7 @@ enabled: true   # Zet de job aan/uit
 economy:
   sell:
     enabled: true   # Zet verkopen aan/uit
-    open-buy-shop: true
+    open-buy-shop: true # Bepaal of dat je wilt dat de buy-shop opent met de sell commando
   buy:
     enabled: true   # Zet kopen aan/uit
 

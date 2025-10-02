@@ -7,6 +7,7 @@ import nl.grapjeje.core.text.MessageUtil;
 import nl.grapjeje.opengrinding.OpenGrinding;
 import nl.grapjeje.opengrinding.jobs.mining.MiningModule;
 import nl.grapjeje.opengrinding.jobs.mining.configuration.MiningJobConfiguration;
+import nl.grapjeje.opengrinding.jobs.mining.guis.ShopMenu;
 import nl.grapjeje.opengrinding.jobs.mining.objects.Ore;
 import nl.openminetopia.OpenMinetopia;
 import nl.openminetopia.configuration.MessageConfiguration;
@@ -52,13 +53,15 @@ public class SellCommand implements Command {
     private void handleMiningCommand(Player player) {
         ItemStack itemInHand = player.getInventory().getItemInMainHand();
         if (itemInHand == null || itemInHand.getType() != Material.PLAYER_HEAD) {
-            player.sendMessage(MessageUtil.filterMessage("<warning>⚠ Dit item kun je hier niet verkopen!"));
+            if (MiningModule.getConfig().isOpenBuyShop()) new ShopMenu().open(player);
+            else player.sendMessage(MessageUtil.filterMessage("<warning>⚠ Dit item kun je hier niet verkopen!"));
             return;
         }
 
         SkullMeta meta = (SkullMeta) itemInHand.getItemMeta();
         if (meta == null || meta.getPlayerProfile() == null) {
-            player.sendMessage(MessageUtil.filterMessage("<warning>⚠ Dit item kun je hier niet verkopen!"));
+            if (MiningModule.getConfig().isOpenBuyShop()) new ShopMenu().open(player);
+            else player.sendMessage(MessageUtil.filterMessage("<warning>⚠ Dit item kun je hier niet verkopen!"));
             return;
         }
 
@@ -84,7 +87,8 @@ public class SellCommand implements Command {
 
         Optional<Ore> enumOre = Arrays.stream(Ore.values()).filter(ore -> ore.getUuid().equals(skullUuid)).findFirst();
         if (enumOre.isEmpty()) {
-            player.sendMessage(MessageUtil.filterMessage("<warning>⚠ Dit item kun je hier niet verkopen!"));
+            if (MiningModule.getConfig().isOpenBuyShop()) new ShopMenu().open(player);
+            else player.sendMessage(MessageUtil.filterMessage("<warning>⚠ Dit item kun je hier niet verkopen!"));
             return;
         }
 
@@ -94,7 +98,8 @@ public class SellCommand implements Command {
                 .orElse(null);
 
         if (oreRecord == null || oreRecord.sellPrice() <= 0) {
-            player.sendMessage(MessageUtil.filterMessage("<warning>⚠ Dit item heeft geen verkoopwaarde!"));
+            if (MiningModule.getConfig().isOpenBuyShop()) new ShopMenu().open(player);
+            else player.sendMessage(MessageUtil.filterMessage("<warning>⚠ Dit item kun je hier niet verkopen!"));
             return;
         }
 
@@ -122,7 +127,7 @@ public class SellCommand implements Command {
                 TransactionUpdateEvent event = new TransactionUpdateEvent(
                         player.getUniqueId(),
                         player.getName(),
-                        TransactionType.SET,
+                        TransactionType.DEPOSIT,
                         amount,
                         accountModel,
                         "Sold ores",
@@ -139,7 +144,7 @@ public class SellCommand implements Command {
                             System.currentTimeMillis(),
                             player.getUniqueId(),
                             player.getName(),
-                            TransactionType.SET,
+                            TransactionType.DEPOSIT,
                             amount,
                             accountModel.getUniqueId(),
                             "Sold ores"
