@@ -12,6 +12,7 @@ import nl.grapjeje.opengrinding.jobs.core.objects.GrindingPlayer;
 import nl.grapjeje.opengrinding.jobs.core.objects.GrindingRegion;
 import nl.grapjeje.opengrinding.jobs.mining.MiningModule;
 import nl.grapjeje.opengrinding.jobs.mining.objects.MiningOres;
+import nl.grapjeje.opengrinding.jobs.mining.configuration.MiningJobConfiguration;
 import nl.grapjeje.opengrinding.models.PlayerGrindingModel;
 import nl.openminetopia.modules.data.storm.StormDatabase;
 import org.bukkit.Bukkit;
@@ -62,43 +63,13 @@ public class BlockBreakListener implements Listener {
         e.setExpToDrop(0);
 
         Bukkit.getScheduler().runTaskAsynchronously(OpenGrinding.getInstance(), () -> {
-            PlayerGrindingModel model;
-            if (CoreModule.getPlayerCache().containsKey(player.getUniqueId()))
-                model = CoreModule.getPlayerCache().get(player.getUniqueId());
-            else {
-                Optional<PlayerGrindingModel> playerModelOpt;
-                try {
-                    playerModelOpt = StormDatabase.getInstance().getStorm()
-                            .buildQuery(PlayerGrindingModel.class)
-                            .where("player_uuid", Where.EQUAL, player.getUniqueId())
-                            .where("job_name", Where.EQUAL, Jobs.MINING.name())
-                            .limit(1)
-                            .execute()
-                            .join()
-                            .stream()
-                            .findFirst();
-                } catch (Exception ex) {
-                    ex.printStackTrace();
-                    Bukkit.getScheduler().runTask(OpenGrinding.getInstance(), () ->
-                            player.sendMessage(MessageUtil.filterMessage("<warning>⚠ Er is een fout opgetreden bij het ophalen van jouw spelersdata!"))
-                    );
-                    return;
-                }
+            PlayerGrindingModel model = this.loadOrCreatePlayerModel(player);
 
-                model = playerModelOpt.orElseGet(() -> {
-                    PlayerGrindingModel m = new PlayerGrindingModel();
-                    m.setPlayerUuid(player.getUniqueId());
-                    m.setJob(Jobs.MINING);
-                    m.setLevel(0);
-                    m.setValue(0.0);
-                    Bukkit.getLogger().info("New player grind model made for " + player.getName());
-                    return m;
-                });
-            }
+            MiningJobConfiguration config = MiningModule.getConfig();
 
-            if (!this.canMineLevel(block, model)) {
+            if (!this.canMineLevel(block, model, config)) {
                 Bukkit.getScheduler().runTask(OpenGrinding.getInstance(), () -> {
-                    player.sendMessage(MessageUtil.filterMessage("<warning>⚠ Jij bent niet hoog genoeg level voor!"));
+                    player.sendMessage(MessageUtil.filterMessage("<warning>⚠ Jij bent niet hoog genoeg level voor dit blok!"));
                     e.setCancelled(true);
                 });
                 return;
@@ -106,12 +77,7 @@ public class BlockBreakListener implements Listener {
 
             Bukkit.getScheduler().runTask(OpenGrinding.getInstance(), () -> {
                 if (isInventoryFull(player)) {
-                    Component title = MessageUtil.filterMessage("<red>Je inventory zit vol!");
-                    Component subtitle = MessageUtil.filterMessage("<gold>Verkoop wat blokjes!");
-                    player.sendTitlePart(TitlePart.TITLE, title);
-                    player.sendTitlePart(TitlePart.SUBTITLE, subtitle);
-                    player.sendTitlePart(TitlePart.TIMES, Title.Times.times(Duration.ofMillis(500), Duration.ofMillis(3500), Duration.ofMillis(1000)));
-                    player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 3.0F, 0.5F);
+                    this.showInventoryFull(player);
                     e.setCancelled(true);
                     return;
                 }
@@ -128,33 +94,74 @@ public class BlockBreakListener implements Listener {
                 MiningModule.getOres().add(new MiningOres(location, originalType, System.currentTimeMillis()));
 
                 String baseName = originalType.name().replace("_ORE", "").toLowerCase();
-                int points = CoreModule.getGrindingLevelsConfiguration().getPointsPerOre().getOrDefault(baseName, 0);
+                int points = config.getPointsPerOre().getOrDefault(baseName, 0);
                 GrindingPlayer gp = new GrindingPlayer(player.getUniqueId(), model);
                 gp.addProgress(Jobs.MINING, points);
+
                 Bukkit.getScheduler().runTaskAsynchronously(OpenGrinding.getInstance(), gp::save);
             });
         });
     }
 
+    private PlayerGrindingModel loadOrCreatePlayerModel(Player player) {
+        if (CoreModule.getPlayerCache().containsKey(player.getUniqueId()))
+            return CoreModule.getPlayerCache().get(player.getUniqueId());
 
-    private boolean isInventoryFull(Player player) {
-        for (ItemStack item : player.getInventory().getStorageContents()) {
-            if (item == null || item.getType() == Material.AIR)
-                return false;
-            if (item.getAmount() < item.getMaxStackSize())
-                return false;
+        Optional<PlayerGrindingModel> playerModelOpt;
+        try {
+            playerModelOpt = StormDatabase.getInstance().getStorm()
+                    .buildQuery(PlayerGrindingModel.class)
+                    .where("player_uuid", Where.EQUAL , player.getUniqueId())
+                    .where("job_name", Where.EQUAL, Jobs.MINING.name())
+                    .limit(1)
+                    .execute()
+                    .join()
+                    .stream()
+                    .findFirst();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            Bukkit.getScheduler().runTask(OpenGrinding.getInstance(), () ->
+                    player.sendMessage(MessageUtil.filterMessage("<warning>⚠ Er is een fout opgetreden bij het ophalen van jouw spelersdata!"))
+            );
+            throw new RuntimeException(ex);
         }
-        return true;
+
+        return playerModelOpt.orElseGet(() -> {
+            PlayerGrindingModel m = new PlayerGrindingModel();
+            m.setPlayerUuid(player.getUniqueId());
+            m.setJob(Jobs.MINING);
+            m.setLevel(0);
+            m.setValue(0.0);
+            Bukkit.getLogger().info("New player grind model made for " + player.getName());
+            return m;
+        });
     }
 
     private boolean canMine(Block block) {
         return whitelist.contains(block.getType());
     }
 
-    private boolean canMineLevel(Block block, PlayerGrindingModel playerModel) {
+    private boolean canMineLevel(Block block, PlayerGrindingModel model, MiningJobConfiguration config) {
         String oreName = block.getType().name().toLowerCase().replace("_ore", "");
-        int playerLevel = playerModel.getLevel();
-        int neededLevel = CoreModule.getGrindingLevelsConfiguration().getRequiredLevelForOre(oreName);
-        return playerLevel >= neededLevel;
+        int playerLevel = model.getLevel();
+        int requiredLevel = config.getRequiredLevelForOre(oreName);
+        return playerLevel >= requiredLevel;
+    }
+
+    private boolean isInventoryFull(Player player) {
+        for (ItemStack item : player.getInventory().getStorageContents()) {
+            if (item == null || item.getType() == Material.AIR) return false;
+            if (item.getAmount() < item.getMaxStackSize()) return false;
+        }
+        return true;
+    }
+
+    private void showInventoryFull(Player player) {
+        Component title = MessageUtil.filterMessage("<red>Je inventory zit vol!");
+        Component subtitle = MessageUtil.filterMessage("<gold>Verkoop wat blokjes!");
+        player.sendTitlePart(TitlePart.TITLE, title);
+        player.sendTitlePart(TitlePart.SUBTITLE, subtitle);
+        player.sendTitlePart(TitlePart.TIMES, Title.Times.times(Duration.ofMillis(500), Duration.ofMillis(3500), Duration.ofMillis(1000)));
+        player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 3.0F, 0.5F);
     }
 }

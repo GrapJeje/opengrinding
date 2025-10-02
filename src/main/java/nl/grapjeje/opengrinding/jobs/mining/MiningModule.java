@@ -5,6 +5,7 @@ import nl.grapjeje.core.SkullUtil;
 import nl.grapjeje.core.modules.Module;
 import nl.grapjeje.core.text.MessageUtil;
 import nl.grapjeje.opengrinding.OpenGrinding;
+import nl.grapjeje.opengrinding.jobs.mining.configuration.MiningJobConfiguration;
 import nl.grapjeje.opengrinding.jobs.mining.listener.BlockBreakListener;
 import nl.grapjeje.opengrinding.jobs.mining.objects.MiningOres;
 import nl.grapjeje.opengrinding.jobs.mining.objects.Ore;
@@ -21,6 +22,9 @@ import java.util.List;
 public class MiningModule extends Module {
     @Getter
     private final static List<MiningOres> ores = new ArrayList<>();
+
+    @Getter
+    private final static MiningJobConfiguration config = new MiningJobConfiguration(OpenGrinding.getInstance().getDataFolder());
 
     public MiningModule() {
         super("mining");
@@ -43,16 +47,12 @@ public class MiningModule extends Module {
         ores.clear();
     }
 
-//    @Override
-//    public boolean isDisabled() {
-//        boolean enabledInConfig = OpenGrinding.getInstance()
-//                .getConfig()
-//                .getBoolean("modules.mining.enabled", false);
-//        if (!enabledInConfig)
-//            this.setDisabled();
-//
-//        return super.isDisabled();
-//    }
+    @Override
+    public boolean isDisabled() {
+        if (!getConfig().isEnabled())
+            this.setDisabled();
+        return super.isDisabled();
+    }
 
     public static ItemStack getBlockHead(Material blockType) {
         String enumName = blockType.name().replace("_ORE", "");

@@ -1,35 +1,24 @@
 package nl.grapjeje.opengrinding.jobs.core.commands;
 
-import com.craftmend.storm.api.enums.Where;
-import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import nl.grapjeje.core.command.Command;
 import nl.grapjeje.core.command.CommandSourceStack;
 import nl.grapjeje.core.text.MessageUtil;
 import nl.grapjeje.opengrinding.OpenGrinding;
-import nl.grapjeje.opengrinding.jobs.Jobs;
-import nl.grapjeje.opengrinding.jobs.core.CoreModule;
+import nl.grapjeje.opengrinding.jobs.mining.MiningModule;
+import nl.grapjeje.opengrinding.jobs.mining.configuration.MiningJobConfiguration;
 import nl.grapjeje.opengrinding.jobs.mining.objects.Ore;
-import nl.grapjeje.opengrinding.models.GrindingRegionModel;
-import nl.grapjeje.opengrinding.models.PlayerGrindingModel;
 import nl.openminetopia.OpenMinetopia;
-import nl.openminetopia.api.player.PlayerManager;
-import nl.openminetopia.api.player.objects.MinetopiaPlayer;
 import nl.openminetopia.configuration.MessageConfiguration;
 import nl.openminetopia.modules.banking.BankingModule;
-import nl.openminetopia.modules.currencies.models.CurrencyModel;
-import nl.openminetopia.modules.data.storm.StormDatabase;
-import nl.openminetopia.modules.player.models.PlayerModel;
 import nl.openminetopia.modules.transactions.TransactionsModule;
 import nl.openminetopia.modules.transactions.enums.TransactionType;
 import nl.openminetopia.modules.transactions.events.TransactionUpdateEvent;
 import nl.openminetopia.utils.ChatUtils;
 import nl.openminetopia.utils.events.EventUtils;
-import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -57,7 +46,6 @@ public class SellCommand implements Command {
         String sub = args[0].toLowerCase();
         switch (sub) {
             case "mining" -> this.handleMiningCommand(player);
-//            default -> this.sendHelp(player);
         }
     }
 
@@ -67,7 +55,6 @@ public class SellCommand implements Command {
             player.sendMessage(MessageUtil.filterMessage("<warning>⚠ Dit item kun je hier niet verkopen!"));
             return;
         }
-
         SkullMeta meta = (SkullMeta) itemInHand.getItemMeta();
         if (meta == null || meta.getPlayerProfile() == null) {
             player.sendMessage(MessageUtil.filterMessage("<warning>⚠ Dit item kun je hier niet verkopen!"));
@@ -75,7 +62,6 @@ public class SellCommand implements Command {
         }
         UUID skullUuid = meta.getPlayerProfile().getId();
         Ore matchedOre = null;
-
         for (Ore ore : Ore.values()) {
             if (ore.getUuid().equals(skullUuid)) {
                 matchedOre = ore;
@@ -86,15 +72,31 @@ public class SellCommand implements Command {
             player.sendMessage(MessageUtil.filterMessage("<warning>⚠ Dit item kun je hier niet verkopen!"));
             return;
         }
+        MiningModule miningModule = OpenGrinding.getFramework().getModuleLoader()
+                .getModules().stream()
+                .filter(m -> m instanceof MiningModule)
+                .map(m -> (MiningModule) m)
+                .findFirst()
+                .orElse(null);
 
-        if (!CoreModule.getGrindingShopConfiguration().getShops().get("mining").sellEnabled()) {
+        if (miningModule == null || miningModule.isDisabled()) {
+            player.sendMessage(MessageUtil.filterMessage("<warning>⚠ De mining module is momenteel uitgeschakeld. Je kunt niks verkopen!"));
+            return;
+        }
+        MiningJobConfiguration miningConfig = MiningModule.getConfig();
+        if (!miningConfig.isSellEnabled()) {
             player.sendMessage(MessageUtil.filterMessage("<warning>⚠ Je kunt momenteel niks verkopen! Contacteer een beheerder als jij denkt dat dit een fout is."));
             return;
         }
 
-        double pricePerOne = CoreModule.getGrindingShopConfiguration().getShops().get("mining").sell().getOrDefault(matchedOre.name().toLowerCase(), -1.0);
+        double pricePerOne = miningConfig.getSellPrices()
+                .getOrDefault(matchedOre.name().toLowerCase(), -1.0);
+        if (pricePerOne <= 0) {
+            player.sendMessage(MessageUtil.filterMessage("<warning>⚠ Dit item heeft geen verkoopwaarde!"));
+            return;
+        }
         double amount = pricePerOne * itemInHand.getAmount();
-        this.giveCash(player, amount);
+        giveCash(player, amount);
 
         player.getInventory().removeItem(itemInHand);
         String itemName = PlainTextComponentSerializer.plainText().serialize(itemInHand.getItemMeta().displayName());

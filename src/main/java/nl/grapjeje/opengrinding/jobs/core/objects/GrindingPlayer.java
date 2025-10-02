@@ -1,14 +1,13 @@
 package nl.grapjeje.opengrinding.jobs.core.objects;
 
 import lombok.Getter;
-import net.objecthunter.exp4j.ExpressionBuilder;
-import nl.grapjeje.core.text.MessageUtil;
 import nl.grapjeje.opengrinding.OpenGrinding;
 import nl.grapjeje.opengrinding.jobs.Jobs;
 import nl.grapjeje.opengrinding.jobs.core.CoreModule;
-import nl.grapjeje.opengrinding.jobs.core.configuration.GrindingLevelsConfiguration;
+import nl.grapjeje.opengrinding.jobs.core.configuration.JobConfig;
 import nl.grapjeje.opengrinding.jobs.core.events.PlayerLevelChangeEvent;
 import nl.grapjeje.opengrinding.jobs.core.events.PlayerValueChangeEvent;
+import nl.grapjeje.opengrinding.jobs.mining.MiningModule;
 import nl.grapjeje.opengrinding.models.PlayerGrindingModel;
 import nl.openminetopia.api.player.PlayerManager;
 import nl.openminetopia.api.player.objects.MinetopiaPlayer;
@@ -37,44 +36,38 @@ public class GrindingPlayer {
 
     /* ---------- Progression ---------- */
     public void addProgress(Jobs job, double xp) {
-        GrindingLevelsConfiguration config = CoreModule.getGrindingLevelsConfiguration();
-
+        JobConfig config;
+        switch (job) {
+            case MINING -> config = MiningModule.getConfig();
+            default -> throw new IllegalStateException("Unknown job: " + job);
+        }
         double oldXp = model.getValue();
         int oldLevel = model.getLevel();
         double newXp = oldXp + xp;
-        double finalNewXp = newXp;
-        Bukkit.getScheduler().runTask(OpenGrinding.getInstance(), () -> {
-            new PlayerValueChangeEvent(this, job, oldXp, finalNewXp).callEvent();
-        });
 
+        double finalNewXp = newXp;
+        Bukkit.getScheduler().runTask(OpenGrinding.getInstance(), () ->
+                new PlayerValueChangeEvent(this, job, oldXp, finalNewXp).callEvent()
+        );
         int currentLevel = oldLevel;
         while (currentLevel < config.getMaxLevel()) {
-            int xpNeeded = this.getXpForLevel(currentLevel + 1, config);
+            double xpNeeded = config.getLevelOverride(currentLevel + 1) != null
+                    ? config.getLevelOverride(currentLevel + 1)
+                    : config.getXpForLevel(currentLevel + 1);
+
             if (newXp >= xpNeeded) {
                 newXp -= xpNeeded;
                 currentLevel++;
+
                 int finalOldLevel = oldLevel;
                 int finalCurrentLevel = currentLevel;
-                Bukkit.getScheduler().runTask(OpenGrinding.getInstance(), () -> {
-                    new PlayerLevelChangeEvent(this, job, finalOldLevel, finalCurrentLevel).callEvent();
-                });
+                Bukkit.getScheduler().runTask(OpenGrinding.getInstance(), () ->
+                        new PlayerLevelChangeEvent(this, job, finalOldLevel, finalCurrentLevel).callEvent()
+                );
                 oldLevel = currentLevel;
             } else break;
         }
-
         model.setLevel(currentLevel);
         model.setValue(newXp);
-    }
-
-    private int getXpForLevel(int level, GrindingLevelsConfiguration config) {
-        Integer override = config.getOverrides().get(level);
-        if (override != null && override > 0) return override;
-
-        double result = new ExpressionBuilder(config.getFormula())
-                .variable("level")
-                .build()
-                .setVariable("level", level)
-                .evaluate();
-        return (int) Math.max(0, result);
     }
 }
