@@ -23,3 +23,5 @@ commands:
     description: Shop command
   fixskull:
     description: Fix a skull that is stuck on a head
+  fishloottable:
+    description: Crud command for fish loottables

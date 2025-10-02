@@ -1,23 +1,22 @@
-package nl.grapjeje.opengrinding.jobs.core.events;
+package nl.grapjeje.opengrinding.jobs.fishing.base.events;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import nl.grapjeje.opengrinding.jobs.Jobs;
+import nl.grapjeje.opengrinding.jobs.core.events.GrindingPlayerEvent;
 import nl.grapjeje.opengrinding.jobs.core.objects.GrindingPlayer;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
+import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
 @RequiredArgsConstructor
 @Getter
-public class PlayerLevelChangeEvent extends Event implements GrindingPlayerEvent, JobEvent {
+public class PlayerFishCatchEvent extends Event implements GrindingPlayerEvent {
     @Getter
     private static final HandlerList HANDLERS = new HandlerList();
 
     private final GrindingPlayer player;
-    private final Jobs job;
-    private final int oldLevel;
-    private final int newLevel;
+    private final ItemStack item;
 
     @Override
     public @NotNull HandlerList getHandlers() {

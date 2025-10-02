@@ -23,4 +23,8 @@ public class PlayerValueChangeEvent extends Event implements GrindingPlayerEvent
     public @NotNull HandlerList getHandlers() {
         return HANDLERS;
     }
+
+    public static HandlerList getHandlerList() {
+        return HANDLERS;
+    }
 }

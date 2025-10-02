@@ -2,16 +2,14 @@ package nl.grapjeje.opengrinding;
 
 import com.craftmend.storm.Storm;
 import com.craftmend.storm.api.StormModel;
-import com.craftmend.storm.connection.hikaricp.HikariDriver;
-import com.zaxxer.hikari.HikariDataSource;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import nl.grapjeje.core.Framework;
 import nl.grapjeje.core.Main;
-import nl.grapjeje.core.gui.GuiImpl;
-import nl.grapjeje.core.modules.ModuleLoader;
 import nl.grapjeje.opengrinding.jobs.core.CoreModule;
+import nl.grapjeje.opengrinding.jobs.fishing.FishingModule;
 import nl.grapjeje.opengrinding.jobs.mining.MiningModule;
+import nl.grapjeje.opengrinding.models.FishLootTableModel;
 import nl.grapjeje.opengrinding.models.GrindingRegionModel;
 import nl.grapjeje.opengrinding.models.PlayerGrindingModel;
 import nl.openminetopia.modules.data.storm.StormDatabase;
@@ -34,6 +32,7 @@ public final class OpenGrinding extends JavaPlugin {
         framework.registerModuleloader();
         framework.registerModule(CoreModule::new);
         framework.registerModule(MiningModule::new);
+        framework.registerModule(FishingModule::new);
 
         framework.getModuleLoader().enableModules();
     }
@@ -47,6 +46,7 @@ public final class OpenGrinding extends JavaPlugin {
     private void registerStormModels() {
         this.registerStormModel(new PlayerGrindingModel());
         this.registerStormModel(new GrindingRegionModel());
+        this.registerStormModel(new FishLootTableModel());
     }
 
     @SneakyThrows

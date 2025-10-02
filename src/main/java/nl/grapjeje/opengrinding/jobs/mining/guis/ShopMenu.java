@@ -85,7 +85,7 @@ public class ShopMenu extends Menu {
         }
 
         Gui gui = builder.build();
-        registerGui(gui);
+        this.registerGui(gui);
         gui.open(player);
     }
 
