@@ -19,3 +19,5 @@ commands:
     description: Region command
   sell:
     description: Sell command
+  fixskull:
+    description: Fix a skull that is stuck on a head
