@@ -7,11 +7,14 @@ import java.io.File;
 
 @Getter
 public class DefaultConfiguration extends Config {
-    private final boolean jobSkullsOnPlayerhead;
+    private boolean jobSkullsOnPlayerhead;
 
     public DefaultConfiguration(File file) {
         super(file, "config.yml", "default/config.yml", true);
+    }
 
+    @Override
+    public void values() {
         this.jobSkullsOnPlayerhead = config.getBoolean("jobskullsonplayerhead", false);
     }
 }

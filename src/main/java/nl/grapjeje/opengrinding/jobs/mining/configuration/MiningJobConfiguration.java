@@ -12,24 +12,32 @@ import java.util.Map;
 
 @Getter
 public class MiningJobConfiguration extends Config implements JobConfig {
+    private boolean enabled;
 
-    private final boolean enabled;
+    private boolean sellEnabled;
+    private final Map<String, Double> sellPrices;
 
-    private final boolean sellEnabled;
-    private final Map<String, Double> sellPrices = new LinkedHashMap<>();
+    private boolean buyEnabled;
+    private final Map<String, Map<String, Double>> buyPrices;
 
-    private final boolean buyEnabled;
-    private final Map<String, Map<String, Double>> buyPrices = new LinkedHashMap<>();
-
-    private final int maxLevel;
-    private final int oreUnlockInterval;
-    private final Map<String, Integer> pointsPerOre = new LinkedHashMap<>();
-    private final String formula;
-    private final Map<Integer, Integer> levelOverrides = new LinkedHashMap<>();
+    private int maxLevel;
+    private int oreUnlockInterval;
+    private final Map<String, Integer> pointsPerOre;
+    private String formula;
+    private final Map<Integer, Integer> levelOverrides;
 
     public MiningJobConfiguration(File file) {
         super(file, "mining.yml", "default/mining.yml", true);
 
+        sellPrices = new LinkedHashMap<>();
+        buyPrices = new LinkedHashMap<>();
+        pointsPerOre = new LinkedHashMap<>();
+        levelOverrides = new LinkedHashMap<>();
+        this.values();
+    }
+
+    @Override
+    public void values() {
         this.enabled = config.getBoolean("enabled", true);
 
         ConfigurationSection sellSection = config.getConfigurationSection("sell");
