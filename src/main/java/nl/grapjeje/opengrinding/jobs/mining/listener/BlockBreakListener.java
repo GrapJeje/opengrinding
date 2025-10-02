@@ -48,6 +48,18 @@ public class BlockBreakListener implements Listener {
     @EventHandler
     public void onBlockBreak(BlockBreakEvent e) {
         Player player = e.getPlayer();
+
+        MiningModule miningModule = OpenGrinding.getFramework().getModuleLoader()
+                .getModules().stream()
+                .filter(m -> m instanceof MiningModule)
+                .map(m -> (MiningModule) m)
+                .findFirst()
+                .orElse(null);
+
+        if (miningModule == null || miningModule.isDisabled()) {
+            player.sendMessage(MessageUtil.filterMessage("<warning>⚠ De mining module is momenteel uitgeschakeld!"));
+            return;
+        }
         Block block = e.getBlock();
         Location location = block.getLocation();
 

@@ -80,7 +80,7 @@ public class SellCommand implements Command {
                 .orElse(null);
 
         if (miningModule == null || miningModule.isDisabled()) {
-            player.sendMessage(MessageUtil.filterMessage("<warning>⚠ De mining module is momenteel uitgeschakeld. Je kunt niks verkopen!"));
+            player.sendMessage(MessageUtil.filterMessage("<warning>⚠ De mining module is momenteel uitgeschakeld!"));
             return;
         }
         MiningJobConfiguration miningConfig = MiningModule.getConfig();
