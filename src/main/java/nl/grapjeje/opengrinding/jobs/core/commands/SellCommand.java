@@ -101,7 +101,7 @@ public class SellCommand implements Command {
         double pricePerOne = oreRecord.sellPrice();
 
         double amount = pricePerOne * itemInHand.getAmount();
-        giveCash(player, amount);
+        this.giveCash(player, amount);
 
         player.getInventory().removeItem(itemInHand);
         String itemName = PlainTextComponentSerializer.plainText()
