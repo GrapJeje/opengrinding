@@ -32,6 +32,8 @@ public class MiningModule extends Module {
 
     @Override
     protected void onEnable() {
+        OpenGrinding.getFramework().registerConfig(config);
+
         OpenGrinding.getFramework().registerListener(BlockBreakListener::new);
 
         new OreTimer(5);
