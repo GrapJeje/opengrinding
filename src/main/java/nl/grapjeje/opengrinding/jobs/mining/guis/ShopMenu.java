@@ -40,7 +40,8 @@ public class ShopMenu extends Menu {
 
         for (int i = 0; i < unlockedPickaxes.size(); i++) {
             String pickaxe = unlockedPickaxes.get(i);
-            double price = config.getBuyPrices().get("pickaxe").get(pickaxe);
+//            double price = config.getBuyPrices().get("pickaxe").get(pickaxe);
+            double price = 0.0;
             GuiButton button = GuiButton.builder()
                     .withMaterial(this.getMaterialFromPickaxe(pickaxe))
                     .withName(this.getColoredPickaxeName(pickaxe))
@@ -69,8 +70,10 @@ public class ShopMenu extends Menu {
     }
 
     private List<String> getUnlockedPickaxes(int playerLevel, MiningJobConfiguration config) {
-        Map<String, Double> buyables = config.getBuyPrices().get("pickaxe");
-        Map<String, Integer> unlocks = config.getPickaxeUnlockLevels();
+//        Map<String, Double> buyables = config.getBuyPrices().get("pickaxe");
+//        Map<String, Integer> unlocks = config.getPickaxeUnlockLevels();
+        Map<String, Double> buyables = new HashMap<>();
+        Map<String, Integer> unlocks = new HashMap<>();
         List<String> unlocked = new ArrayList<>();
 
         Bukkit.getLogger().info("==== DEBUG: Player level = " + playerLevel + " ====");

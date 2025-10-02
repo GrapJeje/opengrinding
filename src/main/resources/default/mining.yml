@@ -1,42 +1,65 @@
-enabled: true
-sell:
-  enabled: true
-  coal: 5.0
-  iron: 10.0
-  copper: 8.0
-  gold: 15.0
-  redstone: 12.0
-  lapis: 12.0
-  diamond: 25.0
-  emerald: 30.0
-buy:
-  enabled: true
-  pickaxe:
-    stone: 20.0
-    iron: 50.0
-    diamond: 150.0
-    netherite: 500.0
+enabled: true   # Zet de job aan/uit
 
-ore:
-  unlock-interval: 5
-  points-per-coal: 1
-  points-per-iron: 2
-  points-per-copper: 3
-  points-per-gold: 3
-  points-per-redstone: 4
-  points-per-lapis: 4
-  points-per-diamond: 5
-  points-per-emerald: 6
-pickaxe:
-  stone-unlock-level: 0
-  iron-unlock-level: 5
-  diamond-unlock-level: 20
-  netherite-unlock-level: 35
+economy:
+  sell:
+    enabled: true   # Zet verkopen aan/uit
+    open-buy-shop: true
+  buy:
+    enabled: true   # Zet kopen aan/uit
+
+ores:
+  coal:
+    sell-price: 5.0
+    points: 1
+    unlock-level: 0
+  iron:
+    sell-price: 10.0
+    points: 2
+    unlock-level: 5
+  copper:
+    sell-price: 8.0
+    points: 3
+    unlock-level: 10
+  gold:
+    sell-price: 15.0
+    points: 3
+    unlock-level: 15
+  redstone:
+    sell-price: 12.0
+    points: 4
+    unlock-level: 20
+  lapis:
+    sell-price: 12.0
+    points: 4
+    unlock-level: 25
+  diamond:
+    sell-price: 25.0
+    points: 5
+    unlock-level: 30
+  emerald:
+    sell-price: 30.0
+    points: 6
+    unlock-level: 35
+
+pickaxes:
+  stone:
+    price: 20.0
+    unlock-level: 0
+  iron:
+    price: 50.0
+    unlock-level: 5
+  diamond:
+    price: 150.0
+    unlock-level: 20
+  netherite:
+    price: 500.0
+    unlock-level: 35
 
 level:
-  max: 40
-  formula: (100 * level) + ( (level / 5) * 50 )
-  level-overrides:
+  max: 40   # Max level dat spelers kunnen bereiken
+  formula: (100 * level) + ((level / 5) * 50)   # Baseline berekening voor XP per level
+  overrides:    # Specifieke overrides per level (indien aanwezig, overschrijft de formula)
     0: 0
     1: 0
     2: 0
+    10: 5000   # voorbeeld: level 10 heeft exact 5000 xp nodig

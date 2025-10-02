@@ -8,34 +8,32 @@ import org.bukkit.configuration.ConfigurationSection;
 import java.io.File;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.List;
-import java.util.ArrayList;
 
 @Getter
 public class MiningJobConfiguration extends Config implements JobConfig {
+    public record Ore(String name, double sellPrice, int points, int unlockLevel) {}
+    public record Pickaxe(String name, double price, int unlockLevel) {}
+
     private boolean enabled;
 
     private boolean sellEnabled;
-    private final Map<String, Double> sellPrices;
-
+    private boolean openBuyShop;
     private boolean buyEnabled;
-    private final Map<String, Map<String, Double>> buyPrices;
+
+    private final Map<String, Ore> ores;
+    private final Map<String, Pickaxe> pickaxes;
 
     private int maxLevel;
-    private int oreUnlockInterval;
-    private final Map<String, Integer> pointsPerOre;
-    private final Map<String, Integer> pickaxeUnlockLevels;
     private String formula;
     private final Map<Integer, Integer> levelOverrides;
 
     public MiningJobConfiguration(File file) {
         super(file, "mining.yml", "default/mining.yml", true);
 
-        sellPrices = new LinkedHashMap<>();
-        buyPrices = new LinkedHashMap<>();
-        pointsPerOre = new LinkedHashMap<>();
-        pickaxeUnlockLevels = new LinkedHashMap<>();
+        ores = new LinkedHashMap<>();
+        pickaxes = new LinkedHashMap<>();
         levelOverrides = new LinkedHashMap<>();
+
         this.values();
     }
 
@@ -43,46 +41,45 @@ public class MiningJobConfiguration extends Config implements JobConfig {
     public void values() {
         this.enabled = config.getBoolean("enabled", true);
 
-        // --- Sell ---
-        ConfigurationSection sellSection = config.getConfigurationSection("sell");
-        if (sellSection != null) {
-            this.sellEnabled = sellSection.getBoolean("enabled", true);
-            for (String key : sellSection.getKeys(false)) {
-                if (!key.equals("enabled"))
-                    sellPrices.put(key, sellSection.getDouble(key));
-            }
-        } else this.sellEnabled = false;
+        ConfigurationSection sellSection = config.getConfigurationSection("economy.sell");
+        this.sellEnabled = sellSection != null && sellSection.getBoolean("enabled", true);
 
-        ConfigurationSection buySection = config.getConfigurationSection("buy");
-        if (buySection != null) {
-            this.buyEnabled = buySection.getBoolean("enabled", true);
-            for (String itemKey : buySection.getKeys(false)) {
-                if (!itemKey.equals("enabled")) {
-                    ConfigurationSection itemSection = buySection.getConfigurationSection(itemKey);
-                    if (itemSection != null) {
-                        Map<String, Double> itemMap = new LinkedHashMap<>();
-                        for (String tier : itemSection.getKeys(false)) {
-                            itemMap.put(tier, itemSection.getDouble(tier));
-                        }
-                        buyPrices.put(itemKey, itemMap);
-                    }
-                }
-            }
-        } else this.buyEnabled = false;
+        ConfigurationSection openBuy = config.getConfigurationSection("economy.sell");
+        this.buyEnabled = openBuy != null && openBuy.getBoolean("open-buy-shop", true);
 
-        ConfigurationSection oreSection = config.getConfigurationSection("ore");
+        ConfigurationSection buySection = config.getConfigurationSection("economy.buy");
+        this.buyEnabled = buySection != null && buySection.getBoolean("enabled", true);
+
+        ores.clear();
+        ConfigurationSection oreSection = config.getConfigurationSection("ores");
         if (oreSection != null) {
-            this.oreUnlockInterval = oreSection.getInt("unlock-interval", 5);
             for (String key : oreSection.getKeys(false)) {
-                if (key.startsWith("points-per-"))
-                    pointsPerOre.put(key.replace("points-per-", ""), oreSection.getInt(key));
+                ConfigurationSection section = oreSection.getConfigurationSection(key);
+                if (section != null) {
+                    Ore ore = new Ore(
+                            key,
+                            section.getDouble("sell-price"),
+                            section.getInt("points"),
+                            section.getInt("unlock-level")
+                    );
+                    ores.put(key, ore);
+                }
             }
         }
 
-        ConfigurationSection pickaxeSection = config.getConfigurationSection("pickaxe");
+        pickaxes.clear();
+        ConfigurationSection pickaxeSection = config.getConfigurationSection("pickaxes");
         if (pickaxeSection != null) {
             for (String key : pickaxeSection.getKeys(false)) {
-                pickaxeUnlockLevels.put(key, pickaxeSection.getInt(key + "-unlock-level", 0));
+                ConfigurationSection section = pickaxeSection.getConfigurationSection(key);
+                if (section != null) {
+                    Pickaxe pickaxe = new Pickaxe(
+                            key,
+                            section.getDouble("price"),
+                            section.getInt("unlock-level")
+                    );
+                    pickaxes.put(key, pickaxe);
+                }
             }
         }
 
@@ -91,7 +88,7 @@ public class MiningJobConfiguration extends Config implements JobConfig {
             this.maxLevel = levelSection.getInt("max", 40);
             this.formula = levelSection.getString("formula", "(100 * level) + ( (level / 5) * 50 )");
 
-            ConfigurationSection overridesSection = levelSection.getConfigurationSection("level-overrides");
+            ConfigurationSection overridesSection = levelSection.getConfigurationSection("overrides");
             if (overridesSection != null) {
                 for (String key : overridesSection.getKeys(false)) {
                     int level = Integer.parseInt(key);
@@ -102,17 +99,12 @@ public class MiningJobConfiguration extends Config implements JobConfig {
         }
     }
 
-    public int getRequiredLevelForOre(String oreName) {
-        oreName = oreName.toLowerCase();
-        List<String> oreOrder = new ArrayList<>(pointsPerOre.keySet());
-        int index = oreOrder.indexOf(oreName);
-        if (index == -1) return Integer.MAX_VALUE;
-        return index * oreUnlockInterval;
+    public Ore getOre(String name) {
+        return ores.get(name.toLowerCase());
     }
 
-    @Override
-    public int getMaxLevel() {
-        return maxLevel;
+    public Pickaxe getPickaxe(String name) {
+        return pickaxes.get(name.toLowerCase());
     }
 
     @Override
@@ -123,12 +115,8 @@ public class MiningJobConfiguration extends Config implements JobConfig {
     }
 
     @Override
-    public boolean isSellEnabled() {
-        return sellEnabled;
-    }
-
-    @Override
     public Integer getLevelOverride(int level) {
         return levelOverrides.getOrDefault(level, null);
     }
 }
+
