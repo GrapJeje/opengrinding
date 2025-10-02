@@ -31,19 +31,10 @@ import java.util.*;
 
 public class BlockBreakListener implements Listener {
 
-    private static final List<Material> whitelist = new ArrayList<>();
-
-    static {
-        whitelist.add(Material.COAL_ORE);
-        whitelist.add(Material.COPPER_ORE);
-        whitelist.add(Material.IRON_ORE);
-        whitelist.add(Material.GOLD_ORE);
-        whitelist.add(Material.REDSTONE_ORE);
-        whitelist.add(Material.LAPIS_ORE);
-        whitelist.add(Material.DIAMOND_ORE);
-        whitelist.add(Material.EMERALD_ORE);
-        // TODO: Add raw ore blocks and deepslate
-    }
+    private static final List<Material> whitelist = Arrays.asList(
+            Material.COAL_ORE, Material.COPPER_ORE, Material.IRON_ORE, Material.GOLD_ORE,
+            Material.REDSTONE_ORE, Material.LAPIS_ORE, Material.DIAMOND_ORE, Material.EMERALD_ORE
+    );
 
     @EventHandler
     public void onBlockBreak(BlockBreakEvent e) {

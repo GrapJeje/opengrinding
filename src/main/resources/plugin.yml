@@ -17,7 +17,9 @@ commands:
     description: Credit command
   grindingregion:
     description: Region command
-  sell:
+  grindingsell:
     description: Sell command
+  grindingshop:
+    description: Shop command
   fixskull:
     description: Fix a skull that is stuck on a head

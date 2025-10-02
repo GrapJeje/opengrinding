@@ -8,6 +8,7 @@ import lombok.Getter;
 import lombok.SneakyThrows;
 import nl.grapjeje.core.Framework;
 import nl.grapjeje.core.Main;
+import nl.grapjeje.core.gui.GuiImpl;
 import nl.grapjeje.core.modules.ModuleLoader;
 import nl.grapjeje.opengrinding.jobs.core.CoreModule;
 import nl.grapjeje.opengrinding.jobs.mining.MiningModule;

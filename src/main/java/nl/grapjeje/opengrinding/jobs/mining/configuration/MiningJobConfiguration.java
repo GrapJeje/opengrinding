@@ -6,9 +6,10 @@ import nl.grapjeje.opengrinding.jobs.core.configuration.JobConfig;
 import org.bukkit.configuration.ConfigurationSection;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.List;
+import java.util.ArrayList;
 
 @Getter
 public class MiningJobConfiguration extends Config implements JobConfig {
@@ -23,6 +24,7 @@ public class MiningJobConfiguration extends Config implements JobConfig {
     private int maxLevel;
     private int oreUnlockInterval;
     private final Map<String, Integer> pointsPerOre;
+    private final Map<String, Integer> pickaxeUnlockLevels;
     private String formula;
     private final Map<Integer, Integer> levelOverrides;
 
@@ -32,6 +34,7 @@ public class MiningJobConfiguration extends Config implements JobConfig {
         sellPrices = new LinkedHashMap<>();
         buyPrices = new LinkedHashMap<>();
         pointsPerOre = new LinkedHashMap<>();
+        pickaxeUnlockLevels = new LinkedHashMap<>();
         levelOverrides = new LinkedHashMap<>();
         this.values();
     }
@@ -40,6 +43,7 @@ public class MiningJobConfiguration extends Config implements JobConfig {
     public void values() {
         this.enabled = config.getBoolean("enabled", true);
 
+        // --- Sell ---
         ConfigurationSection sellSection = config.getConfigurationSection("sell");
         if (sellSection != null) {
             this.sellEnabled = sellSection.getBoolean("enabled", true);
@@ -66,27 +70,44 @@ public class MiningJobConfiguration extends Config implements JobConfig {
             }
         } else this.buyEnabled = false;
 
-        this.maxLevel = config.getInt("max-level", 40);
-        this.oreUnlockInterval = config.getInt("ore-unlock-interval", 5);
-        this.formula = config.getString("formula", "(100 * level) + ( (level / 5) * 50 )");
-
-        for (String key : config.getKeys(false)) {
-            if (key.startsWith("points-per-"))
-                pointsPerOre.put(key.replace("points-per-", ""), config.getInt(key));
+        ConfigurationSection oreSection = config.getConfigurationSection("ore");
+        if (oreSection != null) {
+            this.oreUnlockInterval = oreSection.getInt("unlock-interval", 5);
+            for (String key : oreSection.getKeys(false)) {
+                if (key.startsWith("points-per-"))
+                    pointsPerOre.put(key.replace("points-per-", ""), oreSection.getInt(key));
+            }
         }
 
-        ConfigurationSection overridesSection = config.getConfigurationSection("level-overrides");
-        if (overridesSection != null) {
-            for (String key : overridesSection.getKeys(false)) {
-                int level = Integer.parseInt(key);
-                int value = overridesSection.getInt(key);
-                levelOverrides.put(level, value);
+        ConfigurationSection pickaxeSection = config.getConfigurationSection("pickaxe");
+        if (pickaxeSection != null) {
+            for (String key : pickaxeSection.getKeys(false)) {
+                pickaxeUnlockLevels.put(key, pickaxeSection.getInt(key + "-unlock-level", 0));
+            }
+        }
+
+        ConfigurationSection levelSection = config.getConfigurationSection("level");
+        if (levelSection != null) {
+            this.maxLevel = levelSection.getInt("max", 40);
+            this.formula = levelSection.getString("formula", "(100 * level) + ( (level / 5) * 50 )");
+
+            ConfigurationSection overridesSection = levelSection.getConfigurationSection("level-overrides");
+            if (overridesSection != null) {
+                for (String key : overridesSection.getKeys(false)) {
+                    int level = Integer.parseInt(key);
+                    int value = overridesSection.getInt(key);
+                    levelOverrides.put(level, value);
+                }
             }
         }
     }
 
     public int getRequiredLevelForOre(String oreName) {
-        return new ArrayList<>(pointsPerOre.keySet()).indexOf(oreName.toLowerCase()) * oreUnlockInterval;
+        oreName = oreName.toLowerCase();
+        List<String> oreOrder = new ArrayList<>(pointsPerOre.keySet());
+        int index = oreOrder.indexOf(oreName);
+        if (index == -1) return Integer.MAX_VALUE;
+        return index * oreUnlockInterval;
     }
 
     @Override

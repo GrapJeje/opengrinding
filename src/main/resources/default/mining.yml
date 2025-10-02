@@ -16,18 +16,27 @@ buy:
     iron: 50.0
     diamond: 150.0
     netherite: 500.0
-max-level: 40
-ore-unlock-interval: 5
-points-per-coal: 1
-points-per-iron: 2
-points-per-copper: 3
-points-per-gold: 3
-points-per-redstone: 4
-points-per-lapis: 4
-points-per-diamond: 5
-points-per-emerald: 6
-formula: (100 * level) + ( (level / 5) * 50 )
-level-overrides:
-  0: 0
-  1: 0
-  2: 0
+
+ore:
+  unlock-interval: 5
+  points-per-coal: 1
+  points-per-iron: 2
+  points-per-copper: 3
+  points-per-gold: 3
+  points-per-redstone: 4
+  points-per-lapis: 4
+  points-per-diamond: 5
+  points-per-emerald: 6
+pickaxe:
+  stone-unlock-level: 0
+  iron-unlock-level: 5
+  diamond-unlock-level: 20
+  netherite-unlock-level: 35
+
+level:
+  max: 40
+  formula: (100 * level) + ( (level / 5) * 50 )
+  level-overrides:
+    0: 0
+    1: 0
+    2: 0

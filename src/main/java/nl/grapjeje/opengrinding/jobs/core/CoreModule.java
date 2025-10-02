@@ -3,10 +3,7 @@ package nl.grapjeje.opengrinding.jobs.core;
 import lombok.Getter;
 import nl.grapjeje.core.modules.Module;
 import nl.grapjeje.opengrinding.OpenGrinding;
-import nl.grapjeje.opengrinding.jobs.core.commands.FixSkullCommand;
-import nl.grapjeje.opengrinding.jobs.core.commands.GrindingRegionCommand;
-import nl.grapjeje.opengrinding.jobs.core.commands.OpenGrindingCommand;
-import nl.grapjeje.opengrinding.jobs.core.commands.SellCommand;
+import nl.grapjeje.opengrinding.jobs.core.commands.*;
 import nl.grapjeje.opengrinding.jobs.core.configuration.DefaultConfiguration;
 import nl.grapjeje.opengrinding.jobs.core.listeners.HeadBlockerListener;
 import nl.grapjeje.opengrinding.jobs.core.listeners.PlayerRegionWandListener;
@@ -37,6 +34,7 @@ public class CoreModule extends Module {
         OpenGrinding.getFramework().registerCommand(OpenGrindingCommand::new);
         OpenGrinding.getFramework().registerCommand(GrindingRegionCommand::new);
         OpenGrinding.getFramework().registerCommand(SellCommand::new);
+        OpenGrinding.getFramework().registerCommand(ShopCommand::new);
         OpenGrinding.getFramework().registerCommand(FixSkullCommand::new);
 
         OpenGrinding.getFramework().registerListener(PlayerRegionWandListener::new);

@@ -30,7 +30,7 @@ public class SellCommand implements Command {
 
     @Override
     public String getName() {
-        return "sell";
+        return "grindingsell";
     }
 
     @Override
