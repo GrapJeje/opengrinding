@@ -12,7 +12,7 @@ import java.util.Map;
 
 @Getter
 public class MiningJobConfiguration extends Config implements JobConfig {
-    public record Ore(String name, double sellPrice, int points, int unlockLevel) {}
+    public record OreRecord(String name, double sellPrice, int points, int unlockLevel) {}
     public record Pickaxe(String name, double price, int unlockLevel) {}
 
     private boolean enabled;
@@ -21,7 +21,7 @@ public class MiningJobConfiguration extends Config implements JobConfig {
     private boolean openBuyShop;
     private boolean buyEnabled;
 
-    private final Map<nl.grapjeje.opengrinding.jobs.mining.objects.Ore, Ore> ores;
+    private final Map<Ore, OreRecord> ores;
     private final Map<String, Pickaxe> pickaxes;
 
     private int maxLevel;
@@ -58,8 +58,8 @@ public class MiningJobConfiguration extends Config implements JobConfig {
                 ConfigurationSection section = oreSection.getConfigurationSection(key);
                 if (section != null) {
                     try {
-                        nl.grapjeje.opengrinding.jobs.mining.objects.Ore oreEnum = nl.grapjeje.opengrinding.jobs.mining.objects.Ore.valueOf(key.toUpperCase());
-                        Ore oreRecord = new Ore(
+                        Ore oreEnum = Ore.valueOf(key.toUpperCase());
+                        OreRecord oreRecord = new OreRecord(
                                 key,
                                 section.getDouble("sell-price"),
                                 section.getInt("points"),
@@ -104,8 +104,8 @@ public class MiningJobConfiguration extends Config implements JobConfig {
         }
     }
 
-    public Ore getOre(String name) {
-        return ores.get(name.toLowerCase());
+    public OreRecord getOre(Ore ore) {
+        return ores.get(ore);
     }
 
     public Pickaxe getPickaxe(String name) {

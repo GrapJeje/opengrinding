@@ -13,7 +13,8 @@ import nl.grapjeje.opengrinding.jobs.core.objects.GrindingRegion;
 import nl.grapjeje.opengrinding.jobs.mining.MiningModule;
 import nl.grapjeje.opengrinding.jobs.mining.objects.MiningOres;
 import nl.grapjeje.opengrinding.jobs.mining.configuration.MiningJobConfiguration;
-import nl.grapjeje.opengrinding.jobs.mining.configuration.MiningJobConfiguration.Ore;
+import nl.grapjeje.opengrinding.jobs.mining.configuration.MiningJobConfiguration.OreRecord;
+import nl.grapjeje.opengrinding.jobs.mining.objects.Ore;
 import nl.grapjeje.opengrinding.models.PlayerGrindingModel;
 import nl.openminetopia.modules.data.storm.StormDatabase;
 import org.bukkit.Bukkit;
@@ -72,15 +73,22 @@ public class BlockBreakListener implements Listener {
             PlayerGrindingModel model = this.loadOrCreatePlayerModel(player);
             MiningJobConfiguration config = MiningModule.getConfig();
 
-            String oreName = originalType.name().replace("_ORE", "").toLowerCase();
-            Ore ore = config.getOres().get(oreName);
-            if (ore == null) return;
+            String oreKey = originalType.name().replace("_ORE", "").toUpperCase();
+            Ore oreEnum;
+            try {
+                oreEnum = Ore.valueOf(oreKey);
+            } catch (IllegalArgumentException ex) {
+                return;
+            }
 
-            if (model.getLevel() < ore.unlockLevel()) {
+            MiningJobConfiguration.OreRecord oreRecord = config.getOre(oreEnum);
+            if (oreRecord == null) return;
+
+            if (model.getLevel() < oreRecord.unlockLevel()) {
                 Bukkit.getScheduler().runTask(OpenGrinding.getInstance(), () -> {
                     e.setCancelled(true);
                     block.setType(originalType);
-                    player.sendMessage(MessageUtil.filterMessage("<warning>⚠ Jij bent niet hoog genoeg level voor dit blok! (Nodig: " + ore.unlockLevel() + ")"));
+                    player.sendMessage(MessageUtil.filterMessage("<warning>⚠ Jij bent niet hoog genoeg level voor dit blok! (Nodig: " + oreRecord.unlockLevel() + ")"));
                 });
                 return;
             }
@@ -108,7 +116,7 @@ public class BlockBreakListener implements Listener {
                 MiningModule.getOres().add(new MiningOres(location, originalType, System.currentTimeMillis()));
 
                 GrindingPlayer gp = new GrindingPlayer(player.getUniqueId(), model);
-                gp.addProgress(Jobs.MINING, ore.points());
+                gp.addProgress(Jobs.MINING, oreRecord.points());
 
                 Bukkit.getScheduler().runTaskAsynchronously(OpenGrinding.getInstance(), gp::save);
             });
