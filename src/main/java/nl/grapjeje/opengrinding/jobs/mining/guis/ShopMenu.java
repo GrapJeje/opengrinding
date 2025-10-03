@@ -44,6 +44,11 @@ public class ShopMenu extends Menu {
         int playerLevel = model.getLevel();
 
         MiningJobConfiguration config = MiningModule.getConfig();
+        if (!config.isSellEnabled()) {
+            player.sendMessage(MessageUtil.filterMessage("<warning>⚠ Je kunt momenteel niks kopen! Contacteer een beheerder als jij denkt dat dit een fout is."));
+            return;
+        }
+
         Gui.Builder builder = Gui.builder(InventoryType.CHEST, Component.text("Pickaxe Shop"));
         builder.withSize(27);
 

@@ -4,11 +4,11 @@ import lombok.Getter;
 import nl.grapjeje.opengrinding.OpenGrinding;
 import nl.grapjeje.opengrinding.jobs.Jobs;
 import nl.grapjeje.opengrinding.jobs.core.CoreModule;
-import nl.grapjeje.opengrinding.utils.JobConfig;
 import nl.grapjeje.opengrinding.jobs.core.events.PlayerLevelChangeEvent;
 import nl.grapjeje.opengrinding.jobs.core.events.PlayerValueChangeEvent;
 import nl.grapjeje.opengrinding.jobs.mining.MiningModule;
 import nl.grapjeje.opengrinding.models.PlayerGrindingModel;
+import nl.grapjeje.opengrinding.utils.configuration.LevelConfig;
 import nl.openminetopia.api.player.PlayerManager;
 import nl.openminetopia.api.player.objects.MinetopiaPlayer;
 import nl.openminetopia.modules.data.storm.StormDatabase;
@@ -36,7 +36,7 @@ public class GrindingPlayer {
 
     /* ---------- Progression ---------- */
     public void addProgress(Jobs job, double xp) {
-        JobConfig config;
+        LevelConfig config;
         switch (job) {
             case MINING -> config = MiningModule.getConfig();
             default -> throw new IllegalStateException("Unknown job: " + job);

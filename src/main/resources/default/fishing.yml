@@ -6,10 +6,3 @@ economy:
     open-buy-shop: true
   buy:
     enabled: true
-
-level:
-  max: 40
-  formula: (100 * level) + ((level / 5) * 50)
-  overrides:
-    0: 0
-    1: 0

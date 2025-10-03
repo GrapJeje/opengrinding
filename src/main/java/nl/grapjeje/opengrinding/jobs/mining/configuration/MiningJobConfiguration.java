@@ -2,8 +2,10 @@ package nl.grapjeje.opengrinding.jobs.mining.configuration;
 
 import lombok.Getter;
 import nl.grapjeje.core.Config;
-import nl.grapjeje.opengrinding.utils.JobConfig;
 import nl.grapjeje.opengrinding.jobs.mining.objects.Ore;
+import nl.grapjeje.opengrinding.utils.configuration.JobConfig;
+import nl.grapjeje.opengrinding.utils.configuration.LevelConfig;
+import nl.grapjeje.opengrinding.utils.configuration.ShopConfig;
 import org.bukkit.configuration.ConfigurationSection;
 
 import java.io.File;
@@ -11,11 +13,9 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 @Getter
-public class MiningJobConfiguration extends Config implements JobConfig {
+public class MiningJobConfiguration extends JobConfig implements ShopConfig, LevelConfig {
     public record OreRecord(String name, double sellPrice, int points, int unlockLevel) {}
     public record Pickaxe(String name, double price, int unlockLevel) {}
-
-    private boolean enabled;
 
     private boolean sellEnabled;
     private boolean openBuyShop;
