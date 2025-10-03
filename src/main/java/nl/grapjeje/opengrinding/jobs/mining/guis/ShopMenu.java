@@ -9,7 +9,7 @@ import nl.grapjeje.core.text.MessageUtil;
 import nl.grapjeje.opengrinding.OpenGrinding;
 import nl.grapjeje.opengrinding.jobs.Jobs;
 import nl.grapjeje.opengrinding.jobs.core.CoreModule;
-import nl.grapjeje.opengrinding.jobs.core.gui.Menu;
+import nl.grapjeje.opengrinding.utils.Menu;
 import nl.grapjeje.opengrinding.jobs.mining.MiningModule;
 import nl.grapjeje.opengrinding.jobs.mining.configuration.MiningJobConfiguration;
 import nl.grapjeje.opengrinding.jobs.mining.configuration.MiningJobConfiguration.Pickaxe;

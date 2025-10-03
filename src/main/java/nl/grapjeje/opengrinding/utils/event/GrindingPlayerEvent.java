@@ -1,4 +1,4 @@
-package nl.grapjeje.opengrinding.jobs.core.events;
+package nl.grapjeje.opengrinding.utils.event;
 
 import nl.grapjeje.opengrinding.jobs.core.objects.GrindingPlayer;
 

@@ -33,6 +33,9 @@ public class GrindingRegionModel extends StormModel {
     @Column(name = "jobs")
     private String jobsJson;
 
+    @Column(name = "value")
+    private String value;
+
     public Location getMinLocation() {
         return this.fromJson(minLocationJson);
     }

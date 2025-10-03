@@ -4,7 +4,7 @@ import lombok.Getter;
 import nl.grapjeje.opengrinding.OpenGrinding;
 import nl.grapjeje.opengrinding.jobs.Jobs;
 import nl.grapjeje.opengrinding.jobs.core.CoreModule;
-import nl.grapjeje.opengrinding.jobs.core.configuration.JobConfig;
+import nl.grapjeje.opengrinding.utils.JobConfig;
 import nl.grapjeje.opengrinding.jobs.core.events.PlayerLevelChangeEvent;
 import nl.grapjeje.opengrinding.jobs.core.events.PlayerValueChangeEvent;
 import nl.grapjeje.opengrinding.jobs.mining.MiningModule;

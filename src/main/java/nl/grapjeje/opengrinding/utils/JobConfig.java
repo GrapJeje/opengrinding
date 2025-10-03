@@ -1,4 +1,4 @@
-package nl.grapjeje.opengrinding.jobs.core.configuration;
+package nl.grapjeje.opengrinding.utils;
 
 public interface JobConfig {
     int getMaxLevel();

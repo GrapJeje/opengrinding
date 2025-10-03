@@ -3,7 +3,7 @@ package nl.grapjeje.opengrinding.jobs.fishing.base.menus;
 import net.kyori.adventure.text.Component;
 import nl.grapjeje.core.gui.Gui;
 import nl.grapjeje.core.gui.GuiButton;
-import nl.grapjeje.opengrinding.jobs.core.gui.Menu;
+import nl.grapjeje.opengrinding.utils.Menu;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 

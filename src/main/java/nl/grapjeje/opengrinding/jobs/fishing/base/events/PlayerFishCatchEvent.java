@@ -2,7 +2,7 @@ package nl.grapjeje.opengrinding.jobs.fishing.base.events;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import nl.grapjeje.opengrinding.jobs.core.events.GrindingPlayerEvent;
+import nl.grapjeje.opengrinding.utils.event.GrindingPlayerEvent;
 import nl.grapjeje.opengrinding.jobs.core.objects.GrindingPlayer;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;

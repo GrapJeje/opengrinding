@@ -2,7 +2,7 @@ package nl.grapjeje.opengrinding.jobs.fishing.configuration;
 
 import lombok.Getter;
 import nl.grapjeje.core.Config;
-import nl.grapjeje.opengrinding.jobs.core.configuration.JobConfig;
+import nl.grapjeje.opengrinding.utils.JobConfig;
 import org.bukkit.configuration.ConfigurationSection;
 
 import java.io.File;

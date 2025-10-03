@@ -58,7 +58,7 @@ public class GrindingRegionCommand implements Command {
 
         switch (sub) {
             case "create", "cancel", "delete", "list" -> this.handleRegionCommands(player, args);
-            case "addjob", "removejob" -> this.handleJobCommands(player, args);
+            case "addjob", "removejob", "setvalue", "removevalue" -> this.handleJobCommands(player, args);
             default -> this.sendHelp(player);
         }
     }
@@ -66,7 +66,7 @@ public class GrindingRegionCommand implements Command {
     private boolean hasPermissionForSubCommand(Player player, String subCommand) {
         if (player.hasPermission("opengrinding.*")) return true;
         return switch (subCommand) {
-            case "addjob", "removejob" -> player.hasPermission("opengrinding.region.jobs");
+            case "addjob", "removejob", "setvalue", "removevalue" -> player.hasPermission("opengrinding.region.jobs");
             default -> player.hasPermission("opengrinding.region");
         };
     }
@@ -85,6 +85,8 @@ public class GrindingRegionCommand implements Command {
         switch (args[0].toLowerCase()) {
             case "addjob" -> this.handleAddJob(player, args);
             case "removejob" -> this.handleRemoveJob(player, args);
+            case "setvalue" -> this.handelSetValue(player, args);
+            case "removevalue" -> this.handleRemoveValue(player, args);
             default -> this.sendHelp(player);
         }
     }
@@ -97,6 +99,8 @@ public class GrindingRegionCommand implements Command {
         player.sendMessage(MessageUtil.filterMessage("<gray>/grindingregion delete <name> <dark_gray>- <white>Verwijder een region"));
         player.sendMessage(MessageUtil.filterMessage("<gray>/grindingregion addjob <name> <job> <dark_gray>- <white>Voeg een job toe"));
         player.sendMessage(MessageUtil.filterMessage("<gray>/grindingregion removejob <name> <job> <dark_gray>- <white>Verwijder een job"));
+        player.sendMessage(MessageUtil.filterMessage("<gray>/grindingregion setvalue <name> <value> <dark_gray>- <white>Voeg een value toe"));
+        player.sendMessage(MessageUtil.filterMessage("<gray>/grindingregion removevalue <name> <dark_gray>- <white>Verwijder een value"));
         player.sendMessage(MessageUtil.filterMessage("<gray>/grindingregion list <page> <dark_gray>- <white>Lijst van alle regions"));
     }
 
@@ -320,6 +324,90 @@ public class GrindingRegionCommand implements Command {
         });
     }
 
+    private void handelSetValue(Player player, String[] args) {
+        if (args.length < 3) {
+            player.sendMessage(MessageUtil.filterMessage("<warning>⚠ Gebruik: /grindingregion setvalue <region> <value>"));
+            return;
+        }
+
+        String regionName = args[1];
+        String value = args[2].toLowerCase();
+
+        Bukkit.getScheduler().runTaskAsynchronously(OpenGrinding.getInstance(), () -> {
+            Optional<GrindingRegionModel> regionOpt;
+            try {
+                regionOpt = StormDatabase.getInstance().getStorm()
+                        .buildQuery(GrindingRegionModel.class)
+                        .where("name", Where.EQUAL, regionName)
+                        .limit(1)
+                        .execute()
+                        .join()
+                        .stream()
+                        .findFirst();
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                Bukkit.getScheduler().runTask(OpenGrinding.getInstance(), () ->
+                        player.sendMessage(MessageUtil.filterMessage("<warning>⚠ Er is een fout opgetreden bij het controleren van de region!"))
+                );
+                return;
+            }
+            if (regionOpt.isEmpty()) {
+                Bukkit.getScheduler().runTask(OpenGrinding.getInstance(), () ->
+                        player.sendMessage(MessageUtil.filterMessage("<warning>⚠ Region <yellow>" + regionName + " <warning>bestaat niet!"))
+                );
+                return;
+            }
+            GrindingRegion region = new GrindingRegion(regionOpt.get());
+            region.setValue(value);
+            region.save();
+
+            Bukkit.getScheduler().runTask(OpenGrinding.getInstance(), () ->
+                    player.sendMessage(MessageUtil.filterMessage("<green>Value <bold>" + value + "<!bold> toegevoegd aan region <bold>" + regionName + "<!bold>"))
+            );
+        });
+    }
+
+    private void handleRemoveValue(Player player, String[] args) {
+        if (args.length < 2) {
+            player.sendMessage(MessageUtil.filterMessage("<warning>⚠ Gebruik: /grindingregion removevalue <region>"));
+            return;
+        }
+
+        String regionName = args[1];
+        Bukkit.getScheduler().runTaskAsynchronously(OpenGrinding.getInstance(), () -> {
+            Optional<GrindingRegionModel> regionOpt;
+            try {
+                regionOpt = StormDatabase.getInstance().getStorm()
+                        .buildQuery(GrindingRegionModel.class)
+                        .where("name", Where.EQUAL, regionName)
+                        .limit(1)
+                        .execute()
+                        .join()
+                        .stream()
+                        .findFirst();
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                Bukkit.getScheduler().runTask(OpenGrinding.getInstance(), () ->
+                        player.sendMessage(MessageUtil.filterMessage("<warning>⚠ Er is een fout opgetreden bij het controleren van de region!"))
+                );
+                return;
+            }
+            if (regionOpt.isEmpty()) {
+                Bukkit.getScheduler().runTask(OpenGrinding.getInstance(), () ->
+                        player.sendMessage(MessageUtil.filterMessage("<warning>⚠ Region <yellow>" + regionName + " <warning>bestaat niet!"))
+                );
+                return;
+            }
+            GrindingRegion region = new GrindingRegion(regionOpt.get());
+            region.setValue(null);
+            region.save();
+
+            Bukkit.getScheduler().runTask(OpenGrinding.getInstance(), () ->
+                    player.sendMessage(MessageUtil.filterMessage("<red>Value <bold>" + args[1] + "<!bold> verwijderd van region <bold>" + regionName + "<!bold>"))
+            );
+        });
+    }
+
     private void handleList(Player player, String[] args) {
         int page = 1;
         if (args.length >= 2) {
@@ -346,7 +434,9 @@ public class GrindingRegionCommand implements Command {
         all.stream().skip((long) (page - 1) * PAGE_SIZE).limit(PAGE_SIZE)
                 .forEach(r -> player.sendMessage(MessageUtil.filterMessage("<gray>- <white>" + r.getName() +
                         " <dark_gray>(Jobs: <yellow>" + (r.getJobs() == null || r.getJobs().isEmpty() ? "geen" :
-                        String.join(", ", r.getJobs().stream().map(Enum::name).toList())) + "<dark_gray>)")));
+                        String.join(", ", r.getJobs().stream().map(Enum::name).toList())) + "<dark_gray>)" +
+                        " <dark_gray>Value: <yellow>" + (r.getValue() == null || r.getValue().isEmpty() ? "geen" :
+                        r.getValue()))));
     }
 
     @Override
@@ -357,7 +447,7 @@ public class GrindingRegionCommand implements Command {
         try {
             switch (args.length) {
                 case 1 -> {
-                    return Stream.of("create", "cancel", "delete", "addjob", "removejob", "list", "help")
+                    return Stream.of("create", "cancel", "delete", "addjob", "removejob", "setvalue", "removevalue", "list", "help")
                             .filter(cmd -> this.hasPermissionForSubCommand(player, cmd))
                             .filter(s -> s.toLowerCase().startsWith(args[0].toLowerCase()))
                             .toList();
@@ -366,7 +456,8 @@ public class GrindingRegionCommand implements Command {
                     String sub = args[0].toLowerCase();
                     if (!this.hasPermissionForSubCommand(player, sub)) return Collections.emptyList();
 
-                    if (sub.equals("delete") || sub.equals("addjob") || sub.equals("removejob")) {
+                    if (sub.equals("delete") || sub.equals("addjob") || sub.equals("removejob") ||
+                    sub.equals("setvalue") || sub.equals("removevalue")) {
                         List<GrindingRegionModel> regions = StormDatabase.getInstance().getStorm()
                                 .buildQuery(GrindingRegionModel.class)
                                 .execute()
@@ -387,6 +478,17 @@ public class GrindingRegionCommand implements Command {
                         return Arrays.stream(Jobs.values())
                                 .map(Enum::name)
                                 .filter(j -> j.toLowerCase().startsWith(args[2].toLowerCase()))
+                                .toList();
+                    } else if (sub.equals("removevalue")) {
+                        List<GrindingRegionModel> regions = StormDatabase.getInstance().getStorm()
+                                .buildQuery(GrindingRegionModel.class)
+                                .execute()
+                                .join()
+                                .stream()
+                                .toList();
+                        return regions.stream()
+                                .map(GrindingRegionModel::getValue)
+                                .filter(value -> value.toLowerCase().startsWith(args[1].toLowerCase()))
                                 .toList();
                     }
                 }

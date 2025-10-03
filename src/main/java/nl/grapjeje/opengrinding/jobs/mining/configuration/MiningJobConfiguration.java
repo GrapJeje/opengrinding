@@ -2,7 +2,7 @@ package nl.grapjeje.opengrinding.jobs.mining.configuration;
 
 import lombok.Getter;
 import nl.grapjeje.core.Config;
-import nl.grapjeje.opengrinding.jobs.core.configuration.JobConfig;
+import nl.grapjeje.opengrinding.utils.JobConfig;
 import nl.grapjeje.opengrinding.jobs.mining.objects.Ore;
 import org.bukkit.configuration.ConfigurationSection;
 

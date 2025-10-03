@@ -52,6 +52,14 @@ public class GrindingRegion {
         model.setJobs(jobs);
     }
 
+    public String getValue() {
+        return model.getValue();
+    }
+
+    public void setValue(String value) {
+        model.setValue(value);
+    }
+
     public boolean contains(Location loc) {
         Location min = this.getMinLocation();
         Location max = this.getMaxLocation();

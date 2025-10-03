@@ -1,4 +1,4 @@
-package nl.grapjeje.opengrinding.jobs.core.gui;
+package nl.grapjeje.opengrinding.utils;
 
 import nl.grapjeje.core.gui.Gui;
 import nl.grapjeje.opengrinding.OpenGrinding;
