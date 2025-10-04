@@ -1,1 +1,9 @@
 jobskullsonplayerhead: false
+
+currency:
+  buy-in-tokens: false
+  sell-in-tokens: true
+  daily-limit: true
+  amount:
+    cash: 10000.0
+    tokens: 30.0
