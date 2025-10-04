@@ -32,6 +32,8 @@ public class CurrencyUtil {
             return giveCash(player, cashAmount, reason);
     }
 
+    // TODO: Check if the player has enough
+
     public static CompletableFuture<Map<Currency, Double>> removeForBuy(Player player, double amount, String reason) {
         if (CoreModule.getConfig().isBuyInTokens()) {
             return getModelAsync(player).thenApply(optional -> {
