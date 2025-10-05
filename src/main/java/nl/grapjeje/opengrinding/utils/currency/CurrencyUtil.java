@@ -211,7 +211,7 @@ public class CurrencyUtil {
         });
     }
 
-    private static CompletableFuture<Optional<CurrencyModel>> getModelAsync(Player player) {
+    public static CompletableFuture<Optional<CurrencyModel>> getModelAsync(Player player) {
         return CompletableFuture.supplyAsync(() -> {
             try {
                 return StormDatabase.getInstance().getStorm()

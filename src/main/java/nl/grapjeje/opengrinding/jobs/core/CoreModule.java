@@ -38,6 +38,7 @@ public class CoreModule extends Module {
         OpenGrinding.getFramework().registerCommand(SellCommand::new);
         OpenGrinding.getFramework().registerCommand(ShopCommand::new);
         OpenGrinding.getFramework().registerCommand(FixSkullCommand::new);
+        OpenGrinding.getFramework().registerCommand(GrindTokensCommand::new);
 
         OpenGrinding.getFramework().registerListener(PlayerRegionWandListener::new);
         OpenGrinding.getFramework().registerListener(HeadBlockerListener::new);
