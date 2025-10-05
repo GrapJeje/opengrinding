@@ -16,6 +16,7 @@ import nl.openminetopia.modules.transactions.events.TransactionUpdateEvent;
 import nl.openminetopia.utils.ChatUtils;
 import nl.openminetopia.utils.events.EventUtils;
 import org.bukkit.Bukkit;
+import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 
 import java.time.LocalDate;
@@ -32,15 +33,25 @@ public class CurrencyUtil {
             return giveCash(player, cashAmount, reason);
     }
 
-    // TODO: Check if the player has enough
-
     public static CompletableFuture<Map<Currency, Double>> removeForBuy(Player player, double amount, String reason) {
         if (CoreModule.getConfig().isBuyInTokens()) {
             return getModelAsync(player).thenApply(optional -> {
                 if (optional.isEmpty()) return new HashMap<Currency, Double>();
+
                 CurrencyModel model = optional.get();
                 GrindingCurrency currency = new GrindingCurrency(player.getUniqueId(), model);
-                currency.getModel().setGrindTokens(currency.getModel().getGrindTokens() - amount);
+
+                double currentTokens = currency.getModel().getGrindTokens();
+
+                if (currentTokens < amount) {
+                    Bukkit.getScheduler().runTask(OpenGrinding.getInstance(), () -> {
+                        player.sendMessage(MessageUtil.filterMessage("<warning>⚠ Je hebt niet genoeg grindtokens!"));
+                        player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1.0F, 1.0F);
+                    });
+                    return new HashMap<Currency, Double>();
+                }
+
+                currency.getModel().setGrindTokens(currentTokens - amount);
                 currency.save();
 
                 return (Map<Currency, Double>) (Map<?, ?>) Map.of(Currency.TOKENS, amount);
@@ -68,10 +79,18 @@ public class CurrencyUtil {
 
                     if (EventUtils.callCancellable(event)) {
                         Bukkit.getScheduler().runTask(OpenGrinding.getInstance(), () ->
-                                player.sendMessage(ChatUtils.color("<red>De transactie is geannuleerd door een plugin."))
+                                player.sendMessage(ChatUtils.color("<warning>⚠ De transactie is geannuleerd door een plugin."))
                         );
                         future.complete(new HashMap<Currency, Double>());
                     } else {
+                        if (accountModel.getBalance() < amount) {
+                            Bukkit.getScheduler().runTask(OpenGrinding.getInstance(), () ->
+                                    player.sendMessage(ChatUtils.color("<warning>⚠ Je hebt niet genoeg saldo op je rekening."))
+                            );
+                            future.complete(new HashMap<Currency, Double>());
+                            return;
+                        }
+
                         accountModel.setBalance(accountModel.getBalance() - amount);
                         accountModel.save();
 
@@ -148,7 +167,7 @@ public class CurrencyUtil {
 
                 if (EventUtils.callCancellable(event)) {
                     Bukkit.getScheduler().runTask(OpenGrinding.getInstance(), () ->
-                            player.sendMessage(ChatUtils.color("<red>De transactie is geannuleerd door een plugin."))
+                            player.sendMessage(ChatUtils.color("<warning>⚠ De transactie is geannuleerd door een plugin."))
                     );
                     return;
                 }
