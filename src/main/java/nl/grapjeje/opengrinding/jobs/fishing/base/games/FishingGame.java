@@ -2,6 +2,7 @@ package nl.grapjeje.opengrinding.jobs.fishing.base.games;
 
 import lombok.Getter;
 import nl.grapjeje.opengrinding.OpenGrinding;
+import nl.grapjeje.opengrinding.jobs.fishing.base.events.PlayerFishCatchEvent;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
@@ -40,6 +41,7 @@ public abstract class FishingGame {
     public abstract void visualize();
 
     public void stop(boolean completed) {
+        if (completed) new PlayerFishCatchEvent(null, null).callEvent();
         playersInGame.remove(player.getUniqueId());
         tickTask.cancel();
     }

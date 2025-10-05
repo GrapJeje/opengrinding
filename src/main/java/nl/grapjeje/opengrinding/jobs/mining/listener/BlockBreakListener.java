@@ -55,17 +55,19 @@ public class BlockBreakListener implements Listener {
             player.sendMessage(MessageUtil.filterMessage("<warning>⚠ De mining module is momenteel uitgeschakeld!"));
             return;
         }
-        if (player.getGameMode() == GameMode.CREATIVE || player.getGameMode() == GameMode.SURVIVAL) return;
+        if (player.getGameMode() == GameMode.CREATIVE || player.getGameMode() == GameMode.SPECTATOR) return;
 
         Block block = e.getBlock();
-        Location location = block.getLocation();
-        Material originalType = block.getType();
+        final Material originalType = block.getType();
+        final Location location = block.getLocation();
         if (!GrindingRegion.isInRegionWithJob(location, Jobs.MINING)) return;
 
         Material heldItem = player.getInventory().getItemInMainHand().getType();
         if (!heldItem.name().endsWith("PICKAXE")) return;
 
         if (!this.canMine(block)) return;
+        e.setDropItems(false);
+        e.setExpToDrop(0);
 
         Bukkit.getScheduler().runTaskAsynchronously(OpenGrinding.getInstance(), () -> {
             PlayerGrindingModel model = this.loadOrCreatePlayerModel(player);
@@ -103,9 +105,6 @@ public class BlockBreakListener implements Listener {
                     player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 3.0F, 0.5F);
                     return;
                 }
-
-                e.setDropItems(false);
-                e.setExpToDrop(0);
 
                 ItemStack item = MiningModule.getBlockHead(originalType);
                 if (item != null) player.getInventory().addItem(item);
