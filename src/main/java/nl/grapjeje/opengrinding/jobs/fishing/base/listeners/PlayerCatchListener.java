@@ -7,29 +7,40 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerFishEvent;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
+import java.util.Random;
 
 public class PlayerCatchListener implements Listener {
 
-    private final List<FishingGame> games = List.of(
-            new MazeGame()
+    private final List<Class<? extends FishingGame>> gameTypes = List.of(
+            MazeGame.class
     );
+
+    private final Random random = new Random();
 
     @EventHandler
     public void onCatch(PlayerFishEvent e) {
         if (e.getState() != PlayerFishEvent.State.CAUGHT_FISH) return;
-        Player player = e.getPlayer();
-
         e.setCancelled(true);
-        FishingGame game = this.getRandomGame();
-        game.start(player);
+
+        Player player = e.getPlayer();
+        e.getHook().remove();
+
+        FishingGame game = createRandomGame();
+        if (game != null) {
+            game.start(player);
+        }
     }
 
-    private FishingGame getRandomGame() {
-        ArrayList<FishingGame> list = new ArrayList<>(games);
-        Collections.shuffle(list);
-        return list.getFirst();
+    private FishingGame createRandomGame() {
+        if (gameTypes.isEmpty()) return null;
+        Class<? extends FishingGame> gameClass = gameTypes.get(random.nextInt(gameTypes.size()));
+
+        try {
+            return gameClass.getDeclaredConstructor().newInstance();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 }

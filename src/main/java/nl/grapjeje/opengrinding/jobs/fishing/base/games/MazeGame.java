@@ -116,6 +116,7 @@ public class MazeGame extends FishingGame {
     private void updateGui() {
         Gui.Builder builder = Gui.builder(InventoryType.CHEST,
                 Component.text("Maze Game - Breng de vis naar het eindpunt!", NamedTextColor.GOLD));
+        builder.withSize(54);
         builder.withCloseHandler((closeEvent) ->
                 this.stop(false));
         gui = builder.build();
