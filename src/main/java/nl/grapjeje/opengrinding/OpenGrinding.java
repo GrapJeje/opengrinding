@@ -1,18 +1,16 @@
 package nl.grapjeje.opengrinding;
 
 import com.craftmend.storm.Storm;
-import com.craftmend.storm.api.StormModel;
 import lombok.Getter;
-import lombok.SneakyThrows;
 import nl.grapjeje.core.Framework;
 import nl.grapjeje.core.Main;
+import nl.grapjeje.core.StormDatabase;
 import nl.grapjeje.opengrinding.jobs.core.CoreModule;
 import nl.grapjeje.opengrinding.jobs.fishing.FishingModule;
 import nl.grapjeje.opengrinding.jobs.mining.MiningModule;
 import nl.grapjeje.opengrinding.models.FishLootTableModel;
 import nl.grapjeje.opengrinding.models.GrindingRegionModel;
 import nl.grapjeje.opengrinding.models.PlayerGrindingModel;
-import nl.openminetopia.modules.data.storm.StormDatabase;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public final class OpenGrinding extends JavaPlugin {
@@ -27,6 +25,12 @@ public final class OpenGrinding extends JavaPlugin {
         instance = this;
 
         framework = Framework.init(this);
+
+        // Initialize Storm - framework will automatically use OpenMinetopia's if available
+        // If OpenMinetopia is not present, it will use null (you can provide your own Storm here)
+        framework.initializeStorm(null);
+
+        // Register models via framework
         this.registerStormModels();
 
         framework.registerModuleloader();
@@ -40,20 +44,17 @@ public final class OpenGrinding extends JavaPlugin {
     @Override
     public void onDisable() {
         framework.getModuleLoader().disableModules();
-        if (Main.getDb() != null) Main.getDb().close();
+
+        // Only close our own Storm connection if we're not using OpenMinetopia's
+        if (!StormDatabase.getInstance().isUsingExternalStorm() && Main.getDb() != null) {
+            Main.getDb().close();
+        }
     }
 
     private void registerStormModels() {
-        this.registerStormModel(new PlayerGrindingModel());
-        this.registerStormModel(new GrindingRegionModel());
-        this.registerStormModel(new FishLootTableModel());
-    }
-
-    @SneakyThrows
-    private void registerStormModel(StormModel model) {
-        Storm storm = StormDatabase.getInstance().getStorm();
-
-        storm.registerModel(model);
-        storm.runMigrations();
+        // Use framework's registerStormModel with Supplier pattern
+        framework.registerStormModel(PlayerGrindingModel::new);
+        framework.registerStormModel(GrindingRegionModel::new);
+        framework.registerStormModel(FishLootTableModel::new);
     }
 }

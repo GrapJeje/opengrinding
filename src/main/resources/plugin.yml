@@ -6,11 +6,7 @@ authors: [ GrapJeje ]
 description: A grinding plugin for openMinetopia
 website: grapjeje.nl
 
-dependencies:
-  server:
-    OpenMinetopia:
-      load: BEFORE
-      required: true
+depend: [OpenMinetopia]
 
 commands:
   opengrinding:
