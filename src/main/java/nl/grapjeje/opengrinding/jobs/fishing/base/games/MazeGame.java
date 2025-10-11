@@ -175,7 +175,6 @@ public class MazeGame extends FishingGame {
                 .build());
     }
 
-
     private void handleMazeClick(int clickX, int clickY) {
         if (gameWon) return;
 
@@ -189,11 +188,7 @@ public class MazeGame extends FishingGame {
             if (fishX == endX && fishY == endY) {
                 gameWon = true;
                 long timeElapsed = (System.currentTimeMillis() - startTime) / 1000;
-
-                player.sendMessage(Component.text("🎉 Gefeliciteerd! Je hebt het doolhof voltooid!", NamedTextColor.GREEN));
-                player.sendMessage(Component.text("Bewegingen: " + moves + " | Tijd: " + timeElapsed + "s", NamedTextColor.YELLOW));
                 player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1.0F, 1.0F);
-
                 Bukkit.getScheduler().runTaskLater(OpenGrinding.getInstance(), () -> this.stop(true), 60L);
             }
             this.openGui();

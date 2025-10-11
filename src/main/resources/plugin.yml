@@ -6,7 +6,7 @@ authors: [ GrapJeje ]
 description: A grinding plugin for openMinetopia
 website: grapjeje.nl
 
-depend: [OpenMinetopia]
+depend: [OpenMinetopia, ProtocolLib]
 
 commands:
   opengrinding:
