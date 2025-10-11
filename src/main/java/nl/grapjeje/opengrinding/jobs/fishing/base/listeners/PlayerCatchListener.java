@@ -1,5 +1,6 @@
 package nl.grapjeje.opengrinding.jobs.fishing.base.listeners;
 
+import nl.grapjeje.opengrinding.jobs.fishing.base.games.BarBalancingGame;
 import nl.grapjeje.opengrinding.jobs.fishing.base.games.ClickGame;
 import nl.grapjeje.opengrinding.jobs.fishing.base.games.FishingGame;
 import nl.grapjeje.opengrinding.jobs.fishing.base.games.MazeGame;
@@ -14,8 +15,7 @@ import java.util.Random;
 public class PlayerCatchListener implements Listener {
 
     private final List<Class<? extends FishingGame>> gameTypes = List.of(
-            MazeGame.class,
-            ClickGame.class
+            BarBalancingGame.class
     );
 
     private final Random random = new Random();
