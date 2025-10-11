@@ -3,6 +3,7 @@ package nl.grapjeje.opengrinding.jobs.fishing.base.games;
 import lombok.Getter;
 import nl.grapjeje.opengrinding.OpenGrinding;
 import nl.grapjeje.opengrinding.jobs.fishing.base.events.PlayerFishCatchEvent;
+import nl.grapjeje.opengrinding.utils.Menu;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
@@ -14,7 +15,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.scheduler.BukkitTask;
 
 @Getter
-public abstract class FishingGame {
+public abstract class FishingGame extends Menu {
     @Getter
     private static Map<UUID, FishingGame> playersInGame = new ConcurrentHashMap<>();
 
@@ -27,15 +28,20 @@ public abstract class FishingGame {
             1L
     );
 
+    @Override
+    public void open(Player player) {
+        this.start(player);
+    }
+
     public void start(@NotNull Player player) {
         this.player = player;
         playersInGame.put(player.getUniqueId(), this);
-        Bukkit.getScheduler().runTask(OpenGrinding.getInstance(), this::visualize);
+        Bukkit.getScheduler().runTaskAsynchronously(OpenGrinding.getInstance(), this::visualize);
     }
 
     public void tick() {
         if (Math.random() < 0.001)
-            Bukkit.getScheduler().runTask(OpenGrinding.getInstance(), () -> stop(false));
+            Bukkit.getScheduler().runTask(OpenGrinding.getInstance(), () -> this.stop(false));
     }
 
     public abstract void visualize();
