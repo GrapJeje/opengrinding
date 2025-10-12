@@ -1,11 +1,9 @@
 package nl.grapjeje.opengrinding.jobs.fishing.configuration;
 
 import lombok.Getter;
-import nl.grapjeje.core.Config;
-import nl.grapjeje.opengrinding.jobs.mining.configuration.MiningJobConfiguration;
-import nl.grapjeje.opengrinding.jobs.mining.objects.Ore;
 import nl.grapjeje.opengrinding.utils.configuration.JobConfig;
 import nl.grapjeje.opengrinding.utils.configuration.ShopConfig;
+import nl.grapjeje.opengrinding.utils.currency.Price;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 
@@ -15,8 +13,8 @@ import java.util.Map;
 
 @Getter
 public class FishingJobConfiguration extends JobConfig implements ShopConfig {
-    public record Fish(String name, double sellPrice) {}
-    public record Rod(String name, double buyPrice) {}
+    public record Fish(String name, Price price) {}
+    public record Rod(String name, Price price) {}
 
     private boolean gamesEnabled;
 
@@ -56,10 +54,14 @@ public class FishingJobConfiguration extends JobConfig implements ShopConfig {
             for (String key : fishSection.getKeys(false)) {
                 ConfigurationSection section = fishSection.getConfigurationSection(key);
                 if (section != null) {
+                    ConfigurationSection priceSection = section.getConfigurationSection("sell-price");
+                    double cash = priceSection != null ? priceSection.getDouble("cash", 0.0) : 0.0;
+                    double tokens = priceSection != null ? priceSection.getDouble("tokens", 0.0) : 0.0;
+
                     try {
                         Fish fish = new Fish(
                                 key,
-                                section.getDouble("sell-price")
+                                new Price(cash, tokens)
                         );
                         fishes.put(key, fish);
                     } catch (IllegalArgumentException ignored) {
@@ -74,10 +76,14 @@ public class FishingJobConfiguration extends JobConfig implements ShopConfig {
             for (String key : rodSection.getKeys(false)) {
                 ConfigurationSection section = rodSection.getConfigurationSection(key);
                 if (section != null) {
+                    ConfigurationSection priceSection = section.getConfigurationSection("price");
+                    double cash = priceSection != null ? priceSection.getDouble("cash", 0.0) : 0.0;
+                    double tokens = priceSection != null ? priceSection.getDouble("tokens", 0.0) : 0.0;
+
                     try {
                         Rod rod = new Rod(
                                 key,
-                                section.getDouble("buy-price")
+                                new Price(cash, tokens)
                         );
                         rods.put(key, rod);
                     } catch (IllegalArgumentException ignored) {

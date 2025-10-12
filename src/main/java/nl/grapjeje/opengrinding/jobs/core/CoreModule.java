@@ -6,6 +6,7 @@ import nl.grapjeje.opengrinding.OpenGrinding;
 import nl.grapjeje.opengrinding.jobs.core.commands.*;
 import nl.grapjeje.opengrinding.jobs.core.configuration.DefaultConfiguration;
 import nl.grapjeje.opengrinding.jobs.core.listeners.HeadBlockerListener;
+import nl.grapjeje.opengrinding.jobs.core.listeners.PlayerJoinListener;
 import nl.grapjeje.opengrinding.jobs.core.listeners.PlayerLevelUpListener;
 import nl.grapjeje.opengrinding.jobs.core.listeners.PlayerRegionWandListener;
 import nl.grapjeje.opengrinding.models.GrindingRegionModel;
@@ -37,10 +38,12 @@ public class CoreModule extends Module {
         OpenGrinding.getFramework().registerCommand(SellCommand::new);
         OpenGrinding.getFramework().registerCommand(ShopCommand::new);
         OpenGrinding.getFramework().registerCommand(FixSkullCommand::new);
+        OpenGrinding.getFramework().registerCommand(GrindTokensCommand::new);
 
         OpenGrinding.getFramework().registerListener(PlayerRegionWandListener::new);
         OpenGrinding.getFramework().registerListener(HeadBlockerListener::new);
         OpenGrinding.getFramework().registerListener(PlayerLevelUpListener::new);
+        OpenGrinding.getFramework().registerListener(PlayerJoinListener::new);
 
         try {
             Bukkit.getLogger().info("Loading grinding regions...");

@@ -21,3 +21,5 @@ commands:
     description: Fix a skull that is stuck on a head
   fishloottable:
     description: Crud command for fish loottables
+  grindtokens:
+    description: Grindtokens command

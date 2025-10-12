@@ -6,7 +6,6 @@ import com.craftmend.storm.api.markers.Table;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import nl.grapjeje.opengrinding.jobs.Jobs;
-
 import java.util.UUID;
 
 @Data

@@ -1,11 +1,11 @@
 package nl.grapjeje.opengrinding.jobs.mining.configuration;
 
 import lombok.Getter;
-import nl.grapjeje.core.Config;
 import nl.grapjeje.opengrinding.jobs.mining.objects.Ore;
 import nl.grapjeje.opengrinding.utils.configuration.JobConfig;
 import nl.grapjeje.opengrinding.utils.configuration.LevelConfig;
 import nl.grapjeje.opengrinding.utils.configuration.ShopConfig;
+import nl.grapjeje.opengrinding.utils.currency.Price;
 import org.bukkit.configuration.ConfigurationSection;
 
 import java.io.File;
@@ -14,8 +14,8 @@ import java.util.Map;
 
 @Getter
 public class MiningJobConfiguration extends JobConfig implements ShopConfig, LevelConfig {
-    public record OreRecord(String name, double sellPrice, int points, int unlockLevel) {}
-    public record Pickaxe(String name, double price, int unlockLevel) {}
+    public record OreRecord(String name, Price price, int points, int unlockLevel) {}
+    public record Pickaxe(String name, Price price, int unlockLevel) {}
 
     private boolean sellEnabled;
     private boolean openBuyShop;
@@ -59,9 +59,14 @@ public class MiningJobConfiguration extends JobConfig implements ShopConfig, Lev
                 if (section != null) {
                     try {
                         Ore oreEnum = Ore.valueOf(key.toUpperCase());
+
+                        ConfigurationSection priceSection = section.getConfigurationSection("sell-price");
+                        double cash = priceSection != null ? priceSection.getDouble("cash", 0.0) : 0.0;
+                        double tokens = priceSection != null ? priceSection.getDouble("tokens", 0.0) : 0.0;
+
                         OreRecord oreRecord = new OreRecord(
                                 key,
-                                section.getDouble("sell-price"),
+                                new Price(cash, tokens),
                                 section.getInt("points"),
                                 section.getInt("unlock-level")
                         );
@@ -78,9 +83,13 @@ public class MiningJobConfiguration extends JobConfig implements ShopConfig, Lev
             for (String key : pickaxeSection.getKeys(false)) {
                 ConfigurationSection section = pickaxeSection.getConfigurationSection(key);
                 if (section != null) {
+                    ConfigurationSection priceSection = section.getConfigurationSection("price");
+                    double cash = priceSection != null ? priceSection.getDouble("cash", 0.0) : 0.0;
+                    double tokens = priceSection != null ? priceSection.getDouble("tokens", 0.0) : 0.0;
+
                     Pickaxe pickaxe = new Pickaxe(
                             key,
-                            section.getDouble("price"),
+                            new Price(cash, tokens),
                             section.getInt("unlock-level")
                     );
                     pickaxes.put(key, pickaxe);
@@ -124,4 +133,3 @@ public class MiningJobConfiguration extends JobConfig implements ShopConfig, Lev
         return levelOverrides.getOrDefault(level, null);
     }
 }
-

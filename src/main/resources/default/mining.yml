@@ -9,50 +9,74 @@ economy:
 
 ores:
   coal:
-    sell-price: 5.0
+    sell-price:
+      cash: 5.0
+      tokens: 0.5
     points: 1
     unlock-level: 0
   iron:
-    sell-price: 10.0
+    sell-price:
+      cash: 10.0
+      tokens: 1.0
     points: 2
     unlock-level: 5
   copper:
-    sell-price: 8.0
+    sell-price:
+      cash: 8.0
+      tokens: 0.8
     points: 3
     unlock-level: 10
   gold:
-    sell-price: 15.0
+    sell-price:
+      cash: 15.0
+      tokens: 1.5
     points: 3
     unlock-level: 15
   redstone:
-    sell-price: 12.0
+    sell-price:
+      cash: 12.0
+      tokens: 1.2
     points: 4
     unlock-level: 20
   lapis:
-    sell-price: 12.0
+    sell-price:
+      cash: 12.0
+      tokens: 1.2
     points: 4
     unlock-level: 25
   diamond:
-    sell-price: 25.0
+    sell-price:
+      cash: 25.0
+      tokens: 2.5
     points: 5
     unlock-level: 30
   emerald:
-    sell-price: 30.0
+    sell-price:
+      cash: 30.0
+      tokens: 3.0
     points: 6
     unlock-level: 35
 
 pickaxes:
   stone:
-    price: 20.0
+    price:
+      cash: 20.0
+      tokens: 2.0
     unlock-level: 0
   iron:
-    price: 50.0
+    price:
+      cash: 50.0
+      tokens: 5.0
     unlock-level: 5
   diamond:
-    price: 150.0
+    price:
+      cash: 150.0
+      tokens: 15.0
     unlock-level: 20
   netherite:
-    price: 500.0
+    price:
+      cash: 500.0
+      tokens: 50.0
     unlock-level: 35
 
 level:
