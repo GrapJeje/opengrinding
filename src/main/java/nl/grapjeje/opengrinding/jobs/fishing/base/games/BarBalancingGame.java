@@ -46,7 +46,7 @@ public class BarBalancingGame extends FishingGame {
         input = new KeyPressInput(player, (keyPress, kpi) -> {
             isMovingLeft = keyPress.left();
             isMovingRight = keyPress.right();
-        }, (__) -> stop(false), KeyPressInput.CancelType.NONE);
+        }, (__) -> stop(false), KeyPressInput.CancelType.SINGLE_SHIFT);
 
         this.startGameLoop();
     }
