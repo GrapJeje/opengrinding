@@ -2,7 +2,10 @@ package nl.grapjeje.opengrinding.jobs.core.commands;
 
 import nl.grapjeje.core.command.Command;
 import nl.grapjeje.core.command.CommandSourceStack;
-import nl.grapjeje.opengrinding.jobs.mining.guis.ShopMenu;
+import nl.grapjeje.opengrinding.jobs.fishing.FishingModule;
+import nl.grapjeje.opengrinding.jobs.fishing.guis.FishingRodShopMenu;
+import nl.grapjeje.opengrinding.jobs.mining.MiningModule;
+import nl.grapjeje.opengrinding.jobs.mining.guis.PickaxeShopMenu;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -30,7 +33,8 @@ public class ShopCommand implements Command {
 
         String sub = args[0].toLowerCase();
         switch (sub) {
-            case "mining" -> new ShopMenu().open(player);
+            case "mining" -> new PickaxeShopMenu().open(player, MiningModule.class);
+            case "fishing" -> new FishingRodShopMenu().open(player, FishingModule.class);
         }
     }
 

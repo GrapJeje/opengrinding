@@ -1,9 +1,9 @@
-package nl.grapjeje.opengrinding.jobs.fishing.base.menus;
+package nl.grapjeje.opengrinding.jobs.fishing.menus;
 
 import net.kyori.adventure.text.Component;
 import nl.grapjeje.core.gui.Gui;
 import nl.grapjeje.core.gui.GuiButton;
-import nl.grapjeje.opengrinding.utils.Menu;
+import nl.grapjeje.opengrinding.utils.guis.Menu;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 

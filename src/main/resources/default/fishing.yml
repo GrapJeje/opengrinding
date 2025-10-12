@@ -1,4 +1,5 @@
 enabled: true
+enable-games: true
 
 economy:
   sell:
@@ -6,3 +7,15 @@ economy:
     open-buy-shop: true
   buy:
     enabled: true
+
+fishes:
+  cod:
+    sell-price: 3.0 # Per KG
+  salmon:
+    sell-price: 5.0
+  tropical_fish:
+    sell-price: 35.0
+
+rods:
+  fishing_rod:
+    buy-price: 200.0

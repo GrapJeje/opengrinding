@@ -1,6 +1,8 @@
 package nl.grapjeje.opengrinding.jobs.core.objects;
 
+import com.craftmend.storm.api.enums.Where;
 import lombok.Getter;
+import nl.grapjeje.core.text.MessageUtil;
 import nl.grapjeje.opengrinding.OpenGrinding;
 import nl.grapjeje.opengrinding.jobs.Jobs;
 import nl.grapjeje.opengrinding.jobs.core.CoreModule;
@@ -13,7 +15,9 @@ import nl.openminetopia.api.player.PlayerManager;
 import nl.openminetopia.api.player.objects.MinetopiaPlayer;
 import nl.openminetopia.modules.data.storm.StormDatabase;
 import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
 
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
@@ -32,6 +36,42 @@ public class GrindingPlayer {
         return CompletableFuture.runAsync(() ->
                 StormDatabase.getInstance().saveStormModel(model)
         );
+    }
+
+    public static PlayerGrindingModel loadOrCreatePlayerModel(Player player, Jobs job) {
+        if (CoreModule.getPlayerCache().containsKey(player.getUniqueId()))
+            return CoreModule.getPlayerCache().get(player.getUniqueId());
+
+        Optional<PlayerGrindingModel> playerModelOpt;
+        try {
+            playerModelOpt = StormDatabase.getInstance().getStorm()
+                    .buildQuery(PlayerGrindingModel.class)
+                    .where("player_uuid", Where.EQUAL , player.getUniqueId())
+                    .where("job_name", Where.EQUAL, job.name())
+                    .limit(1)
+                    .execute()
+                    .join()
+                    .stream()
+                    .findFirst();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            Bukkit.getScheduler().runTask(OpenGrinding.getInstance(), () ->
+                    player.sendMessage(MessageUtil.filterMessage("<warning>⚠ Er is een fout opgetreden bij het ophalen van jouw spelersdata!"))
+            );
+            throw new RuntimeException(ex);
+        }
+
+        return playerModelOpt.orElseGet(() -> {
+            PlayerGrindingModel m = new PlayerGrindingModel();
+            m.setPlayerUuid(player.getUniqueId());
+            m.setJob(job);
+            m.setLevel(0);
+            m.setValue(0.0);
+            GrindingPlayer gp = new GrindingPlayer(player.getUniqueId(), m);
+            gp.save();
+            Bukkit.getLogger().info("New player grind model made for " + player.getName());
+            return m;
+        });
     }
 
     /* ---------- Progression ---------- */

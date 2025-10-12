@@ -1,18 +1,19 @@
-package nl.grapjeje.opengrinding.jobs.fishing.base.commands;
+package nl.grapjeje.opengrinding.jobs.fishing.commands;
 
 import com.craftmend.storm.api.enums.Where;
 import nl.grapjeje.core.command.Command;
 import nl.grapjeje.core.command.CommandSourceStack;
 import nl.grapjeje.core.text.MessageUtil;
 import nl.grapjeje.opengrinding.OpenGrinding;
-import nl.grapjeje.opengrinding.jobs.fishing.base.menus.FishLootTableMenu;
-import nl.grapjeje.opengrinding.jobs.fishing.base.menus.FishLootTableListMenu;
-import nl.grapjeje.opengrinding.jobs.fishing.base.objects.FishLootTable;
+import nl.grapjeje.opengrinding.jobs.fishing.menus.FishLootTableMenu;
+import nl.grapjeje.opengrinding.jobs.fishing.menus.FishLootTableListMenu;
+import nl.grapjeje.opengrinding.jobs.fishing.objects.FishLootTable;
 import nl.grapjeje.opengrinding.models.FishLootTableModel;
 import nl.openminetopia.modules.data.storm.StormDatabase;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.stream.Stream;
@@ -33,16 +34,16 @@ public class FishLootTableCommand implements Command {
         }
 
         if (args.length == 0) {
-            sendHelp(player);
+            this.sendHelp(player);
             return;
         }
 
         String sub = args[0].toLowerCase();
         switch (sub) {
-            case "create" -> handleCreate(player, args);
-            case "open" -> handleOpen(player, args);
-            case "list" -> handleList(player, args);
-            default -> sendHelp(player);
+            case "create" -> this.handleCreate(player, args);
+            case "open" -> this.handleOpen(player, args);
+            case "list" -> this.handleList(player, args);
+            default -> this.sendHelp(player);
         }
     }
 
@@ -157,6 +158,10 @@ public class FishLootTableCommand implements Command {
     public Collection<String> suggest(CommandSourceStack source, String[] args) {
         Player player = source.getPlayer();
         if (player == null) return Collections.emptyList();
+        if (!this.canUse(player)) {
+            player.sendRichMessage(MessageUtil.filterMessageString(this.noPermissionMessage()));
+            return Collections.emptyList();
+        }
 
         return switch (args.length) {
             case 1 -> Stream.of("create", "open", "list")
@@ -164,7 +169,7 @@ public class FishLootTableCommand implements Command {
                     .toList();
             case 2 -> {
                 if (args[0].equalsIgnoreCase("open")) {
-                    List<String> values = null;
+                    List<String> values;
                     try {
                         values = StormDatabase.getInstance().getStorm()
                                 .buildQuery(FishLootTableModel.class)
@@ -183,5 +188,10 @@ public class FishLootTableCommand implements Command {
             }
             default -> Collections.emptyList();
         };
+    }
+
+    @Override
+    public @Nullable String permission() {
+        return "opengrinding.fishloottable";
     }
 }

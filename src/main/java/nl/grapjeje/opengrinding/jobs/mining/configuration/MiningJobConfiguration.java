@@ -5,6 +5,7 @@ import nl.grapjeje.opengrinding.jobs.mining.objects.Ore;
 import nl.grapjeje.opengrinding.utils.configuration.JobConfig;
 import nl.grapjeje.opengrinding.utils.configuration.LevelConfig;
 import nl.grapjeje.opengrinding.utils.configuration.ShopConfig;
+import nl.grapjeje.opengrinding.utils.currency.Price;
 import org.bukkit.configuration.ConfigurationSection;
 
 import java.io.File;
@@ -15,7 +16,6 @@ import java.util.Map;
 public class MiningJobConfiguration extends JobConfig implements ShopConfig, LevelConfig {
     public record OreRecord(String name, Price price, int points, int unlockLevel) {}
     public record Pickaxe(String name, Price price, int unlockLevel) {}
-    public record Price(double cash, double grindToken) {}
 
     private boolean sellEnabled;
     private boolean openBuyShop;
@@ -83,7 +83,6 @@ public class MiningJobConfiguration extends JobConfig implements ShopConfig, Lev
             for (String key : pickaxeSection.getKeys(false)) {
                 ConfigurationSection section = pickaxeSection.getConfigurationSection(key);
                 if (section != null) {
-
                     ConfigurationSection priceSection = section.getConfigurationSection("price");
                     double cash = priceSection != null ? priceSection.getDouble("cash", 0.0) : 0.0;
                     double tokens = priceSection != null ? priceSection.getDouble("tokens", 0.0) : 0.0;

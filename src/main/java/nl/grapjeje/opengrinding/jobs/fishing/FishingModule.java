@@ -3,19 +3,19 @@ package nl.grapjeje.opengrinding.jobs.fishing;
 import lombok.Getter;
 import nl.grapjeje.core.modules.Module;
 import nl.grapjeje.opengrinding.OpenGrinding;
-import nl.grapjeje.opengrinding.jobs.fishing.base.commands.FishLootTableCommand;
-import nl.grapjeje.opengrinding.jobs.fishing.base.listeners.PlayerQuitListener;
+import nl.grapjeje.opengrinding.jobs.fishing.commands.FishLootTableCommand;
+import nl.grapjeje.opengrinding.jobs.fishing.listeners.PlayerSessionListener;
 import nl.grapjeje.opengrinding.jobs.fishing.configuration.FishingJobConfiguration;
-import nl.grapjeje.opengrinding.jobs.fishing.base.games.FishingGame;
-import nl.grapjeje.opengrinding.jobs.fishing.base.listeners.PlayerCatchListener;
+import nl.grapjeje.opengrinding.jobs.fishing.games.FishingGame;
+import nl.grapjeje.opengrinding.jobs.fishing.listeners.PlayerCatchListener;
+import nl.grapjeje.opengrinding.utils.JobModule;
+import nl.grapjeje.opengrinding.utils.configuration.JobConfig;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
 
-public class FishingModule extends Module {
-    @Getter
-    private final static List<FishingGame> games = new ArrayList<>();
+public class FishingModule extends JobModule {
     @Getter
     private final static FishingJobConfiguration config = new FishingJobConfiguration(OpenGrinding.getInstance().getDataFolder());
 
@@ -30,7 +30,7 @@ public class FishingModule extends Module {
         OpenGrinding.getFramework().registerCommand(FishLootTableCommand::new);
 
         OpenGrinding.getFramework().registerListener(PlayerCatchListener::new);
-        OpenGrinding.getFramework().registerListener(PlayerQuitListener::new);
+        OpenGrinding.getFramework().registerListener(PlayerSessionListener::new);
     }
 
     @Override
@@ -46,8 +46,8 @@ public class FishingModule extends Module {
         return super.isDisabled();
     }
 
-    <T extends FishingGame> void registerGame(Supplier<T> game) {
-        T g = game.get();
-        games.add(g);
+    @Override
+    public JobConfig getJobConfig() {
+        return config;
     }
 }
