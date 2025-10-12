@@ -2,6 +2,7 @@ package nl.grapjeje.opengrinding.jobs.fishing.base.menus;
 
 import com.craftmend.storm.Storm;
 import com.craftmend.storm.api.enums.Where;
+import com.google.gson.Gson;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import nl.grapjeje.core.gui.Gui;
@@ -75,47 +76,23 @@ public class FishLootTableMenu extends Menu {
                 } else if (type.isRightClick()) {
                     Bukkit.getScheduler().runTaskAsynchronously(OpenGrinding.getInstance(), () -> {
                         Storm storm = StormDatabase.getInstance().getStorm();
-                        //  TODO: Fix delete
-                        if (display.getItemMeta() != null) {
-                            String itemMetaJson = FishLootTableModel.getGSON().toJson(display.getItemMeta());
-                            try {
-                                Collection<FishLootTableModel> models = storm.buildQuery(FishLootTableModel.class)
-                                        .where("metadata", Where.EQUAL, itemMetaJson)
-                                        .execute()
-                                        .get();
-                                for (FishLootTableModel model : models) {
-                                    storm.delete(model);
-                                }
-                            } catch (Exception ex) {
-                                ex.printStackTrace();
-                            }
-                        } else {
-                            Material mat = display.getType();
-                            try {
-                                Collection<FishLootTableModel> models = storm.buildQuery(FishLootTableModel.class)
-                                        .where("material", Where.EQUAL, mat.toString())
-                                        .execute()
-                                        .get();
-                                FishLootTableModel toDelete = models.stream()
-                                        .filter(m -> m.getMetadata() == null || m.getMetadata().isEmpty())
-                                        .findFirst()
-                                        .orElse(null);
-                                if (toDelete == null && !models.isEmpty()) toDelete = models.iterator().next();
-                                if (toDelete != null) storm.delete(toDelete);
-                            } catch (Exception ex) {
-                                ex.printStackTrace();
-                            }
+                        try {
+                            storm.delete(loot.getModel());
+                            Bukkit.getScheduler().runTask(OpenGrinding.getInstance(), () -> {
+                                String itemName = meta != null && meta.hasDisplayName()
+                                        ? PlainTextComponentSerializer.plainText().serialize(meta.displayName())
+                                        : display.getType().name();
+                                player.sendMessage(MessageUtil.filterMessage(
+                                        "<warning><bold>" + itemName + "<!bold> verwijderd uit <bold>" + value + "<!bold>!"
+                                ));
+                                player.closeInventory();
+                            });
+                        } catch (Exception ex) {
+                            ex.printStackTrace();
                         }
-                        String itemName = PlainTextComponentSerializer.plainText()
-                                .serialize(Objects.requireNonNull(display.getItemMeta().displayName()));
-                        Bukkit.getScheduler().runTask(OpenGrinding.getInstance(), () -> {
-                            player.sendMessage(MessageUtil.filterMessage("<warning><bold>" + itemName + "<!bold> verwijderd uit <bold>" + value + "<!bold>!"));
-                            player.closeInventory();
-                        });
                     });
                 }
             });
-
             GuiButton button = buttonBuilder.build();
             gui.setButton(i++, button);
         }
