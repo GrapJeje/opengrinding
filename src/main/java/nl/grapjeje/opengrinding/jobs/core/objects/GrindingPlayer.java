@@ -67,6 +67,8 @@ public class GrindingPlayer {
             m.setJob(job);
             m.setLevel(0);
             m.setValue(0.0);
+            GrindingPlayer gp = new GrindingPlayer(player.getUniqueId(), m);
+            gp.save();
             Bukkit.getLogger().info("New player grind model made for " + player.getName());
             return m;
         });

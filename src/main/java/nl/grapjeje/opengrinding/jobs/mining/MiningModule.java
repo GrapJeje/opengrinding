@@ -10,6 +10,8 @@ import nl.grapjeje.opengrinding.jobs.mining.listener.BlockBreakListener;
 import nl.grapjeje.opengrinding.jobs.mining.objects.MiningOres;
 import nl.grapjeje.opengrinding.jobs.mining.objects.Ore;
 import nl.grapjeje.opengrinding.jobs.mining.timers.OreTimer;
+import nl.grapjeje.opengrinding.utils.JobModule;
+import nl.grapjeje.opengrinding.utils.configuration.JobConfig;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -19,7 +21,7 @@ import org.bukkit.inventory.meta.SkullMeta;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MiningModule extends Module {
+public class MiningModule extends JobModule {
     @Getter
     private final static List<MiningOres> ores = new ArrayList<>();
 
@@ -72,5 +74,10 @@ public class MiningModule extends Module {
             head.setItemMeta(meta);
         }
         return head;
+    }
+
+    @Override
+    public JobConfig getJobConfig() {
+        return config;
     }
 }

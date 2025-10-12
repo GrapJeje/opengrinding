@@ -6,7 +6,7 @@ import nl.grapjeje.opengrinding.jobs.Jobs;
 import nl.grapjeje.opengrinding.jobs.core.objects.GrindingPlayer;
 import nl.grapjeje.opengrinding.jobs.fishing.events.PlayerFishCatchEvent;
 import nl.grapjeje.opengrinding.jobs.fishing.listeners.PlayerCatchListener;
-import nl.grapjeje.opengrinding.utils.Menu;
+import nl.grapjeje.opengrinding.utils.guis.Menu;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;

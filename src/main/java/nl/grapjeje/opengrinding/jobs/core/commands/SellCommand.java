@@ -5,9 +5,12 @@ import nl.grapjeje.core.command.Command;
 import nl.grapjeje.core.command.CommandSourceStack;
 import nl.grapjeje.core.text.MessageUtil;
 import nl.grapjeje.opengrinding.OpenGrinding;
+import nl.grapjeje.opengrinding.jobs.fishing.FishingModule;
+import nl.grapjeje.opengrinding.jobs.fishing.configuration.FishingJobConfiguration;
+import nl.grapjeje.opengrinding.jobs.fishing.guis.FishingRodShopMenu;
 import nl.grapjeje.opengrinding.jobs.mining.MiningModule;
 import nl.grapjeje.opengrinding.jobs.mining.configuration.MiningJobConfiguration;
-import nl.grapjeje.opengrinding.jobs.mining.guis.ShopMenu;
+import nl.grapjeje.opengrinding.jobs.mining.guis.PickaxeShopMenu;
 import nl.grapjeje.opengrinding.jobs.mining.objects.Ore;
 import nl.openminetopia.OpenMinetopia;
 import nl.openminetopia.configuration.MessageConfiguration;
@@ -18,9 +21,12 @@ import nl.openminetopia.modules.transactions.events.TransactionUpdateEvent;
 import nl.openminetopia.utils.ChatUtils;
 import nl.openminetopia.utils.events.EventUtils;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
+import org.bukkit.persistence.PersistentDataType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -47,20 +53,21 @@ public class SellCommand implements Command {
         String sub = args[0].toLowerCase();
         switch (sub) {
             case "mining" -> this.handleMiningCommand(player);
+            case "fishing" -> this.handleFishingCommand(player);
         }
     }
 
     private void handleMiningCommand(Player player) {
         ItemStack itemInHand = player.getInventory().getItemInMainHand();
         if (itemInHand == null || itemInHand.getType() != Material.PLAYER_HEAD) {
-            if (MiningModule.getConfig().isOpenBuyShop()) new ShopMenu().open(player);
+            if (MiningModule.getConfig().isOpenBuyShop()) new PickaxeShopMenu().open(player);
             else player.sendMessage(MessageUtil.filterMessage("<warning>⚠ Dit item kun je hier niet verkopen!"));
             return;
         }
 
         SkullMeta meta = (SkullMeta) itemInHand.getItemMeta();
         if (meta == null || meta.getPlayerProfile() == null) {
-            if (MiningModule.getConfig().isOpenBuyShop()) new ShopMenu().open(player);
+            if (MiningModule.getConfig().isOpenBuyShop()) new PickaxeShopMenu().open(player);
             else player.sendMessage(MessageUtil.filterMessage("<warning>⚠ Dit item kun je hier niet verkopen!"));
             return;
         }
@@ -87,7 +94,7 @@ public class SellCommand implements Command {
 
         Optional<Ore> enumOre = Arrays.stream(Ore.values()).filter(ore -> ore.getUuid().equals(skullUuid)).findFirst();
         if (enumOre.isEmpty()) {
-            if (MiningModule.getConfig().isOpenBuyShop()) new ShopMenu().open(player);
+            if (MiningModule.getConfig().isOpenBuyShop()) new PickaxeShopMenu().open(player);
             else player.sendMessage(MessageUtil.filterMessage("<warning>⚠ Dit item kun je hier niet verkopen!"));
             return;
         }
@@ -98,7 +105,7 @@ public class SellCommand implements Command {
                 .orElse(null);
 
         if (oreRecord == null || oreRecord.sellPrice() <= 0) {
-            if (MiningModule.getConfig().isOpenBuyShop()) new ShopMenu().open(player);
+            if (MiningModule.getConfig().isOpenBuyShop()) new PickaxeShopMenu().open(player);
             else player.sendMessage(MessageUtil.filterMessage("<warning>⚠ Dit item kun je hier niet verkopen!"));
             return;
         }
@@ -112,6 +119,60 @@ public class SellCommand implements Command {
         String itemName = PlainTextComponentSerializer.plainText()
                 .serialize(Objects.requireNonNull(itemInHand.getItemMeta().displayName()));
 
+        player.sendMessage(MessageUtil.filterMessage(
+                "<green>Je hebt succesvol <bold>" + itemInHand.getAmount() + " " + itemName +
+                        "<!bold> verkocht voor <bold>" + amount + "<!bold>!"
+        ));
+    }
+
+    private void handleFishingCommand(Player player) {
+        ItemStack itemInHand = player.getInventory().getItemInMainHand();
+        FishingJobConfiguration config = FishingModule.getConfig();
+        if (itemInHand == null || itemInHand.getType() == Material.AIR) {
+            if (config.isOpenBuyShop()) new FishingRodShopMenu().open(player);
+            else player.sendMessage(MessageUtil.filterMessage("<warning>⚠ Je hebt niets in je hand!"));
+            return;
+        }
+        FishingModule module = OpenGrinding.getFramework().getModuleLoader()
+                .getModules().stream()
+                .filter(m -> m instanceof FishingModule)
+                .map(m -> (FishingModule) m)
+                .findFirst()
+                .orElse(null);
+
+        if (module == null || module.isDisabled()) {
+            player.sendMessage(MessageUtil.filterMessage("<warning>⚠ De fishing module is momenteel uitgeschakeld!"));
+            return;
+        }
+        if (!config.isSellEnabled()) {
+            player.sendMessage(MessageUtil.filterMessage("<warning>⚠ Je kunt momenteel niks verkopen!"));
+            return;
+        }
+        var fish = config.getFish(itemInHand.getType());
+        if (fish == null || fish.sellPrice() <= 0) {
+            if (config.isOpenBuyShop()) new FishingRodShopMenu().open(player);
+            else player.sendMessage(MessageUtil.filterMessage("<warning>⚠ Dit item kun je hier niet verkopen!"));
+            return;
+        }
+        ItemMeta meta = itemInHand.getItemMeta();
+        if (meta == null) return;
+
+        NamespacedKey key = new NamespacedKey("opengrinding", "fish_weight");
+        if (!meta.getPersistentDataContainer().has(key, PersistentDataType.DOUBLE)) {
+            if (config.isOpenBuyShop()) new FishingRodShopMenu().open(player);
+            else player.sendMessage(MessageUtil.filterMessage("<warning>⚠ Dit item kun je hier niet verkopen!"));
+            return;
+        }
+        double weight = meta.getPersistentDataContainer().get(key, PersistentDataType.DOUBLE);
+        double pricePerOne = fish.sellPrice() * weight;
+        double amount = pricePerOne * itemInHand.getAmount();
+
+        this.giveCash(player, amount);
+        player.getInventory().removeItem(itemInHand);
+
+        String itemName = (meta.hasDisplayName())
+                ? PlainTextComponentSerializer.plainText().serialize(meta.displayName())
+                : itemInHand.getType().name();
         player.sendMessage(MessageUtil.filterMessage(
                 "<green>Je hebt succesvol <bold>" + itemInHand.getAmount() + " " + itemName +
                         "<!bold> verkocht voor <bold>" + amount + "<!bold>!"

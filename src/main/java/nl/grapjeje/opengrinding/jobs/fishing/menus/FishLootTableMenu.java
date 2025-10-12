@@ -7,7 +7,7 @@ import nl.grapjeje.core.gui.Gui;
 import nl.grapjeje.core.gui.GuiButton;
 import nl.grapjeje.core.text.MessageUtil;
 import nl.grapjeje.opengrinding.OpenGrinding;
-import nl.grapjeje.opengrinding.utils.Menu;
+import nl.grapjeje.opengrinding.utils.guis.Menu;
 import nl.grapjeje.opengrinding.jobs.fishing.objects.FishLootTable;
 import nl.openminetopia.modules.data.storm.StormDatabase;
 import org.bukkit.Bukkit;
