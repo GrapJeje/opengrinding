@@ -57,16 +57,16 @@ public class FishLootTableMenu extends Menu {
                     .withMaterial(display.getType())
                     .withName(meta.displayName());
 
-            if (meta.hasLore() && meta.lore() != null) {
-                List<Component> lore = new ArrayList<>();
-                for (Component line : meta.lore()) {
-                    lore.add(line);
-                }
+            List<Component> lore = new ArrayList<>();
+            if (meta.hasLore()) {
+                lore.addAll(meta.lore());
                 lore.add(Component.text(" "));
-                lore.add(MessageUtil.filterMessage("<gray>Right click <dark_gray>- <white>Verwijder item uit loot table"));
-                lore.add(MessageUtil.filterMessage("<gray>Left click <dark_gray>- <white>Verkrijg item in hand"));
-                buttonBuilder.withLore(meta.lore());
             }
+
+            lore.add(MessageUtil.filterMessage("<gray>Chance: <white>" + loot.getChance() + "%"));
+            lore.add(MessageUtil.filterMessage("<gray>Right click <dark_gray>- <white>Verwijder item uit loot table"));
+            lore.add(MessageUtil.filterMessage("<gray>Left click <dark_gray>- <white>Verkrijg item in hand"));
+            buttonBuilder.withLore(lore);
 
             buttonBuilder.withClickEvent((gui, player, type) -> {
                 if (type.isLeftClick()) {
@@ -109,7 +109,7 @@ public class FishLootTableMenu extends Menu {
                         String itemName = PlainTextComponentSerializer.plainText()
                                 .serialize(Objects.requireNonNull(display.getItemMeta().displayName()));
                         Bukkit.getScheduler().runTask(OpenGrinding.getInstance(), () -> {
-                            player.sendMessage(MessageUtil.filterMessage("<warning><bold>" + itemName +  "<!bold> verwijderd uit <bold>" + value + "<!bold>!"));
+                            player.sendMessage(MessageUtil.filterMessage("<warning><bold>" + itemName + "<!bold> verwijderd uit <bold>" + value + "<!bold>!"));
                             player.closeInventory();
                         });
                     });
