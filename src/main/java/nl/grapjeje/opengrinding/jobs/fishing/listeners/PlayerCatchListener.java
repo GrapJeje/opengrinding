@@ -1,4 +1,4 @@
-package nl.grapjeje.opengrinding.jobs.fishing.base.listeners;
+package nl.grapjeje.opengrinding.jobs.fishing.listeners;
 
 import lombok.Getter;
 import nl.grapjeje.core.text.MessageUtil;
@@ -6,11 +6,11 @@ import nl.grapjeje.opengrinding.jobs.Jobs;
 import nl.grapjeje.opengrinding.jobs.core.objects.GrindingPlayer;
 import nl.grapjeje.opengrinding.jobs.core.objects.GrindingRegion;
 import nl.grapjeje.opengrinding.jobs.fishing.FishingModule;
-import nl.grapjeje.opengrinding.jobs.fishing.base.events.PlayerFishCatchEvent;
-import nl.grapjeje.opengrinding.jobs.fishing.base.games.ClickGame;
-import nl.grapjeje.opengrinding.jobs.fishing.base.games.FishingGame;
-import nl.grapjeje.opengrinding.jobs.fishing.base.games.MazeGame;
-import nl.grapjeje.opengrinding.jobs.fishing.base.objects.FishLootTable;
+import nl.grapjeje.opengrinding.jobs.fishing.events.PlayerFishCatchEvent;
+import nl.grapjeje.opengrinding.jobs.fishing.games.ClickGame;
+import nl.grapjeje.opengrinding.jobs.fishing.games.FishingGame;
+import nl.grapjeje.opengrinding.jobs.fishing.games.MazeGame;
+import nl.grapjeje.opengrinding.jobs.fishing.objects.FishLootTable;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.entity.FishHook;

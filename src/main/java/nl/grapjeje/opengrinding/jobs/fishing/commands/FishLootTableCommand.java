@@ -1,19 +1,18 @@
-package nl.grapjeje.opengrinding.jobs.fishing.base.commands;
+package nl.grapjeje.opengrinding.jobs.fishing.commands;
 
 import com.craftmend.storm.api.enums.Where;
 import nl.grapjeje.core.command.Command;
 import nl.grapjeje.core.command.CommandSourceStack;
 import nl.grapjeje.core.text.MessageUtil;
 import nl.grapjeje.opengrinding.OpenGrinding;
-import nl.grapjeje.opengrinding.jobs.fishing.base.menus.FishLootTableMenu;
-import nl.grapjeje.opengrinding.jobs.fishing.base.menus.FishLootTableListMenu;
-import nl.grapjeje.opengrinding.jobs.fishing.base.objects.FishLootTable;
+import nl.grapjeje.opengrinding.jobs.fishing.menus.FishLootTableMenu;
+import nl.grapjeje.opengrinding.jobs.fishing.menus.FishLootTableListMenu;
+import nl.grapjeje.opengrinding.jobs.fishing.objects.FishLootTable;
 import nl.grapjeje.opengrinding.models.FishLootTableModel;
 import nl.openminetopia.modules.data.storm.StormDatabase;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;

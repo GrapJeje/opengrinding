@@ -1,4 +1,4 @@
-package nl.grapjeje.opengrinding.jobs.fishing.base.objects;
+package nl.grapjeje.opengrinding.jobs.fishing.objects;
 
 import com.craftmend.storm.api.enums.Where;
 import lombok.Getter;

@@ -1,4 +1,4 @@
-package nl.grapjeje.opengrinding.jobs.fishing.base.games;
+package nl.grapjeje.opengrinding.jobs.fishing.games;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;

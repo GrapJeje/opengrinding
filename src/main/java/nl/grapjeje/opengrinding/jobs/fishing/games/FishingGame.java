@@ -1,11 +1,11 @@
-package nl.grapjeje.opengrinding.jobs.fishing.base.games;
+package nl.grapjeje.opengrinding.jobs.fishing.games;
 
 import lombok.Getter;
 import nl.grapjeje.opengrinding.OpenGrinding;
 import nl.grapjeje.opengrinding.jobs.Jobs;
 import nl.grapjeje.opengrinding.jobs.core.objects.GrindingPlayer;
-import nl.grapjeje.opengrinding.jobs.fishing.base.events.PlayerFishCatchEvent;
-import nl.grapjeje.opengrinding.jobs.fishing.base.listeners.PlayerCatchListener;
+import nl.grapjeje.opengrinding.jobs.fishing.events.PlayerFishCatchEvent;
+import nl.grapjeje.opengrinding.jobs.fishing.listeners.PlayerCatchListener;
 import nl.grapjeje.opengrinding.utils.Menu;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;

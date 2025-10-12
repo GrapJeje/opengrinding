@@ -1,4 +1,4 @@
-package nl.grapjeje.opengrinding.jobs.fishing.base.events;
+package nl.grapjeje.opengrinding.jobs.fishing.events;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;

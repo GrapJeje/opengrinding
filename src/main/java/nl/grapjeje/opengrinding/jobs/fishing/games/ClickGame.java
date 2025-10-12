@@ -1,4 +1,4 @@
-package nl.grapjeje.opengrinding.jobs.fishing.base.games;
+package nl.grapjeje.opengrinding.jobs.fishing.games;
 
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import nl.grapjeje.core.KeyPressInput;

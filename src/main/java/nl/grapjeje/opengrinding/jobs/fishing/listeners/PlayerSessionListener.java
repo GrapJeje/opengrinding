@@ -1,9 +1,9 @@
-package nl.grapjeje.opengrinding.jobs.fishing.base.listeners;
+package nl.grapjeje.opengrinding.jobs.fishing.listeners;
 
 import nl.grapjeje.core.text.MessageUtil;
 import nl.grapjeje.opengrinding.OpenGrinding;
-import nl.grapjeje.opengrinding.jobs.fishing.base.games.FishingGame;
-import nl.grapjeje.opengrinding.jobs.fishing.base.objects.FishLootTable;
+import nl.grapjeje.opengrinding.jobs.fishing.games.FishingGame;
+import nl.grapjeje.opengrinding.jobs.fishing.objects.FishLootTable;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;

@@ -3,11 +3,11 @@ package nl.grapjeje.opengrinding.jobs.fishing;
 import lombok.Getter;
 import nl.grapjeje.core.modules.Module;
 import nl.grapjeje.opengrinding.OpenGrinding;
-import nl.grapjeje.opengrinding.jobs.fishing.base.commands.FishLootTableCommand;
-import nl.grapjeje.opengrinding.jobs.fishing.base.listeners.PlayerSessionListener;
+import nl.grapjeje.opengrinding.jobs.fishing.commands.FishLootTableCommand;
+import nl.grapjeje.opengrinding.jobs.fishing.listeners.PlayerSessionListener;
 import nl.grapjeje.opengrinding.jobs.fishing.configuration.FishingJobConfiguration;
-import nl.grapjeje.opengrinding.jobs.fishing.base.games.FishingGame;
-import nl.grapjeje.opengrinding.jobs.fishing.base.listeners.PlayerCatchListener;
+import nl.grapjeje.opengrinding.jobs.fishing.games.FishingGame;
+import nl.grapjeje.opengrinding.jobs.fishing.listeners.PlayerCatchListener;
 
 import java.util.ArrayList;
 import java.util.List;

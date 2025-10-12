@@ -1,8 +1,6 @@
-package nl.grapjeje.opengrinding.jobs.fishing.base.menus;
+package nl.grapjeje.opengrinding.jobs.fishing.menus;
 
 import com.craftmend.storm.Storm;
-import com.craftmend.storm.api.enums.Where;
-import com.google.gson.Gson;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import nl.grapjeje.core.gui.Gui;
@@ -10,19 +8,15 @@ import nl.grapjeje.core.gui.GuiButton;
 import nl.grapjeje.core.text.MessageUtil;
 import nl.grapjeje.opengrinding.OpenGrinding;
 import nl.grapjeje.opengrinding.utils.Menu;
-import nl.grapjeje.opengrinding.jobs.fishing.base.objects.FishLootTable;
-import nl.grapjeje.opengrinding.models.FishLootTableModel;
+import nl.grapjeje.opengrinding.jobs.fishing.objects.FishLootTable;
 import nl.openminetopia.modules.data.storm.StormDatabase;
 import org.bukkit.Bukkit;
-import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
-import java.util.Objects;
 
 public class FishLootTableMenu extends Menu {
     private final Gui gui;
