@@ -26,19 +26,24 @@ import java.util.concurrent.CompletableFuture;
 public class CurrencyUtil {
 
     public static CompletableFuture<Map<Currency, Double>> giveReward(Player player, double cashAmount, double grindTokens, String reason) {
+        player.sendMessage(MessageUtil.filterMessage("<yellow>[DEBUG] giveReward called: cash=" + cashAmount + ", tokens=" + grindTokens + ", reason=" + reason));
+
         checkIfNeedReset(player);
-        if (CoreModule.getConfig().isSellInTokens())
+
+        if (CoreModule.getConfig().isSellInTokens()) {
+            grindTokens = Math.floor(grindTokens * 1000) / 1000.0;
+            player.sendMessage(MessageUtil.filterMessage("<yellow>[DEBUG] Selling in tokens, rounded: " + grindTokens));
             return giveTokens(player, grindTokens);
-        else
+        } else {
+            cashAmount = Math.floor(cashAmount * 100) / 100.0;
+            player.sendMessage(MessageUtil.filterMessage("<yellow>[DEBUG] Selling in cash, rounded: " + cashAmount));
             return giveCash(player, cashAmount, reason);
+        }
     }
 
     public static CompletableFuture<Map<Currency, Double>> removeForBuy(Player player, double amount, String reason) {
         if (CoreModule.getConfig().isBuyInTokens()) {
-            return getModelAsync(player).thenApply(optional -> {
-                if (optional.isEmpty()) return new HashMap<Currency, Double>();
-
-                CurrencyModel model = optional.get();
+            return getModelAsync(player).thenApply(model -> {
                 GrindingCurrency currency = new GrindingCurrency(player.getUniqueId(), model);
 
                 double currentTokens = currency.getModel().getGrindTokens();
@@ -130,21 +135,23 @@ public class CurrencyUtil {
     }
 
     private static CompletableFuture<Map<Currency, Double>> giveCash(Player player, double amount, String reason) {
-        return getModelAsync(player).thenApply(optional -> {
-            if (optional.isEmpty()) return new HashMap<Currency, Double>();
-            CurrencyModel model = optional.get();
+        player.sendMessage(MessageUtil.filterMessage("<yellow>[DEBUG] giveCash called with amount=" + amount + ", reason=" + reason));
+        return getModelAsync(player).thenApply(model -> {
             GrindingCurrency currency = new GrindingCurrency(player.getUniqueId(), model);
 
             double allowed = clampToLimit(currency.getModel(), Currency.CASH, amount);
+            player.sendMessage(MessageUtil.filterMessage("<yellow>[DEBUG] Cash allowed by limit: " + allowed));
             if (allowed <= 0) {
                 Bukkit.getScheduler().runTask(OpenGrinding.getInstance(), () ->
                         player.sendMessage(MessageUtil.filterMessage("<warning>⚠ Jij hebt jouw grinding cash limiet bereikt!"))
                 );
                 return (Map<Currency, Double>) (Map<?, ?>) Map.of(currency, 0.0);
             }
+
             currency.getModel().setCashFromToday(currency.getModel().getCashFromToday() + allowed);
-            currency.getModel().setLastUpdated(LocalDate.now());
+            currency.getModel().setLastUpdatedDate(LocalDate.now());
             currency.save();
+            player.sendMessage(MessageUtil.filterMessage("<yellow>[DEBUG] Cash added to model, saving..."));
 
             BankingModule bankingModule = (BankingModule) OpenMinetopia.getModuleManager().get(BankingModule.class);
             bankingModule.getAccountByNameAsync(player.getName()).whenComplete((accountModel, throwable) -> {
@@ -185,36 +192,44 @@ public class CurrencyUtil {
                         accountModel.getUniqueId(),
                         reason
                 );
+
+                Bukkit.getScheduler().runTask(OpenGrinding.getInstance(), () ->
+                        player.sendMessage(MessageUtil.filterMessage("<yellow>[DEBUG] giveCash finished saving and bank processed"))
+                );
             });
             return (Map<Currency, Double>) (Map<?, ?>) Map.of(currency, allowed);
         });
     }
 
     private static CompletableFuture<Map<Currency, Double>> giveTokens(Player player, double amount) {
-        return getModelAsync(player).thenApply(optional -> {
-            if (optional.isEmpty()) return new HashMap<Currency, Double>();
-            CurrencyModel model = optional.get();
+        player.sendMessage(MessageUtil.filterMessage("<yellow>[DEBUG] giveTokens called with amount=" + amount));
+        return getModelAsync(player).thenApply(model -> {
             GrindingCurrency currency = new GrindingCurrency(player.getUniqueId(), model);
 
             double allowed = clampToLimit(currency.getModel(), Currency.TOKENS, amount);
+            player.sendMessage(MessageUtil.filterMessage("<yellow>[DEBUG] Tokens allowed by limit: " + allowed));
+
             if (allowed <= 0) {
                 Bukkit.getScheduler().runTask(OpenGrinding.getInstance(), () ->
                         player.sendMessage(MessageUtil.filterMessage("<warning>⚠ Jij hebt jouw grindtoken limiet bereikt!"))
                 );
                 return (Map<Currency, Double>) (Map<?, ?>) Map.of(currency, 0.0);
             }
+
             currency.getModel().setGrindTokens(currency.getModel().getGrindTokens() + allowed);
             currency.getModel().setTokensFromToday(currency.getModel().getTokensFromToday() + allowed);
-            currency.getModel().setLastUpdated(LocalDate.now());
+            currency.getModel().setLastUpdatedDate(LocalDate.now());
             currency.save();
+            player.sendMessage(MessageUtil.filterMessage("<yellow>[DEBUG] Tokens added to model, saved successfully"));
+
             return (Map<Currency, Double>) (Map<?, ?>) Map.of(currency, allowed);
         });
     }
 
-    public static CompletableFuture<Optional<CurrencyModel>> getModelAsync(Player player) {
+    public static CompletableFuture<CurrencyModel> getModelAsync(Player player) {
         return CompletableFuture.supplyAsync(() -> {
             try {
-                return StormDatabase.getInstance().getStorm()
+                Optional<CurrencyModel> optionalModel = StormDatabase.getInstance().getStorm()
                         .buildQuery(CurrencyModel.class)
                         .where("player_uuid", Where.EQUAL, player.getUniqueId())
                         .limit(1)
@@ -222,20 +237,37 @@ public class CurrencyUtil {
                         .join()
                         .stream()
                         .findFirst();
+
+                if (optionalModel.isPresent()) {
+                    return optionalModel.get();
+                }
+
+                CurrencyModel newModel = new CurrencyModel();
+                newModel.setPlayerUuid(player.getUniqueId());
+                newModel.setGrindTokens(0.0);
+                newModel.setTokensFromToday(0.0);
+                newModel.setCashFromToday(0.0);
+                newModel.setLastUpdatedDate(LocalDate.now());
+
+                StormDatabase.getInstance().saveStormModel(newModel);
+
+                Bukkit.getScheduler().runTask(OpenGrinding.getInstance(), () ->
+                        player.sendMessage(MessageUtil.filterMessage("<green>Jouw currency model is aangemaakt!"))
+                );
+
+                return newModel;
             } catch (Exception ex) {
                 ex.printStackTrace();
                 Bukkit.getScheduler().runTask(OpenGrinding.getInstance(), () ->
                         player.sendMessage(MessageUtil.filterMessage("<warning>⚠ Er is een fout opgetreden bij het ophalen van jouw player data!"))
                 );
-                return Optional.empty();
+                return null;
             }
         });
     }
 
     private static void checkIfNeedReset(Player player) {
-        getModelAsync(player).thenAccept(optional -> {
-            if (optional.isEmpty()) return;
-            CurrencyModel model = optional.get();
+        getModelAsync(player).thenAccept(model -> {
             GrindingCurrency currency = new GrindingCurrency(player.getUniqueId(), model);
             currency.checkIfNeedsReset();
         });

@@ -28,10 +28,12 @@ public class DefaultConfiguration extends Config {
         ConfigurationSection tokenSection = config.getConfigurationSection("currency");
         this.buyInTokens = tokenSection != null && tokenSection.getBoolean("buy-in-tokens", false);
         this.sellInTokens = tokenSection != null && tokenSection.getBoolean("sell-in-tokens", true);
-        this.dailyLimit = tokenSection != null && tokenSection.getBoolean("daily-limit", false);
 
-        ConfigurationSection amountSection = tokenSection.getConfigurationSection("amount");
-        this.cashLimit = amountSection != null ? amountSection.getDouble("cash", 0.0) : 0.0;
-        this.tokenLimit = amountSection != null ? amountSection.getDouble("tokens", 0.0) : 0.0;
+        ConfigurationSection dailyLimitSection = tokenSection.getConfigurationSection("daily-limit");
+        this.dailyLimit = dailyLimitSection != null && dailyLimitSection.getBoolean("enabled", false);
+
+        ConfigurationSection amountSection = dailyLimitSection.getConfigurationSection("amount");
+        this.cashLimit = amountSection != null ? amountSection.getDouble("cash", 10000.0) : 10000.0;
+        this.tokenLimit = amountSection != null ? amountSection.getDouble("tokens", 30.0) : 30.0;
     }
 }

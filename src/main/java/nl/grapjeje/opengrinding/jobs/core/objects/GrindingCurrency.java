@@ -41,7 +41,7 @@ public class GrindingCurrency {
         if (model.needsUpdate(now)) {
             model.setTokensFromToday(0.0);
             model.setCashFromToday(0.0);
-            model.setLastUpdated(now);
+            model.setLastUpdatedDate(now);
             this.save();
 
             Player player = this.getPlayer().getBukkit().getPlayer();

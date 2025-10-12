@@ -37,9 +37,7 @@ public class GrindTokensCommand implements Command {
         AtomicReference<Double> tokensLeft = new AtomicReference<>(0.0);
 
         Bukkit.getScheduler().runTaskAsynchronously(OpenGrinding.getInstance(), () -> {
-            CurrencyUtil.getModelAsync(player).thenApply(optional -> {
-                if (optional.isEmpty()) return new HashMap<Currency, Double>();
-                CurrencyModel model = optional.get();
+            CurrencyUtil.getModelAsync(player).thenApply(model -> {
                 GrindingCurrency currency = new GrindingCurrency(player.getUniqueId(), model);
                 playerTokens.set(currency.getModel().getGrindTokens());
                 double currentDayTokens = currency.getModel().getGrindTokens();
