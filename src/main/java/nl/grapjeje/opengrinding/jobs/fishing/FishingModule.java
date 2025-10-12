@@ -4,7 +4,7 @@ import lombok.Getter;
 import nl.grapjeje.core.modules.Module;
 import nl.grapjeje.opengrinding.OpenGrinding;
 import nl.grapjeje.opengrinding.jobs.fishing.base.commands.FishLootTableCommand;
-import nl.grapjeje.opengrinding.jobs.fishing.base.listeners.PlayerQuitListener;
+import nl.grapjeje.opengrinding.jobs.fishing.base.listeners.PlayerSessionListener;
 import nl.grapjeje.opengrinding.jobs.fishing.configuration.FishingJobConfiguration;
 import nl.grapjeje.opengrinding.jobs.fishing.base.games.FishingGame;
 import nl.grapjeje.opengrinding.jobs.fishing.base.listeners.PlayerCatchListener;
@@ -30,7 +30,7 @@ public class FishingModule extends Module {
         OpenGrinding.getFramework().registerCommand(FishLootTableCommand::new);
 
         OpenGrinding.getFramework().registerListener(PlayerCatchListener::new);
-        OpenGrinding.getFramework().registerListener(PlayerQuitListener::new);
+        OpenGrinding.getFramework().registerListener(PlayerSessionListener::new);
     }
 
     @Override

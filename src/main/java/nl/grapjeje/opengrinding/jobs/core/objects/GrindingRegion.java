@@ -1,5 +1,6 @@
 package nl.grapjeje.opengrinding.jobs.core.objects;
 
+import com.craftmend.storm.api.enums.Where;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import nl.grapjeje.opengrinding.jobs.Jobs;
@@ -7,9 +8,9 @@ import nl.grapjeje.opengrinding.models.GrindingRegionModel;
 import nl.openminetopia.modules.data.storm.StormDatabase;
 import org.bukkit.Location;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Predicate;
 
 @Getter
 @RequiredArgsConstructor
@@ -117,5 +118,31 @@ public class GrindingRegion {
             e.printStackTrace();
         }
         return false;
+    }
+
+    public static GrindingRegion getRegionAt(Location loc) {
+        return getRegionAt(loc, region -> true);
+    }
+
+    public static GrindingRegion getRegionAt(Location loc, Jobs job) {
+        return getRegionAt(loc, region -> region.getJobs().contains(job));
+    }
+
+    private static GrindingRegion getRegionAt(Location loc, Predicate<GrindingRegion> filter) {
+        try {
+            Collection<GrindingRegionModel> allRegions = StormDatabase.getInstance().getStorm()
+                    .buildQuery(GrindingRegionModel.class)
+                    .execute()
+                    .join();
+
+            for (GrindingRegionModel model : allRegions) {
+                GrindingRegion region = new GrindingRegion(model);
+                if (region.contains(loc) && filter.test(region))
+                    return region;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 }

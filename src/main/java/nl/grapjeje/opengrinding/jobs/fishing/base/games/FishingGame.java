@@ -2,9 +2,13 @@ package nl.grapjeje.opengrinding.jobs.fishing.base.games;
 
 import lombok.Getter;
 import nl.grapjeje.opengrinding.OpenGrinding;
+import nl.grapjeje.opengrinding.jobs.Jobs;
+import nl.grapjeje.opengrinding.jobs.core.objects.GrindingPlayer;
 import nl.grapjeje.opengrinding.jobs.fishing.base.events.PlayerFishCatchEvent;
+import nl.grapjeje.opengrinding.jobs.fishing.base.listeners.PlayerCatchListener;
 import nl.grapjeje.opengrinding.utils.Menu;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
@@ -47,7 +51,14 @@ public abstract class FishingGame extends Menu {
     public abstract void visualize();
 
     public void stop(boolean completed) {
-        if (completed) new PlayerFishCatchEvent(null, null).callEvent();
+        if (completed) {
+            ItemStack item = PlayerCatchListener.getPlayerLoot().get(player.getUniqueId());
+            if (item != null) {
+                player.getInventory().addItem(item);
+                GrindingPlayer gp = new GrindingPlayer(player.getUniqueId(), GrindingPlayer.loadOrCreatePlayerModel(player, Jobs.FISHING));
+                new PlayerFishCatchEvent(gp, item).callEvent();
+            }
+        }
         playersInGame.remove(player.getUniqueId());
         tickTask.cancel();
     }

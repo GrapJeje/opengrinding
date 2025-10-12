@@ -10,6 +10,8 @@ import java.io.File;
 
 @Getter
 public class FishingJobConfiguration extends JobConfig implements ShopConfig {
+    private boolean gamesEnabled;
+
     private boolean sellEnabled;
     private boolean openBuyShop;
     private boolean buyEnabled;
@@ -23,6 +25,7 @@ public class FishingJobConfiguration extends JobConfig implements ShopConfig {
     @Override
     public void values() {
         this.enabled = config.getBoolean("enabled", true);
+        this.gamesEnabled = config.getBoolean("enable-games", true);
 
         ConfigurationSection sellSection = config.getConfigurationSection("economy.sell");
         this.sellEnabled = sellSection != null && sellSection.getBoolean("enabled", true);
