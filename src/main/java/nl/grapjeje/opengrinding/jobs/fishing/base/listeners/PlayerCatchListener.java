@@ -52,7 +52,8 @@ public class PlayerCatchListener implements Listener {
                 player.getGameMode() == GameMode.CREATIVE || player.getGameMode() == GameMode.SPECTATOR) {
 
             String reason;
-            if (value == null || value.isEmpty()) reason = "Er is geen geldige waarde ingesteld voor deze regio!";
+            if (value == null || value.isEmpty() && region.getJobs().contains(Jobs.FISHING))
+                reason = "Er is geen geldige waarde ingesteld voor deze regio!";
             else reason = "Je kan niet vissen in deze gamemode!";
             player.sendMessage(MessageUtil.filterMessage("<red>⚠ " + reason));
 
