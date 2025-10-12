@@ -37,7 +37,7 @@ public class FishingRodShopMenu extends ShopMenu {
 
                     String rodName = "<!italic><gray>Vishengel";
 
-                    this.removeCash(player, rodPrice, rodName);
+                    this.removeCash(player, rodPrice, "Vishengel");
 
                     p.getInventory().addItem(item);
                     p.sendMessage(MessageUtil.filterMessage(
