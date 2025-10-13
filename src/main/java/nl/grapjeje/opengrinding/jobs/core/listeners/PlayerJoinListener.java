@@ -10,5 +10,6 @@ public class PlayerJoinListener implements Listener {
     @EventHandler
     public void onJoin(PlayerJoinEvent e) {
         Player player = e.getPlayer();
+        // TODO: Check if the player needs a reset of the dailyLimit
     }
 }

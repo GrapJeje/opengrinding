@@ -24,19 +24,16 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
 public class CurrencyUtil {
+    // TODO: Remove all of the loggers
 
     public static CompletableFuture<Map<Currency, Double>> giveReward(Player player, double cashAmount, double grindTokens, String reason) {
-        player.sendMessage(MessageUtil.filterMessage("<yellow>[DEBUG] giveReward called: cash=" + cashAmount + ", tokens=" + grindTokens + ", reason=" + reason));
-
         checkIfNeedReset(player);
 
         if (CoreModule.getConfig().isSellInTokens()) {
             grindTokens = Math.floor(grindTokens * 1000) / 1000.0;
-            player.sendMessage(MessageUtil.filterMessage("<yellow>[DEBUG] Selling in tokens, rounded: " + grindTokens));
             return giveTokens(player, grindTokens);
         } else {
             cashAmount = Math.floor(cashAmount * 100) / 100.0;
-            player.sendMessage(MessageUtil.filterMessage("<yellow>[DEBUG] Selling in cash, rounded: " + cashAmount));
             return giveCash(player, cashAmount, reason);
         }
     }
@@ -139,14 +136,16 @@ public class CurrencyUtil {
         return getModelAsync(player).thenApply(model -> {
             GrindingCurrency currency = new GrindingCurrency(player.getUniqueId(), model);
 
-            double allowed = clampToLimit(currency.getModel(), Currency.CASH, amount);
-            player.sendMessage(MessageUtil.filterMessage("<yellow>[DEBUG] Cash allowed by limit: " + allowed));
-            if (allowed <= 0) {
-                Bukkit.getScheduler().runTask(OpenGrinding.getInstance(), () ->
-                        player.sendMessage(MessageUtil.filterMessage("<warning>⚠ Jij hebt jouw grinding cash limiet bereikt!"))
-                );
-                return (Map<Currency, Double>) (Map<?, ?>) Map.of(currency, 0.0);
-            }
+            double allowed;
+            if (CoreModule.getConfig().isDailyLimit()) {
+                allowed = clampToLimit(currency.getModel(), Currency.CASH, amount);
+                player.sendMessage(MessageUtil.filterMessage("<yellow>[DEBUG] Cash allowed by limit: " + allowed));
+                if (allowed <= amount)
+                    Bukkit.getScheduler().runTask(OpenGrinding.getInstance(), () ->
+                            player.sendMessage(MessageUtil.filterMessage("<warning>⚠ Jij hebt jouw grinding cash limiet bereikt!"))
+                    );
+                if (allowed <= 0) return (Map<Currency, Double>) (Map<?, ?>) Map.of(currency, 0.0);
+            } else allowed = amount;
 
             currency.getModel().setCashFromToday(currency.getModel().getCashFromToday() + allowed);
             currency.getModel().setLastUpdatedDate(LocalDate.now());
@@ -206,15 +205,17 @@ public class CurrencyUtil {
         return getModelAsync(player).thenApply(model -> {
             GrindingCurrency currency = new GrindingCurrency(player.getUniqueId(), model);
 
-            double allowed = clampToLimit(currency.getModel(), Currency.TOKENS, amount);
-            player.sendMessage(MessageUtil.filterMessage("<yellow>[DEBUG] Tokens allowed by limit: " + allowed));
+            double allowed;
+            if (CoreModule.getConfig().isDailyLimit()) {
+                allowed = clampToLimit(currency.getModel(), Currency.TOKENS, amount);
+                player.sendMessage(MessageUtil.filterMessage("<yellow>[DEBUG] Tokens allowed by limit: " + allowed));
 
-            if (allowed <= 0) {
-                Bukkit.getScheduler().runTask(OpenGrinding.getInstance(), () ->
-                        player.sendMessage(MessageUtil.filterMessage("<warning>⚠ Jij hebt jouw grindtoken limiet bereikt!"))
-                );
-                return (Map<Currency, Double>) (Map<?, ?>) Map.of(currency, 0.0);
-            }
+                if (allowed <= amount)
+                    Bukkit.getScheduler().runTask(OpenGrinding.getInstance(), () ->
+                            player.sendMessage(MessageUtil.filterMessage("<warning>⚠ Jij hebt jouw grindtoken limiet bereikt!"))
+                    );
+                if (allowed <= 0) return (Map<Currency, Double>) (Map<?, ?>) Map.of(currency, 0.0);
+            } else allowed = amount;
 
             currency.getModel().setGrindTokens(currency.getModel().getGrindTokens() + allowed);
             currency.getModel().setTokensFromToday(currency.getModel().getTokensFromToday() + allowed);

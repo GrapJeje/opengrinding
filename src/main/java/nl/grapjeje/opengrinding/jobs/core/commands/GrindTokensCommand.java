@@ -40,11 +40,15 @@ public class GrindTokensCommand implements Command {
             CurrencyUtil.getModelAsync(player).thenApply(model -> {
                 GrindingCurrency currency = new GrindingCurrency(player.getUniqueId(), model);
                 playerTokens.set(currency.getModel().getGrindTokens());
-                double currentDayTokens = currency.getModel().getGrindTokens();
+                double currentDayTokens = currency.getModel().getTokensFromToday();
                 double maxTokensPerDay = CoreModule.getConfig().getTokenLimit();
                 tokensLeft.set(maxTokensPerDay - currentDayTokens);
+
+                String message = "<gold>Je hebt in totaal <yellow>" + playerTokens.get() + " <gold>grindtokens.";
+                if (CoreModule.getConfig().isDailyLimit()) message += " Je kan er vandaag nog <yellow>" + tokensLeft + " <gold>halen!";
+                String finalMessage = message;
                 Bukkit.getScheduler().runTask(OpenGrinding.getInstance(), () ->
-                        player.sendMessage(MessageUtil.filterMessage("<gold>Je hebt in totaal <yellow>" + playerTokens.get() + " <gold>grindtokens. Je kan er vandaag nog <yellow>" + tokensLeft + " <gold>halen!"))
+                        player.sendMessage(MessageUtil.filterMessage(finalMessage))
                 );
                 return null;
             });

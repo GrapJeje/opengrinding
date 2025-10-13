@@ -102,17 +102,18 @@ public class SellCommand implements Command {
         double tokenAmount = oreRecord.price().grindToken() * amountInHand;
 
         CurrencyUtil.giveReward(player, cashAmount, tokenAmount, "Sold ores").thenAccept(rewardMap -> {
-            int removedAmount = itemInHand.getAmount();
-            player.getInventory().removeItem(itemInHand);
-
-            String itemName = PlainTextComponentSerializer.plainText()
-                    .serialize(itemInHand.getItemMeta().displayName());
-
             double receivedAmount = rewardMap.values().stream().mapToDouble(Double::doubleValue).sum();
-            player.sendMessage(MessageUtil.filterMessage(
-                    "<green>Je hebt succesvol <bold>" + removedAmount + " " + itemName +
-                            "<!bold> verkocht voor <bold>" + receivedAmount + "<!bold>!"
-            ));
+            if (receivedAmount > 0) {
+                int removedAmount = itemInHand.getAmount();
+                player.getInventory().removeItem(itemInHand);
+
+                String itemName = PlainTextComponentSerializer.plainText()
+                        .serialize(itemInHand.getItemMeta().displayName());
+                player.sendMessage(MessageUtil.filterMessage(
+                        "<green>Je hebt succesvol <bold>" + removedAmount + " " + itemName +
+                                "<!bold> verkocht voor <bold>" + receivedAmount + "<!bold>!"
+                ));
+            }
         });
     }
 
@@ -159,29 +160,24 @@ public class SellCommand implements Command {
         double cashAmount = fish.price().cash() * weight * amountInHand;
         double tokenAmount = fish.price().grindToken() * weight * amountInHand;
 
-// Log wat er berekend wordt
         player.sendMessage(MessageUtil.filterMessage("<yellow>[DEBUG] Amount in hand: " + amountInHand));
         player.sendMessage(MessageUtil.filterMessage("<yellow>[DEBUG] Weight per fish: " + weight));
         player.sendMessage(MessageUtil.filterMessage("<yellow>[DEBUG] Cash amount: " + cashAmount));
         player.sendMessage(MessageUtil.filterMessage("<yellow>[DEBUG] Token amount: " + tokenAmount));
 
         CurrencyUtil.giveReward(player, cashAmount, tokenAmount, "Sold fishes").thenAccept(rewardMap -> {
-            int removedAmount = itemInHand.getAmount();
-            player.getInventory().removeItem(itemInHand);
-
-            String itemName = PlainTextComponentSerializer.plainText()
-                    .serialize(itemInHand.getItemMeta().displayName());
-
             double receivedAmount = rewardMap.values().stream().mapToDouble(Double::doubleValue).sum();
+            if (receivedAmount > 0) {
+                int removedAmount = itemInHand.getAmount();
+                player.getInventory().removeItem(itemInHand);
 
-            // Log wat er uiteindelijk ontvangen is
-            player.sendMessage(MessageUtil.filterMessage("<yellow>[DEBUG] Reward map: " + rewardMap));
-            player.sendMessage(MessageUtil.filterMessage("<yellow>[DEBUG] Total received: " + receivedAmount));
-
-            player.sendMessage(MessageUtil.filterMessage(
-                    "<green>Je hebt succesvol <bold>" + removedAmount + " " + itemName +
-                            "<!bold> verkocht voor <bold>" + receivedAmount + "<!bold>!"
-            ));
+                String itemName = PlainTextComponentSerializer.plainText()
+                        .serialize(itemInHand.getItemMeta().displayName());
+                player.sendMessage(MessageUtil.filterMessage(
+                        "<green>Je hebt succesvol <bold>" + removedAmount + " " + itemName +
+                                "<!bold> verkocht voor <bold>" + receivedAmount + "<!bold>!"
+                )); // TODO: Message does not always apear
+            }
         });
     }
 

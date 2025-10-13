@@ -13,7 +13,7 @@ import java.util.UUID;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
-@Table(name = "player_currency")
+@Table(name = "grinding_player_currency")
 public class CurrencyModel extends StormModel {
 
     @Column(name = "player_uuid")
