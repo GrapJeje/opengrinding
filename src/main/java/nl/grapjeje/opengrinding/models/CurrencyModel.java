@@ -29,14 +29,14 @@ public class CurrencyModel extends StormModel {
     private Double cashFromToday = 0.0;
 
     @Column(name = "last_updated", defaultValue = "0")
-    private Integer lastUpdated = (int) LocalDate.now().toEpochDay();
+    private Long lastUpdated = LocalDate.now().toEpochDay();
 
     public LocalDate getLastUpdatedDate() {
         return LocalDate.ofEpochDay(lastUpdated);
     }
 
     public void setLastUpdatedDate(LocalDate date) {
-        this.lastUpdated = (int) date.toEpochDay();
+        this.lastUpdated = date.toEpochDay();
     }
 
     public boolean reachedTokenLimit() {

@@ -24,7 +24,6 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
 public class CurrencyUtil {
-    // TODO: Remove all of the loggers
 
     public static CompletableFuture<Map<Currency, Double>> giveReward(Player player, double cashAmount, double grindTokens, String reason) {
         checkIfNeedReset(player);
@@ -132,14 +131,12 @@ public class CurrencyUtil {
     }
 
     private static CompletableFuture<Map<Currency, Double>> giveCash(Player player, double amount, String reason) {
-        player.sendMessage(MessageUtil.filterMessage("<yellow>[DEBUG] giveCash called with amount=" + amount + ", reason=" + reason));
         return getModelAsync(player).thenApply(model -> {
             GrindingCurrency currency = new GrindingCurrency(player.getUniqueId(), model);
 
             double allowed;
             if (CoreModule.getConfig().isDailyLimit()) {
                 allowed = clampToLimit(currency.getModel(), Currency.CASH, amount);
-                player.sendMessage(MessageUtil.filterMessage("<yellow>[DEBUG] Cash allowed by limit: " + allowed));
                 if (allowed <= amount)
                     Bukkit.getScheduler().runTask(OpenGrinding.getInstance(), () ->
                             player.sendMessage(MessageUtil.filterMessage("<warning>⚠ Jij hebt jouw grinding cash limiet bereikt!"))
@@ -150,7 +147,6 @@ public class CurrencyUtil {
             currency.getModel().setCashFromToday(currency.getModel().getCashFromToday() + allowed);
             currency.getModel().setLastUpdatedDate(LocalDate.now());
             currency.save();
-            player.sendMessage(MessageUtil.filterMessage("<yellow>[DEBUG] Cash added to model, saving..."));
 
             BankingModule bankingModule = (BankingModule) OpenMinetopia.getModuleManager().get(BankingModule.class);
             bankingModule.getAccountByNameAsync(player.getName()).whenComplete((accountModel, throwable) -> {
@@ -191,24 +187,18 @@ public class CurrencyUtil {
                         accountModel.getUniqueId(),
                         reason
                 );
-
-                Bukkit.getScheduler().runTask(OpenGrinding.getInstance(), () ->
-                        player.sendMessage(MessageUtil.filterMessage("<yellow>[DEBUG] giveCash finished saving and bank processed"))
-                );
             });
             return (Map<Currency, Double>) (Map<?, ?>) Map.of(currency, allowed);
         });
     }
 
     private static CompletableFuture<Map<Currency, Double>> giveTokens(Player player, double amount) {
-        player.sendMessage(MessageUtil.filterMessage("<yellow>[DEBUG] giveTokens called with amount=" + amount));
         return getModelAsync(player).thenApply(model -> {
             GrindingCurrency currency = new GrindingCurrency(player.getUniqueId(), model);
 
             double allowed;
             if (CoreModule.getConfig().isDailyLimit()) {
                 allowed = clampToLimit(currency.getModel(), Currency.TOKENS, amount);
-                player.sendMessage(MessageUtil.filterMessage("<yellow>[DEBUG] Tokens allowed by limit: " + allowed));
 
                 if (allowed <= amount)
                     Bukkit.getScheduler().runTask(OpenGrinding.getInstance(), () ->
@@ -221,7 +211,6 @@ public class CurrencyUtil {
             currency.getModel().setTokensFromToday(currency.getModel().getTokensFromToday() + allowed);
             currency.getModel().setLastUpdatedDate(LocalDate.now());
             currency.save();
-            player.sendMessage(MessageUtil.filterMessage("<yellow>[DEBUG] Tokens added to model, saved successfully"));
 
             return (Map<Currency, Double>) (Map<?, ?>) Map.of(currency, allowed);
         });

@@ -45,7 +45,8 @@ public class GrindingCurrency {
             this.save();
 
             Player player = this.getPlayer().getBukkit().getPlayer();
-            if (player == null) return true;
+            if (player == null) return false;
+            if (!CoreModule.getConfig().isDailyLimit()) return false;
 
             if (CoreModule.getConfig().isSellInTokens())
                 player.sendMessage(MessageUtil.filterMessage("<green>Jouw grindtokens limiet is gereset!"));
