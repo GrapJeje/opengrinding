@@ -77,7 +77,7 @@ public class GrindingPlayer {
     }
 
     /* ---------- Progression ---------- */
-    public void addProgress(Jobs job, double xp) {
+    public void addProgress(Jobs job, double xp) { // TODO: Check this. Not very okay
         LevelConfig config;
         switch (job) {
             case MINING -> config = MiningModule.getConfig();
@@ -97,7 +97,7 @@ public class GrindingPlayer {
             Double levelOverride = config.getLevelOverride(currentLevel + 1);
             double xpNeeded = levelOverride != null
                     ? levelOverride
-                    : config.getXpForLevel(currentLevel + 1);
+                    : config.getXpForLevel(currentLevel + 1); // TODO <-
 
             if (newXp >= xpNeeded) {
                 newXp -= xpNeeded;

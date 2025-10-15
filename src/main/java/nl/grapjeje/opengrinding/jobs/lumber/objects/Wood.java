@@ -26,8 +26,12 @@ public enum Wood {
     private final String barkLink;
     private final String strippedLink;
 
-    public UUID getUuid() {
+    public UUID getBarkUUID() {
         return UUID.nameUUIDFromBytes(barkLink.getBytes(StandardCharsets.UTF_8));
+    }
+
+    public UUID getWoodUUID() {
+        return UUID.nameUUIDFromBytes(strippedLink.getBytes(StandardCharsets.UTF_8));
     }
 
     public Material getBarkMaterial() {

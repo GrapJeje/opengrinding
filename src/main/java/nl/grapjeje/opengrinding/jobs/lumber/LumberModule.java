@@ -20,6 +20,7 @@ import org.bukkit.inventory.meta.SkullMeta;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 
 public class LumberModule extends JobModule {
     @Getter
@@ -64,21 +65,21 @@ public class LumberModule extends JobModule {
     }
 
     public static ItemStack getWoodHead(Material blockType) {
-        Wood wood = null;
-
-        for (Wood w : Wood.values()) {
-            if (blockType == w.getBarkMaterial() || blockType == w.getStrippedMaterial()) {
-                wood = w;
+        Wood matchedWood = null;
+        for (Wood wood : Wood.values()) {
+            if (blockType == wood.getBarkMaterial() || blockType == wood.getStrippedMaterial()) {
+                matchedWood = wood;
                 break;
             }
         }
-        if (wood == null) return null;
-        String link = (blockType == wood.getBarkMaterial()) ? wood.getBarkLink() : wood.getStrippedLink();
+        if (matchedWood == null) return null;
+        String link = (blockType == matchedWood.getBarkMaterial()) ? matchedWood.getBarkLink() : matchedWood.getStrippedLink();
+        UUID uuid = (blockType == matchedWood.getBarkMaterial()) ? matchedWood.getBarkUUID() : matchedWood.getWoodUUID();
 
-        ItemStack head = SkullUtil.getCustomHead(link, wood.getUuid());
-        SkullMeta meta = (SkullMeta) head.getItemMeta();
-        if (meta != null) {
-            meta.displayName(MessageUtil.filterMessage(wood.getItemName() + (blockType == wood.getBarkMaterial() ? " bark" : " wood")));
+        ItemStack head = SkullUtil.getCustomHead(link, uuid);
+        if (head.getItemMeta() instanceof SkullMeta meta) {
+            String suffix = (blockType == matchedWood.getBarkMaterial()) ? " bark" : " wood";
+            meta.displayName(MessageUtil.filterMessage(matchedWood.getItemName() + suffix));
             head.setItemMeta(meta);
         }
         return head;

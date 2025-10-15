@@ -189,83 +189,74 @@ public class SellCommand implements Command {
 
     private void handleLumberCommand(Player player) {
         ItemStack itemInHand = player.getInventory().getItemInMainHand();
-        if (itemInHand == null || itemInHand.getType() != Material.PLAYER_HEAD) {
-            if (LumberModule.getConfig().isOpenBuyShop()) new AxeShopMenu().open(player);
-            else player.sendMessage(MessageUtil.filterMessage("<warning>⚠ Dit item kun je hier niet verkopen!"));
-            return;
-        }
-        SkullMeta meta = (SkullMeta) itemInHand.getItemMeta();
-        if (meta == null || meta.getPlayerProfile() == null) {
-            if (LumberModule.getConfig().isOpenBuyShop()) new AxeShopMenu().open(player);
-            else player.sendMessage(MessageUtil.filterMessage("<warning>⚠ Dit item kun je hier niet verkopen!"));
-            return;
-        }
-        UUID skullUuid = meta.getPlayerProfile().getId();
-
-        LumberModule lumberModule = OpenGrinding.getFramework().getModuleLoader()
-                .getModules().stream()
-                .filter(m -> m instanceof LumberModule)
-                .map(m -> (LumberModule) m)
-                .findFirst()
-                .orElse(null);
-
-        if (lumberModule == null || lumberModule.isDisabled()) {
-            player.sendMessage(MessageUtil.filterMessage("<warning>⚠ De lumber module is momenteel uitgeschakeld!"));
-            return;
-        }
         LumberJobConfiguration config = LumberModule.getConfig();
+        if (itemInHand == null || itemInHand.getType() != Material.PLAYER_HEAD) {
+            if (config.isOpenBuyShop()) new AxeShopMenu().open(player);
+            else player.sendMessage(MessageUtil.filterMessage("<warning>⚠ Dit item kun je hier niet verkopen!"));
+            return;
+        }
+        if (!(itemInHand.getItemMeta() instanceof SkullMeta skullMeta)) {
+            if (config.isOpenBuyShop()) new AxeShopMenu().open(player);
+            else player.sendMessage(MessageUtil.filterMessage("<warning>⚠ Ongeldig item type!"));
+            return;
+        }
+        UUID skullUuid = skullMeta.getOwningPlayer() != null ? skullMeta.getOwningPlayer().getUniqueId() : null;
+        if (skullUuid == null) {
+            if (config.isOpenBuyShop()) new AxeShopMenu().open(player);
+            else player.sendMessage(MessageUtil.filterMessage("<warning>⚠ Ongeldig item type!"));
+            return;
+        }
+        Wood matchedWood = null;
+        String type = null;
+        for (Wood wood : Wood.values()) {
+            if (skullUuid.equals(wood.getBarkUUID())) {
+                matchedWood = wood;
+                type = "bark";
+                break;
+            } else if (skullUuid.equals(wood.getWoodUUID())) {
+                matchedWood = wood;
+                type = "wood";
+                break;
+            }
+        }
+        if (matchedWood == null) {
+            if (config.isOpenBuyShop()) new AxeShopMenu().open(player);
+            else player.sendMessage(MessageUtil.filterMessage("<warning>⚠ Ongeldig item type!"));
+            return;
+        }
         if (!config.isSellEnabled()) {
-            player.sendMessage(MessageUtil.filterMessage("<warning>⚠ Je kunt momenteel niks verkopen! Contacteer een beheerder als jij denkt dat dit een fout is."));
+            player.sendMessage(MessageUtil.filterMessage("<warning>⚠ Je kunt momenteel niks verkopen!"));
             return;
         }
-        Optional<Wood> woodEnum = Arrays.stream(Wood.values())
-                .filter(ore -> ore.getUuid().equals(skullUuid))
-                .findFirst();
-
-        if (woodEnum.isEmpty()) {
-            if (LumberModule.getConfig().isOpenBuyShop()) new AxeShopMenu().open(player);
-            else player.sendMessage(MessageUtil.filterMessage("<warning>⚠ Dit item kun je hier niet verkopen!"));
-            return;
-        }
-        var woodRecord = LumberModule.getConfig().getWoods().get(woodEnum.get());
+        var woodRecord = config.getWoods().get(matchedWood);
         if (woodRecord == null) {
-            if (LumberModule.getConfig().isOpenBuyShop()) new AxeShopMenu().open(player);
-            else player.sendMessage(MessageUtil.filterMessage("<warning>⚠ Dit item kun je hier niet verkopen!"));
-            return;
-        }
-
-        String type;
-        Material material = itemInHand.getType();
-        if (material == woodEnum.get().getBarkMaterial()) type = "bark";
-        else if (material == woodEnum.get().getStrippedMaterial()) type = "wood";
-        else {
             player.sendMessage(MessageUtil.filterMessage("<warning>⚠ Ongeldig item type!"));
             return;
         }
         Price price = woodRecord.prices().get(type);
         if (price == null || price.cash() <= 0 || price.grindToken() <= 0) {
-            if (LumberModule.getConfig().isOpenBuyShop()) new AxeShopMenu().open(player);
-            else player.sendMessage(MessageUtil.filterMessage("<warning>⚠ Dit item kun je hier niet verkopen!"));
+            player.sendMessage(MessageUtil.filterMessage("<warning>⚠ Dit item kun je hier niet verkopen!"));
             return;
         }
 
         int amountInHand = itemInHand.getAmount();
         double cashAmount = price.cash() * amountInHand;
         double tokenAmount = price.grindToken() * amountInHand;
-        CurrencyUtil.giveReward(player, cashAmount, tokenAmount, "Sold wood").thenAccept(rewardMap -> {
-            double receivedAmount = rewardMap.values().stream().mapToDouble(Double::doubleValue).sum();
-            if (receivedAmount > 0) {
-                int removedAmount = itemInHand.getAmount();
-                player.getInventory().removeItem(itemInHand);
+        CurrencyUtil.giveReward(player, cashAmount, tokenAmount, "Sold wood")
+                .thenAccept(rewardMap -> {
+                    double receivedAmount = rewardMap.values().stream().mapToDouble(Double::doubleValue).sum();
+                    if (receivedAmount > 0) {
+                        int removedAmount = itemInHand.getAmount();
+                        player.getInventory().removeItem(itemInHand);
 
-                String itemName = PlainTextComponentSerializer.plainText()
-                        .serialize(itemInHand.getItemMeta().displayName());
-                player.sendMessage(MessageUtil.filterMessage(
-                        "<green>Je hebt succesvol <bold>" + removedAmount + " " + itemName +
-                                "<!bold> verkocht voor <bold>" + receivedAmount + "<!bold>!"
-                ));
-            }
-        });
+                        String itemName = PlainTextComponentSerializer.plainText()
+                                .serialize(itemInHand.getItemMeta().displayName());
+                        player.sendMessage(MessageUtil.filterMessage(
+                                "<green>Je hebt succesvol <bold>" + removedAmount + " " + itemName +
+                                        "<!bold> verkocht voor <bold>" + receivedAmount + "<!bold>!"
+                        ));
+                    }
+                });
     }
 
     @Override
