@@ -1,5 +1,6 @@
 package nl.grapjeje.opengrinding.jobs.core.commands;
 
+import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import nl.grapjeje.core.command.Command;
 import nl.grapjeje.core.command.CommandSourceStack;
@@ -12,6 +13,7 @@ import nl.grapjeje.opengrinding.jobs.mining.MiningModule;
 import nl.grapjeje.opengrinding.jobs.mining.configuration.MiningJobConfiguration;
 import nl.grapjeje.opengrinding.jobs.mining.guis.PickaxeShopMenu;
 import nl.grapjeje.opengrinding.jobs.mining.objects.Ore;
+import nl.grapjeje.opengrinding.utils.currency.Currency;
 import nl.grapjeje.opengrinding.utils.currency.CurrencyUtil;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -24,6 +26,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
 
 public class SellCommand implements Command {
@@ -159,24 +162,21 @@ public class SellCommand implements Command {
         double weight = meta.getPersistentDataContainer().get(key, PersistentDataType.DOUBLE);
         double cashAmount = fish.price().cash() * weight * amountInHand;
         double tokenAmount = fish.price().grindToken() * weight * amountInHand;
+        int removedAmount = itemInHand.getAmount();
 
-        player.sendMessage(MessageUtil.filterMessage("<yellow>[DEBUG] Amount in hand: " + amountInHand));
-        player.sendMessage(MessageUtil.filterMessage("<yellow>[DEBUG] Weight per fish: " + weight));
-        player.sendMessage(MessageUtil.filterMessage("<yellow>[DEBUG] Cash amount: " + cashAmount));
-        player.sendMessage(MessageUtil.filterMessage("<yellow>[DEBUG] Token amount: " + tokenAmount));
+        Component name = itemInHand.getItemMeta().displayName();
+        String itemName;
+        if (name == null) itemName = itemInHand.getType().name();
+        else itemName = PlainTextComponentSerializer.plainText().serialize(name);
 
         CurrencyUtil.giveReward(player, cashAmount, tokenAmount, "Sold fishes").thenAccept(rewardMap -> {
             double receivedAmount = rewardMap.values().stream().mapToDouble(Double::doubleValue).sum();
             if (receivedAmount > 0) {
-                int removedAmount = itemInHand.getAmount();
                 player.getInventory().removeItem(itemInHand);
-
-                String itemName = PlainTextComponentSerializer.plainText()
-                        .serialize(itemInHand.getItemMeta().displayName());
                 player.sendMessage(MessageUtil.filterMessage(
                         "<green>Je hebt succesvol <bold>" + removedAmount + " " + itemName +
                                 "<!bold> verkocht voor <bold>" + receivedAmount + "<!bold>!"
-                )); // TODO: Message does not always apear
+                ));
             }
         });
     }
