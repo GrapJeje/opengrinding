@@ -113,10 +113,18 @@ public class BlockBreakListener implements Listener {
                 ItemStack item = LumberModule.getWoodHead(originalType);
                 if (item != null) player.getInventory().addItem(item);
 
-                if (originalType == finalWoodEnum.getBarkMaterial())
+                if (originalType == finalWoodEnum.getBarkMaterial()) {
                     block.setType(finalWoodEnum.getStrippedMaterial());
-                else if (originalType == finalWoodEnum.getStrippedMaterial())
+                    LumberModule.getWoods().add(new LumberModule.LumberWood(location, originalType, System.currentTimeMillis()));
+                } else if (originalType == finalWoodEnum.getStrippedMaterial()) {
                     block.setType(Material.AIR);
+                    for (LumberModule.LumberWood wood : LumberModule.getWoods()) {
+                        if (wood.location() != location) continue;
+                        Material type = wood.material();
+                        LumberModule.getWoods().remove(wood);
+                        LumberModule.getWoods().add(new LumberModule.LumberWood(location, type, System.currentTimeMillis()));
+                    }
+                }
 
                 Bukkit.getScheduler().runTaskAsynchronously(OpenGrinding.getInstance(), () -> {
                     GrindingPlayer gp = new GrindingPlayer(player.getUniqueId(), model);
@@ -157,7 +165,8 @@ public class BlockBreakListener implements Listener {
         try {
             set.add(Material.valueOf("PALE_OAK_WOOD"));
             set.add(Material.valueOf("STRIPPED_PALE_OAK_WOOD"));
-        } catch (IllegalArgumentException ignored) {}
+        } catch (IllegalArgumentException ignored) {
+        }
 
         return Set.copyOf(set);
     }

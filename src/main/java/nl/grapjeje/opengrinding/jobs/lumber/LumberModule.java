@@ -18,11 +18,12 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.SkullMeta;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class LumberModule extends JobModule {
     @Getter
-    private final static List<LumberWood> woods = new ArrayList<>();
+    private static final List<LumberWood> woods = Collections.synchronizedList(new ArrayList<>());
     @Getter
     private final static LumberJobConfiguration config = new LumberJobConfiguration(OpenGrinding.getInstance().getDataFolder());
 

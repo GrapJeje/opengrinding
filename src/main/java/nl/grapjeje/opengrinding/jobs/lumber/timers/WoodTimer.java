@@ -6,9 +6,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 
-import java.util.Iterator;
-import java.util.List;
-
 public class WoodTimer {
     private final long respawnTimeMillis;
 
@@ -17,29 +14,25 @@ public class WoodTimer {
         this.startTimer();
     }
 
-    // TODO: Does not work as wanted
     private void startTimer() {
         Bukkit.getScheduler().runTaskTimerAsynchronously(OpenGrinding.getInstance(), () -> {
-            List<LumberModule.LumberWood> woods = LumberModule.getWoods();
             long now = System.currentTimeMillis();
+            for (LumberModule.LumberWood wood : LumberModule.getWoods()) {
+                long elapsed = now - wood.time();
 
-            Iterator<LumberModule.LumberWood> iterator = woods.iterator();
-            while (iterator.hasNext()) {
-                LumberModule.LumberWood wood = iterator.next();
-
-                if (now - wood.time() >= respawnTimeMillis) {
+                if (elapsed >= respawnTimeMillis) {
                     Bukkit.getScheduler().runTask(OpenGrinding.getInstance(), () -> {
                         Block block = wood.location().getBlock();
                         Material original = wood.material();
 
                         if (this.isStrippedBlock(block.getType(), original)) {
                             block.setType(original);
+                            LumberModule.getWoods().remove(wood);
                         } else if (this.isAirOrOther(block.getType())) {
-                            block.setType(getStrippedFromBark(original));
-                        }
+                            Material stripped = this.getStrippedFromBark(original);
+                            block.setType(stripped);
+                        } else LumberModule.getWoods().remove(wood);
                     });
-
-                    iterator.remove();
                 }
             }
         }, 0L, 20L);
