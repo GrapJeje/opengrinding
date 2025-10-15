@@ -116,18 +116,9 @@ public class CurrencyUtil {
         }
     }
 
-    private static double clampToLimit(CurrencyModel model, Currency type, double amount) {
-        double current;
-        double max;
-        if (type == Currency.TOKENS) {
-            current = model.getTokensFromToday();
-            max = CoreModule.getConfig().getTokenLimit();
-        } else {
-            current = model.getCashFromToday();
-            max = CoreModule.getConfig().getCashLimit();
-        }
-        if (current >= max) return 0.0;
-        return Math.min(amount, max - current);
+    private static double getRemainingForToday(CurrencyModel model, Currency type) {
+        if (type == Currency.TOKENS) return CoreModule.getConfig().getTokenLimit() - model.getTokensFromToday();
+        else return CoreModule.getConfig().getCashLimit() - model.getCashFromToday();
     }
 
     private static CompletableFuture<Map<Currency, Double>> giveCash(Player player, double amount, String reason) {
@@ -136,11 +127,12 @@ public class CurrencyUtil {
 
             double allowed;
             if (CoreModule.getConfig().isDailyLimit()) {
-                allowed = clampToLimit(currency.getModel(), Currency.CASH, amount);
-                if (allowed <= amount)
+                allowed = getRemainingForToday(currency.getModel(), Currency.CASH);
+                if (allowed <= amount) {
                     Bukkit.getScheduler().runTask(OpenGrinding.getInstance(), () ->
                             player.sendMessage(MessageUtil.filterMessage("<warning>⚠ Jij hebt jouw grinding cash limiet bereikt!"))
                     );
+                } else allowed = amount;
                 if (allowed <= 0) return (Map<Currency, Double>) (Map<?, ?>) Map.of(currency, 0.0);
             } else allowed = amount;
 
@@ -149,6 +141,7 @@ public class CurrencyUtil {
             currency.save();
 
             BankingModule bankingModule = (BankingModule) OpenMinetopia.getModuleManager().get(BankingModule.class);
+            double finalAllowed = allowed;
             bankingModule.getAccountByNameAsync(player.getName()).whenComplete((accountModel, throwable) -> {
                 if (accountModel == null) {
                     Bukkit.getScheduler().runTask(OpenGrinding.getInstance(), () ->
@@ -161,7 +154,7 @@ public class CurrencyUtil {
                         player.getUniqueId(),
                         player.getName(),
                         TransactionType.DEPOSIT,
-                        allowed,
+                        finalAllowed,
                         accountModel,
                         reason,
                         System.currentTimeMillis()
@@ -173,7 +166,7 @@ public class CurrencyUtil {
                     );
                     return;
                 }
-                accountModel.setBalance(accountModel.getBalance() + allowed);
+                accountModel.setBalance(accountModel.getBalance() + finalAllowed);
                 accountModel.save();
 
                 TransactionsModule transactionsModule =
@@ -183,7 +176,7 @@ public class CurrencyUtil {
                         player.getUniqueId(),
                         player.getName(),
                         TransactionType.DEPOSIT,
-                        allowed,
+                        finalAllowed,
                         accountModel.getUniqueId(),
                         reason
                 );
@@ -198,12 +191,12 @@ public class CurrencyUtil {
 
             double allowed;
             if (CoreModule.getConfig().isDailyLimit()) {
-                allowed = clampToLimit(currency.getModel(), Currency.TOKENS, amount);
-
-                if (allowed <= amount)
+                allowed = getRemainingForToday(currency.getModel(), Currency.TOKENS);
+                if (allowed <= amount) {
                     Bukkit.getScheduler().runTask(OpenGrinding.getInstance(), () ->
                             player.sendMessage(MessageUtil.filterMessage("<warning>⚠ Jij hebt jouw grindtoken limiet bereikt!"))
                     );
+                } else allowed = amount;
                 if (allowed <= 0) return (Map<Currency, Double>) (Map<?, ?>) Map.of(currency, 0.0);
             } else allowed = amount;
 
@@ -228,9 +221,8 @@ public class CurrencyUtil {
                         .stream()
                         .findFirst();
 
-                if (optionalModel.isPresent()) {
+                if (optionalModel.isPresent())
                     return optionalModel.get();
-                }
 
                 CurrencyModel newModel = new CurrencyModel();
                 newModel.setPlayerUuid(player.getUniqueId());
@@ -240,11 +232,6 @@ public class CurrencyUtil {
                 newModel.setLastUpdatedDate(LocalDate.now());
 
                 StormDatabase.getInstance().saveStormModel(newModel);
-
-                Bukkit.getScheduler().runTask(OpenGrinding.getInstance(), () ->
-                        player.sendMessage(MessageUtil.filterMessage("<green>Jouw currency model is aangemaakt!"))
-                );
-
                 return newModel;
             } catch (Exception ex) {
                 ex.printStackTrace();

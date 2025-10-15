@@ -54,7 +54,7 @@ public class CurrencyModel extends StormModel {
     }
 
     public boolean needsUpdate(LocalDate now) {
-        long daysBetween = ChronoUnit.DAYS.between(getLastUpdatedDate(), now);
+        long daysBetween = ChronoUnit.DAYS.between(this.getLastUpdatedDate(), now);
         return daysBetween >= 1;
     }
 }
