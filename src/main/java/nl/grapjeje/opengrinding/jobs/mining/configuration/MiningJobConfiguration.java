@@ -29,7 +29,7 @@ public class MiningJobConfiguration extends JobConfig implements ShopConfig, Lev
     private final Map<Integer, Integer> levelOverrides;
 
     public MiningJobConfiguration(File file) {
-        super(file, "mining.yml", "default/mining.yml", true);
+        super(file,"jobs", "mining.yml", "default/jobs/mining.yml", true);
 
         ores = new LinkedHashMap<>();
         pickaxes = new LinkedHashMap<>();

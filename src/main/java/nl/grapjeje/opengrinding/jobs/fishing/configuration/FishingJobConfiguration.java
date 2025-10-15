@@ -26,7 +26,7 @@ public class FishingJobConfiguration extends JobConfig implements ShopConfig {
     private final Map<String, Rod> rods;
 
     public FishingJobConfiguration(File file) {
-        super(file, "fishing.yml", "default/fishing.yml", true);
+        super(file, "jobs", "fishing.yml", "default/jobs/fishing.yml", true);
 
         fishes = new LinkedHashMap<>();
         rods = new LinkedHashMap<>();
