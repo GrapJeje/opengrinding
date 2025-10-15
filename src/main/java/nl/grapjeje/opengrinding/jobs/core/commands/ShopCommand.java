@@ -4,6 +4,8 @@ import nl.grapjeje.core.command.Command;
 import nl.grapjeje.core.command.CommandSourceStack;
 import nl.grapjeje.opengrinding.jobs.fishing.FishingModule;
 import nl.grapjeje.opengrinding.jobs.fishing.guis.FishingRodShopMenu;
+import nl.grapjeje.opengrinding.jobs.lumber.LumberModule;
+import nl.grapjeje.opengrinding.jobs.lumber.guis.AxeShopMenu;
 import nl.grapjeje.opengrinding.jobs.mining.MiningModule;
 import nl.grapjeje.opengrinding.jobs.mining.guis.PickaxeShopMenu;
 import org.bukkit.entity.Player;
@@ -35,6 +37,7 @@ public class ShopCommand implements Command {
         switch (sub) {
             case "mining" -> new PickaxeShopMenu().open(player, MiningModule.class);
             case "fishing" -> new FishingRodShopMenu().open(player, FishingModule.class);
+            case "lumber" -> new AxeShopMenu().open(player, LumberModule.class);
         }
     }
 
@@ -45,7 +48,7 @@ public class ShopCommand implements Command {
         if (!this.canUse(player)) return Collections.emptyList();
 
         if (args.length == 1) {
-            return Stream.of("mining")
+            return Stream.of("mining", "fishing", "lumber")
                     .filter(s -> s.toLowerCase().startsWith(args[0].toLowerCase()))
                     .toList();
         }

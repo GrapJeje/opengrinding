@@ -2,7 +2,6 @@ package nl.grapjeje.opengrinding.jobs.mining;
 
 import lombok.Getter;
 import nl.grapjeje.core.SkullUtil;
-import nl.grapjeje.core.modules.Module;
 import nl.grapjeje.core.text.MessageUtil;
 import nl.grapjeje.opengrinding.OpenGrinding;
 import nl.grapjeje.opengrinding.jobs.mining.configuration.MiningJobConfiguration;
@@ -14,7 +13,6 @@ import nl.grapjeje.opengrinding.utils.JobModule;
 import nl.grapjeje.opengrinding.utils.configuration.JobConfig;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
-import org.bukkit.block.Block;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.SkullMeta;
 
@@ -43,7 +41,7 @@ public class MiningModule extends JobModule {
 
     @Override
     protected void onDisable() {
-        Bukkit.getLogger().info("Replace all ores...");
+        Bukkit.getLogger().info("Replacing all ores...");
         for (MiningOres ore : ores) {
             if (ore != null && ore.location() != null)
                 ore.location().getBlock().setType(ore.material());

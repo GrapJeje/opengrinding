@@ -8,6 +8,7 @@ import nl.grapjeje.opengrinding.jobs.Jobs;
 import nl.grapjeje.opengrinding.jobs.core.CoreModule;
 import nl.grapjeje.opengrinding.jobs.core.events.PlayerLevelChangeEvent;
 import nl.grapjeje.opengrinding.jobs.core.events.PlayerValueChangeEvent;
+import nl.grapjeje.opengrinding.jobs.lumber.LumberModule;
 import nl.grapjeje.opengrinding.jobs.mining.MiningModule;
 import nl.grapjeje.opengrinding.models.PlayerGrindingModel;
 import nl.grapjeje.opengrinding.utils.configuration.LevelConfig;
@@ -79,6 +80,7 @@ public class GrindingPlayer {
         LevelConfig config;
         switch (job) {
             case MINING -> config = MiningModule.getConfig();
+            case LUMBER -> config = LumberModule.getConfig();
             default -> throw new IllegalStateException("Unknown job: " + job);
         }
         double oldXp = model.getValue();

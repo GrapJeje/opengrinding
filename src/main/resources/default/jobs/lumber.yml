@@ -1,0 +1,182 @@
+enabled: true
+
+economy:
+  sell:
+    enabled: true
+    open-buy-shop: true
+  buy:
+    enabled: true
+
+woods:
+  oak:
+    sell-price:
+      bark:
+        cash: 6.0
+        tokens: 0.6
+      wood:
+        cash: 8.0
+        tokens: 0.8
+    points: 1
+    bark:
+      unlock-level: 0
+    wood:
+      unlock-level: 2
+  spruce:
+    sell-price:
+      bark:
+        cash: 8.0
+        tokens: 0.8
+      wood:
+        cash: 10.0
+        tokens: 1.0
+    points: 2
+    bark:
+      unlock-level: 5
+    wood:
+      unlock-level: 7
+  birch:
+    sell-price:
+      bark:
+        cash: 10.0
+        tokens: 1.0
+      wood:
+        cash: 12.0
+        tokens: 1.2
+    points: 2
+    bark:
+      unlock-level: 10
+    wood:
+      unlock-level: 12
+  jungle:
+    sell-price:
+      bark:
+        cash: 12.0
+        tokens: 1.2
+      wood:
+        cash: 14.0
+        tokens: 1.4
+    points: 3
+    bark:
+      unlock-level: 15
+    wood:
+      unlock-level: 17
+  acacia:
+    sell-price:
+      bark:
+        cash: 15.0
+        tokens: 1.5
+      wood:
+        cash: 18.0
+        tokens: 1.8
+    points: 3
+    bark:
+      unlock-level: 20
+    wood:
+      unlock-level: 22
+  dark_oak:
+    sell-price:
+      bark:
+        cash: 18.0
+        tokens: 1.8
+      wood:
+        cash: 21.0
+        tokens: 2.1
+    points: 4
+    bark:
+      unlock-level: 25
+    wood:
+      unlock-level: 27
+  mangrove:
+    sell-price:
+      bark:
+        cash: 22.0
+        tokens: 2.2
+      wood:
+        cash: 26.0
+        tokens: 2.6
+    points: 4
+    bark:
+      unlock-level: 30
+    wood:
+      unlock-level: 32
+  cherry:
+    sell-price:
+      bark:
+        cash: 25.0
+        tokens: 2.5
+      wood:
+        cash: 30.0
+        tokens: 3.0
+    points: 5
+    bark:
+      unlock-level: 35
+    wood:
+      unlock-level: 37
+  crimson:
+    sell-price:
+      bark:
+        cash: 30.0
+        tokens: 3.0
+      wood:
+        cash: 36.0
+        tokens: 3.6
+    points: 6
+    bark:
+      unlock-level: 40
+    wood:
+      unlock-level: 42
+  warped:
+    sell-price:
+      bark:
+        cash: 30.0
+        tokens: 3.0
+      wood:
+        cash: 36.0
+        tokens: 3.6
+    points: 6
+    bark:
+      unlock-level: 45
+    wood:
+      unlock-level: 47
+  pale_oak:
+    sell-price:
+      bark:
+        cash: 35.0
+        tokens: 3.5
+      wood:
+        cash: 42.0
+        tokens: 4.2
+    points: 7
+    bark:
+      unlock-level: 50
+    wood:
+      unlock-level: 52
+
+axes:
+  stone:
+    price:
+      cash: 25.0
+      tokens: 2.5
+    unlock-level: 0
+  iron:
+    price:
+      cash: 60.0
+      tokens: 6.0
+    unlock-level: 5
+  diamond:
+    price:
+      cash: 180.0
+      tokens: 18.0
+    unlock-level: 20
+  netherite:
+    price:
+      cash: 550.0
+      tokens: 55.0
+    unlock-level: 35
+
+level:
+  max: 50
+  formula: (100 * level) + ((level / 5) * 50)
+  overrides:
+    0: 0
+    1: 0

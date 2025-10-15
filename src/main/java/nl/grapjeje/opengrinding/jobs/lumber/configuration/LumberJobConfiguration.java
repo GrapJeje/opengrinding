@@ -1,7 +1,7 @@
-package nl.grapjeje.opengrinding.jobs.mining.configuration;
+package nl.grapjeje.opengrinding.jobs.lumber.configuration;
 
 import lombok.Getter;
-import nl.grapjeje.opengrinding.jobs.mining.objects.Ore;
+import nl.grapjeje.opengrinding.jobs.lumber.objects.Wood;
 import nl.grapjeje.opengrinding.utils.configuration.JobConfig;
 import nl.grapjeje.opengrinding.utils.configuration.LevelConfig;
 import nl.grapjeje.opengrinding.utils.configuration.ShopConfig;
@@ -13,26 +13,26 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 @Getter
-public class MiningJobConfiguration extends JobConfig implements ShopConfig, LevelConfig {
-    public record OreRecord(String name, Price price, int points, int unlockLevel) {}
-    public record Pickaxe(String name, Price price, int unlockLevel) {}
+public class LumberJobConfiguration extends JobConfig implements ShopConfig, LevelConfig {
+    public record WoodRecord(String name, Map<String, Price> prices, int points, Map<String, Integer> unlockLevels) {}
+    public record Axe(String name, Price price, int unlockLevel) {}
 
     private boolean sellEnabled;
     private boolean openBuyShop;
     private boolean buyEnabled;
 
-    private final Map<Ore, OreRecord> ores;
-    private final Map<String, Pickaxe> pickaxes;
+    private final Map<Wood, WoodRecord> woods;
+    private final Map<String, Axe> axes;
 
     private int maxLevel;
     private String formula;
     private final Map<Integer, Integer> levelOverrides;
 
-    public MiningJobConfiguration(File file) {
-        super(file, "mining.yml", "default/jobs/mining.yml", true);
+    public LumberJobConfiguration(File file) {
+        super(file, "lumber.yml", "default/jobs/lumber.yml", true);
 
-        ores = new LinkedHashMap<>();
-        pickaxes = new LinkedHashMap<>();
+        woods = new LinkedHashMap<>();
+        axes = new LinkedHashMap<>();
         levelOverrides = new LinkedHashMap<>();
 
         this.values();
@@ -51,48 +51,59 @@ public class MiningJobConfiguration extends JobConfig implements ShopConfig, Lev
         ConfigurationSection buySection = config.getConfigurationSection("economy.buy");
         this.buyEnabled = buySection != null && buySection.getBoolean("enabled", true);
 
-        ores.clear();
-        ConfigurationSection oreSection = config.getConfigurationSection("ores");
-        if (oreSection != null) {
-            for (String key : oreSection.getKeys(false)) {
-                ConfigurationSection section = oreSection.getConfigurationSection(key);
+        woods.clear();
+        ConfigurationSection woodsSection = config.getConfigurationSection("woods");
+        if (woodsSection != null) {
+            for (String key : woodsSection.getKeys(false)) {
+                ConfigurationSection section = woodsSection.getConfigurationSection(key);
                 if (section != null) {
                     try {
-                        Ore oreEnum = Ore.valueOf(key.toUpperCase());
-
+                        Wood woodEnum = Wood.valueOf(key.toUpperCase());
+                        Map<String, Price> prices = new LinkedHashMap<>();
                         ConfigurationSection priceSection = section.getConfigurationSection("sell-price");
-                        double cash = priceSection != null ? priceSection.getDouble("cash", 0.0) : 0.0;
-                        double tokens = priceSection != null ? priceSection.getDouble("tokens", 0.0) : 0.0;
-
-                        OreRecord oreRecord = new OreRecord(
+                        if (priceSection != null) {
+                            for (String type : priceSection.getKeys(false)) {
+                                ConfigurationSection typeSection = priceSection.getConfigurationSection(type);
+                                if (typeSection != null) {
+                                    double cash = typeSection.getDouble("cash", 0.0);
+                                    double tokens = typeSection.getDouble("tokens", 0.0);
+                                    prices.put(type, new Price(cash, tokens));
+                                }
+                            }
+                        }
+                        Map<String, Integer> unlockLevels = new LinkedHashMap<>();
+                        for (String type : section.getKeys(false)) {
+                            if (!type.equals("sell-price") && !type.equals("points"))
+                                unlockLevels.put(type, section.getConfigurationSection(type).getInt("unlock-level", 0));
+                        }
+                        WoodRecord woodRecord = new WoodRecord(
                                 key,
-                                new Price(cash, tokens),
+                                prices,
                                 section.getInt("points"),
-                                section.getInt("unlock-level")
+                                unlockLevels
                         );
-                        ores.put(oreEnum, oreRecord);
-                    } catch (IllegalArgumentException ignored) {
-                    }
+                        woods.put(woodEnum, woodRecord);
+                    } catch (IllegalArgumentException ignored) {}
                 }
             }
         }
 
-        pickaxes.clear();
-        ConfigurationSection pickaxeSection = config.getConfigurationSection("pickaxes");
-        if (pickaxeSection != null) {
-            for (String key : pickaxeSection.getKeys(false)) {
-                ConfigurationSection section = pickaxeSection.getConfigurationSection(key);
+        axes.clear();
+        ConfigurationSection axeSection = config.getConfigurationSection("axes");
+        if (axeSection != null) {
+            for (String key : axeSection.getKeys(false)) {
+                ConfigurationSection section = axeSection.getConfigurationSection(key);
                 if (section != null) {
                     ConfigurationSection priceSection = section.getConfigurationSection("price");
                     double cash = priceSection != null ? priceSection.getDouble("cash", 0.0) : 0.0;
                     double tokens = priceSection != null ? priceSection.getDouble("tokens", 0.0) : 0.0;
 
-                    Pickaxe pickaxe = new Pickaxe(
+                    Axe axe = new Axe(
                             key,
                             new Price(cash, tokens),
                             section.getInt("unlock-level")
                     );
-                    pickaxes.put(key, pickaxe);
+                    axes.put(key, axe);
                 }
             }
         }
@@ -113,12 +124,12 @@ public class MiningJobConfiguration extends JobConfig implements ShopConfig, Lev
         }
     }
 
-    public OreRecord getOre(Ore ore) {
-        return ores.get(ore);
+    public WoodRecord getWood(Wood wood) {
+        return woods.get(wood);
     }
 
-    public Pickaxe getPickaxe(String name) {
-        return pickaxes.get(name.toLowerCase());
+    public Axe getAxe(String name) {
+        return axes.get(name.toLowerCase());
     }
 
     @Override

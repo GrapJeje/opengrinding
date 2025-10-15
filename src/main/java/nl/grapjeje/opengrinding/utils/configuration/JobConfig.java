@@ -9,7 +9,7 @@ import java.io.File;
 public abstract class JobConfig extends Config {
     protected boolean enabled;
 
-    public JobConfig(File folder, String subPath, String name, String defaultResource, boolean mergeDefaults) {
-        super(folder, subPath, name, defaultResource, mergeDefaults);
+    public JobConfig(File folder, String name, String defaultResource, boolean mergeDefaults) {
+        super(folder, "jobs", name, defaultResource, mergeDefaults);
     }
 }

@@ -9,12 +9,17 @@ import nl.grapjeje.opengrinding.OpenGrinding;
 import nl.grapjeje.opengrinding.jobs.fishing.FishingModule;
 import nl.grapjeje.opengrinding.jobs.fishing.configuration.FishingJobConfiguration;
 import nl.grapjeje.opengrinding.jobs.fishing.guis.FishingRodShopMenu;
+import nl.grapjeje.opengrinding.jobs.lumber.LumberModule;
+import nl.grapjeje.opengrinding.jobs.lumber.configuration.LumberJobConfiguration;
+import nl.grapjeje.opengrinding.jobs.lumber.guis.AxeShopMenu;
+import nl.grapjeje.opengrinding.jobs.lumber.objects.Wood;
 import nl.grapjeje.opengrinding.jobs.mining.MiningModule;
 import nl.grapjeje.opengrinding.jobs.mining.configuration.MiningJobConfiguration;
 import nl.grapjeje.opengrinding.jobs.mining.guis.PickaxeShopMenu;
 import nl.grapjeje.opengrinding.jobs.mining.objects.Ore;
 import nl.grapjeje.opengrinding.utils.currency.Currency;
 import nl.grapjeje.opengrinding.utils.currency.CurrencyUtil;
+import nl.grapjeje.opengrinding.utils.currency.Price;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Player;
@@ -50,6 +55,7 @@ public class SellCommand implements Command {
         switch (sub) {
             case "mining" -> this.handleMiningCommand(player);
             case "fishing" -> this.handleFishingCommand(player);
+            case "lumber" -> this.handleLumberCommand(player); // TODO: Can't sell
         }
     }
 
@@ -181,6 +187,87 @@ public class SellCommand implements Command {
         });
     }
 
+    private void handleLumberCommand(Player player) {
+        ItemStack itemInHand = player.getInventory().getItemInMainHand();
+        if (itemInHand == null || itemInHand.getType() != Material.PLAYER_HEAD) {
+            if (LumberModule.getConfig().isOpenBuyShop()) new AxeShopMenu().open(player);
+            else player.sendMessage(MessageUtil.filterMessage("<warning>⚠ Dit item kun je hier niet verkopen!"));
+            return;
+        }
+        SkullMeta meta = (SkullMeta) itemInHand.getItemMeta();
+        if (meta == null || meta.getPlayerProfile() == null) {
+            if (LumberModule.getConfig().isOpenBuyShop()) new AxeShopMenu().open(player);
+            else player.sendMessage(MessageUtil.filterMessage("<warning>⚠ Dit item kun je hier niet verkopen!"));
+            return;
+        }
+        UUID skullUuid = meta.getPlayerProfile().getId();
+
+        LumberModule lumberModule = OpenGrinding.getFramework().getModuleLoader()
+                .getModules().stream()
+                .filter(m -> m instanceof LumberModule)
+                .map(m -> (LumberModule) m)
+                .findFirst()
+                .orElse(null);
+
+        if (lumberModule == null || lumberModule.isDisabled()) {
+            player.sendMessage(MessageUtil.filterMessage("<warning>⚠ De lumber module is momenteel uitgeschakeld!"));
+            return;
+        }
+        LumberJobConfiguration config = LumberModule.getConfig();
+        if (!config.isSellEnabled()) {
+            player.sendMessage(MessageUtil.filterMessage("<warning>⚠ Je kunt momenteel niks verkopen! Contacteer een beheerder als jij denkt dat dit een fout is."));
+            return;
+        }
+        Optional<Wood> woodEnum = Arrays.stream(Wood.values())
+                .filter(ore -> ore.getUuid().equals(skullUuid))
+                .findFirst();
+
+        if (woodEnum.isEmpty()) {
+            if (LumberModule.getConfig().isOpenBuyShop()) new AxeShopMenu().open(player);
+            else player.sendMessage(MessageUtil.filterMessage("<warning>⚠ Dit item kun je hier niet verkopen!"));
+            return;
+        }
+        var woodRecord = LumberModule.getConfig().getWoods().get(woodEnum.get());
+        if (woodRecord == null) {
+            if (LumberModule.getConfig().isOpenBuyShop()) new AxeShopMenu().open(player);
+            else player.sendMessage(MessageUtil.filterMessage("<warning>⚠ Dit item kun je hier niet verkopen!"));
+            return;
+        }
+
+        String type;
+        Material material = itemInHand.getType();
+        if (material == woodEnum.get().getBarkMaterial()) type = "bark";
+        else if (material == woodEnum.get().getStrippedMaterial()) type = "wood";
+        else {
+            player.sendMessage(MessageUtil.filterMessage("<warning>⚠ Ongeldig item type!"));
+            return;
+        }
+        Price price = woodRecord.prices().get(type);
+        if (price == null || price.cash() <= 0 || price.grindToken() <= 0) {
+            if (LumberModule.getConfig().isOpenBuyShop()) new AxeShopMenu().open(player);
+            else player.sendMessage(MessageUtil.filterMessage("<warning>⚠ Dit item kun je hier niet verkopen!"));
+            return;
+        }
+
+        int amountInHand = itemInHand.getAmount();
+        double cashAmount = price.cash() * amountInHand;
+        double tokenAmount = price.grindToken() * amountInHand;
+        CurrencyUtil.giveReward(player, cashAmount, tokenAmount, "Sold wood").thenAccept(rewardMap -> {
+            double receivedAmount = rewardMap.values().stream().mapToDouble(Double::doubleValue).sum();
+            if (receivedAmount > 0) {
+                int removedAmount = itemInHand.getAmount();
+                player.getInventory().removeItem(itemInHand);
+
+                String itemName = PlainTextComponentSerializer.plainText()
+                        .serialize(itemInHand.getItemMeta().displayName());
+                player.sendMessage(MessageUtil.filterMessage(
+                        "<green>Je hebt succesvol <bold>" + removedAmount + " " + itemName +
+                                "<!bold> verkocht voor <bold>" + receivedAmount + "<!bold>!"
+                ));
+            }
+        });
+    }
+
     @Override
     public @NotNull Collection<String> suggest(@NotNull CommandSourceStack source, @NotNull String[] args) {
         Player player = source.getPlayer();
@@ -188,7 +275,7 @@ public class SellCommand implements Command {
         if (!this.canUse(player)) return Collections.emptyList();
 
         if (args.length == 1) {
-            return Stream.of("mining", "fishing")
+            return Stream.of("mining", "fishing", "lumber")
                     .filter(s -> s.toLowerCase().startsWith(args[0].toLowerCase()))
                     .toList();
         }
