@@ -6,6 +6,7 @@ import nl.grapjeje.core.text.MessageUtil;
 import nl.grapjeje.opengrinding.OpenGrinding;
 import nl.grapjeje.opengrinding.jobs.lumber.configuration.LumberJobConfiguration;
 import nl.grapjeje.opengrinding.jobs.lumber.listeners.BlockBreakListener;
+import nl.grapjeje.opengrinding.jobs.lumber.listeners.BlockChangeListener;
 import nl.grapjeje.opengrinding.jobs.lumber.objects.Wood;
 import nl.grapjeje.opengrinding.jobs.lumber.timers.WoodTimer;
 import nl.grapjeje.opengrinding.utils.JobModule;
@@ -34,6 +35,7 @@ public class LumberModule extends JobModule {
         OpenGrinding.getFramework().registerConfig(config);
 
         OpenGrinding.getFramework().registerListener(BlockBreakListener::new);
+        OpenGrinding.getFramework().registerListener(BlockChangeListener::new);
 
         new WoodTimer(2);
     }
