@@ -1,6 +1,8 @@
 package nl.grapjeje.opengrinding.jobs.lumber.configuration;
 
 import lombok.Getter;
+import net.objecthunter.exp4j.Expression;
+import net.objecthunter.exp4j.ExpressionBuilder;
 import nl.grapjeje.opengrinding.jobs.lumber.objects.Wood;
 import nl.grapjeje.opengrinding.utils.configuration.JobConfig;
 import nl.grapjeje.opengrinding.utils.configuration.LevelConfig;
@@ -11,6 +13,9 @@ import org.bukkit.configuration.ConfigurationSection;
 import java.io.File;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 @Getter
 public class LumberJobConfiguration extends JobConfig implements ShopConfig, LevelConfig {
@@ -26,7 +31,7 @@ public class LumberJobConfiguration extends JobConfig implements ShopConfig, Lev
 
     private int maxLevel;
     private String formula;
-    private final Map<Integer, Integer> levelOverrides;
+    private final Map<Integer, Double> levelOverrides;
 
     public LumberJobConfiguration(File file) {
         super(file, "lumber.yml", "default/jobs/lumber.yml", true);
@@ -117,7 +122,7 @@ public class LumberJobConfiguration extends JobConfig implements ShopConfig, Lev
             if (overridesSection != null) {
                 for (String key : overridesSection.getKeys(false)) {
                     int level = Integer.parseInt(key);
-                    int value = overridesSection.getInt(key);
+                    double value = overridesSection.getDouble(key);
                     levelOverrides.put(level, value);
                 }
             }
@@ -132,15 +137,34 @@ public class LumberJobConfiguration extends JobConfig implements ShopConfig, Lev
         return axes.get(name.toLowerCase());
     }
 
+    private final Map<Integer, Double> xpCache = new ConcurrentHashMap<>();
+    private final ExecutorService xpExecutor = Executors.newSingleThreadExecutor();
+
     @Override
     public double getXpForLevel(int level) {
         if (levelOverrides.containsKey(level))
             return levelOverrides.get(level);
-        return (100 * level) + (((double) level / 5) * 50);
+        if (xpCache.containsKey(level))
+            return xpCache.get(level);
+
+        xpExecutor.submit(() -> {
+            try {
+                Expression expression = new ExpressionBuilder(formula)
+                        .variable("level")
+                        .build()
+                        .setVariable("level", level);
+
+                double value = expression.evaluate();
+                xpCache.put(level, value);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
+        return 0.0;
     }
 
     @Override
-    public Integer getLevelOverride(int level) {
+    public Double getLevelOverride(int level) {
         return levelOverrides.getOrDefault(level, null);
     }
 }

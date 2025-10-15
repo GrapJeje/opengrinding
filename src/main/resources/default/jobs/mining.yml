@@ -83,7 +83,7 @@ level:
   max: 40   # Max level dat spelers kunnen bereiken
   formula: (100 * level) + ((level / 5) * 50)   # Baseline berekening voor XP per level
   overrides:    # Specifieke overrides per level (indien aanwezig, overschrijft de formula)
-    0: 0
-    1: 0
-    2: 0
-    10: 5000   # voorbeeld: level 10 heeft exact 5000 xp nodig
+    0: 0.0
+    1: 0.0
+    2: 0.0
+    10: 5000.0   # voorbeeld: level 10 heeft exact 5000 xp nodig

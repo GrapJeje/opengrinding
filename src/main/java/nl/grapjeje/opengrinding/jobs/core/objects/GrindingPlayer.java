@@ -21,6 +21,7 @@ import org.bukkit.entity.Player;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.logging.Logger;
 
 public class GrindingPlayer {
     @Getter
@@ -89,12 +90,13 @@ public class GrindingPlayer {
 
         double finalNewXp = newXp;
         Bukkit.getScheduler().runTask(OpenGrinding.getInstance(), () ->
-                new PlayerValueChangeEvent(this, job, oldXp, finalNewXp).callEvent()
-        );
+                new PlayerValueChangeEvent(this, job, oldXp, finalNewXp).callEvent());
+
         int currentLevel = oldLevel;
         while (currentLevel < config.getMaxLevel()) {
-            double xpNeeded = config.getLevelOverride(currentLevel + 1) != null
-                    ? config.getLevelOverride(currentLevel + 1)
+            Double levelOverride = config.getLevelOverride(currentLevel + 1);
+            double xpNeeded = levelOverride != null
+                    ? levelOverride
                     : config.getXpForLevel(currentLevel + 1);
 
             if (newXp >= xpNeeded) {
@@ -103,13 +105,15 @@ public class GrindingPlayer {
 
                 int finalOldLevel = oldLevel;
                 int finalCurrentLevel = currentLevel;
+
                 Bukkit.getScheduler().runTask(OpenGrinding.getInstance(), () ->
-                        new PlayerLevelChangeEvent(this, job, finalOldLevel, finalCurrentLevel).callEvent()
-                );
+                        new PlayerLevelChangeEvent(this, job, finalOldLevel, finalCurrentLevel).callEvent());
                 oldLevel = currentLevel;
             } else break;
         }
+
         model.setLevel(currentLevel);
         model.setValue(newXp);
     }
+
 }

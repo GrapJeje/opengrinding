@@ -178,5 +178,5 @@ level:
   max: 50
   formula: (100 * level) + ((level / 5) * 50)
   overrides:
-    0: 0
-    1: 0
+    0: 0.0
+    1: 0.0
