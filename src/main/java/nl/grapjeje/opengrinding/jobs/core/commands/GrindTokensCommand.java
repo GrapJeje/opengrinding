@@ -36,20 +36,21 @@ public class GrindTokensCommand implements Command {
         AtomicReference<Double> playerTokens = new AtomicReference<>(0.0);
         AtomicReference<Double> tokensLeft = new AtomicReference<>(0.0);
 
-        Bukkit.getScheduler().runTaskAsynchronously(OpenGrinding.getInstance(), () -> {
-            CurrencyUtil.getModelAsync(player).thenApply(optional -> {
-                if (optional.isEmpty()) return new HashMap<Currency, Double>();
-                CurrencyModel model = optional.get();
-                GrindingCurrency currency = new GrindingCurrency(player.getUniqueId(), model);
-                playerTokens.set(currency.getModel().getGrindTokens());
-                double currentDayTokens = currency.getModel().getGrindTokens();
-                double maxTokensPerDay = CoreModule.getConfig().getTokenLimit();
-                tokensLeft.set(maxTokensPerDay - currentDayTokens);
-                Bukkit.getScheduler().runTask(OpenGrinding.getInstance(), () ->
-                        player.sendMessage(MessageUtil.filterMessage("<gold>Je hebt in totaal <yellow>" + playerTokens.get() + " <gold>grindtokens. Je kan er vandaag nog <yellow>" + tokensLeft + " <gold>halen!"))
-                );
-                return null;
-            });
-        });
+        Bukkit.getScheduler().runTaskAsynchronously(OpenGrinding.getInstance(), () ->
+                CurrencyUtil.getModelAsync(player).thenApply(model -> {
+            GrindingCurrency currency = new GrindingCurrency(player.getUniqueId(), model);
+            playerTokens.set(currency.getModel().getGrindTokens());
+            double currentDayTokens = currency.getModel().getTokensFromToday();
+            double maxTokensPerDay = CoreModule.getConfig().getTokenLimit();
+            tokensLeft.set(maxTokensPerDay - currentDayTokens);
+
+            String message = "<gold>Je hebt in totaal <yellow>" + playerTokens.get() + " <gold>grindtokens.";
+            if (CoreModule.getConfig().isDailyLimit()) message += " Je kan er vandaag nog <yellow>" + tokensLeft + " <gold>halen!";
+            String finalMessage = message;
+            Bukkit.getScheduler().runTask(OpenGrinding.getInstance(), () ->
+                    player.sendMessage(MessageUtil.filterMessage(finalMessage))
+            );
+            return null;
+        }));
     }
 }

@@ -8,6 +8,7 @@ import nl.grapjeje.core.StormDatabase;
 import nl.grapjeje.opengrinding.jobs.core.CoreModule;
 import nl.grapjeje.opengrinding.jobs.fishing.FishingModule;
 import nl.grapjeje.opengrinding.jobs.mining.MiningModule;
+import nl.grapjeje.opengrinding.models.CurrencyModel;
 import nl.grapjeje.opengrinding.models.FishLootTableModel;
 import nl.grapjeje.opengrinding.models.GrindingRegionModel;
 import nl.grapjeje.opengrinding.models.PlayerGrindingModel;
@@ -39,6 +40,7 @@ public final class OpenGrinding extends JavaPlugin {
         framework.registerStormModel(PlayerGrindingModel::new);
         framework.registerStormModel(GrindingRegionModel::new);
         framework.registerStormModel(FishLootTableModel::new);
+        framework.registerStormModel(CurrencyModel::new);
     }
 
     private void registerModules() {

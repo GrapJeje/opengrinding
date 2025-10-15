@@ -4,8 +4,11 @@ import net.kyori.adventure.text.Component;
 import nl.grapjeje.core.gui.Gui;
 import nl.grapjeje.core.gui.GuiButton;
 import nl.grapjeje.core.text.MessageUtil;
+import nl.grapjeje.opengrinding.jobs.core.CoreModule;
 import nl.grapjeje.opengrinding.jobs.fishing.FishingModule;
 import nl.grapjeje.opengrinding.jobs.fishing.configuration.FishingJobConfiguration;
+import nl.grapjeje.opengrinding.utils.currency.CurrencyUtil;
+import nl.grapjeje.opengrinding.utils.currency.Price;
 import nl.grapjeje.opengrinding.utils.guis.ShopMenu;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -20,13 +23,23 @@ public class FishingRodShopMenu extends ShopMenu {
         builder.withSize(27);
 
         FishingJobConfiguration config = FishingModule.getConfig();
-        double rodPrice = config.getRods().get(Material.FISHING_ROD.name().toLowerCase()).buyPrice();
+        double rodPrice;
+        String currencyType;
+        Price price = config.getRods().get(Material.FISHING_ROD.name().toLowerCase()).price();
+
+        if (CoreModule.getConfig().isBuyInTokens()) {
+            rodPrice = price.grindToken();
+            currencyType = " Tokens";
+        } else {
+            currencyType = "";
+            rodPrice = price.cash();
+        }
 
         GuiButton button = GuiButton.builder()
                 .withMaterial(Material.FISHING_ROD)
                 .withName(MessageUtil.filterMessage("<!italic><gray>Vishengel"))
                 .withLore(
-                        MessageUtil.filterMessage("<gray>Prijs: <bold>" + rodPrice + "<!bold>"),
+                        MessageUtil.filterMessage("<gray>Prijs: <bold>" + rodPrice + currencyType + "<!bold>"),
                         MessageUtil.filterMessage("<green>Klik om te kopen!")
                 )
                 .withClickEvent((gui, p, type) -> {
@@ -35,14 +48,15 @@ public class FishingRodShopMenu extends ShopMenu {
                     if (meta != null) meta.displayName(MessageUtil.filterMessage("<gray>Vishengel"));
                     item.setItemMeta(meta);
 
-                    String rodName = "<!italic><gray>Vishengel";
-
-                    this.removeCash(player, rodPrice, "Vishengel");
-
-                    p.getInventory().addItem(item);
-                    p.sendMessage(MessageUtil.filterMessage(
-                            "<green>Je hebt een <bold>" + rodName + "<!bold> <green>gekocht voor <bold>" + rodPrice + "<!bold>!"
-                    ));
+                    CurrencyUtil.removeForBuy(p, rodPrice, "Vishengel").thenAccept(map -> {
+                        boolean success = !map.isEmpty();
+                        if (success) {
+                            p.getInventory().addItem(item);
+                            p.sendMessage(MessageUtil.filterMessage(
+                                    "<green>Je hebt een <bold><!italic>Vishengel<!bold> <green>gekocht voor <bold>" + rodPrice + currencyType + "<!bold>!"
+                            ));
+                        }
+                    });
                     gui.close(p);
                 })
                 .build();

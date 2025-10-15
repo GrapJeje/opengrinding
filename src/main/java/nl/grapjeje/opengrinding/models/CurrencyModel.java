@@ -13,7 +13,7 @@ import java.util.UUID;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
-@Table(name = "player_currency")
+@Table(name = "grinding_player_currency")
 public class CurrencyModel extends StormModel {
 
     @Column(name = "player_uuid")
@@ -28,8 +28,16 @@ public class CurrencyModel extends StormModel {
     @Column(name = "cash_from_today", defaultValue = "0")
     private Double cashFromToday = 0.0;
 
-    @Column(name = "last_updated")
-    private LocalDate lastUpdated = LocalDate.now();
+    @Column(name = "last_updated", defaultValue = "0")
+    private Long lastUpdated = LocalDate.now().toEpochDay();
+
+    public LocalDate getLastUpdatedDate() {
+        return LocalDate.ofEpochDay(lastUpdated);
+    }
+
+    public void setLastUpdatedDate(LocalDate date) {
+        this.lastUpdated = date.toEpochDay();
+    }
 
     public boolean reachedTokenLimit() {
         if (CoreModule.getConfig().isDailyLimit()) {
@@ -46,7 +54,7 @@ public class CurrencyModel extends StormModel {
     }
 
     public boolean needsUpdate(LocalDate now) {
-        long daysBetween = ChronoUnit.DAYS.between(lastUpdated, now);
+        long daysBetween = ChronoUnit.DAYS.between(getLastUpdatedDate(), now);
         return daysBetween >= 1;
     }
 }

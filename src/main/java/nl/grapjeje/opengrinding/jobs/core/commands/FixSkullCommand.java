@@ -15,9 +15,9 @@ public class FixSkullCommand implements Command {
     }
 
     @Override
-    public void execute(CommandSourceStack soruce, String[] strings) {
-        if (!(soruce.getSender() instanceof Player player)) {
-            soruce.getSender().sendMessage("Dit command kan alleen door een speler uitgevoerd worden.");
+    public void execute(CommandSourceStack source, String[] strings) {
+        if (!(source.getSender() instanceof Player player)) {
+            source.getSender().sendMessage("Dit command kan alleen door een speler uitgevoerd worden.");
             return;
         }
 

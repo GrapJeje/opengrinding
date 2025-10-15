@@ -23,3 +23,5 @@ commands:
     description: Crud command for fish loottables
   grindtokens:
     description: Grindtokens command
+  dailylimit:
+    description: Dailylimit command

@@ -10,12 +10,20 @@ economy:
 
 fishes:
   cod:
-    sell-price: 3.0 # Per KG
+    sell-price: # Per KG
+      cash: 3.0
+      tokens: 0.3
   salmon:
-    sell-price: 5.0
+    sell-price:
+      cash: 5.0
+      tokens: 0.5
   tropical_fish:
-    sell-price: 35.0
+    sell-price:
+      cash: 35.0
+      tokens: 3.5
 
 rods:
   fishing_rod:
-    buy-price: 200.0
+    price:
+      cash: 200.0
+      tokens: 20.0

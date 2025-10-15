@@ -6,11 +6,14 @@ import nl.grapjeje.core.gui.Gui;
 import nl.grapjeje.core.gui.GuiButton;
 import nl.grapjeje.core.text.MessageUtil;
 import nl.grapjeje.opengrinding.jobs.Jobs;
+import nl.grapjeje.opengrinding.jobs.core.CoreModule;
 import nl.grapjeje.opengrinding.jobs.core.objects.GrindingPlayer;
 import nl.grapjeje.opengrinding.jobs.mining.MiningModule;
 import nl.grapjeje.opengrinding.jobs.mining.configuration.MiningJobConfiguration;
 import nl.grapjeje.opengrinding.jobs.mining.configuration.MiningJobConfiguration.Pickaxe;
 import nl.grapjeje.opengrinding.models.PlayerGrindingModel;
+import nl.grapjeje.opengrinding.utils.currency.CurrencyUtil;
+import nl.grapjeje.opengrinding.utils.currency.Price;
 import nl.grapjeje.opengrinding.utils.guis.ShopMenu;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -31,25 +34,32 @@ public class PickaxeShopMenu extends ShopMenu {
         PlayerGrindingModel model = GrindingPlayer.loadOrCreatePlayerModel(player, Jobs.MINING);
         int playerLevel = model.getLevel();
 
-        MiningJobConfiguration config = MiningModule.getConfig();
-        if (!config.isSellEnabled()) {
-            player.sendMessage(MessageUtil.filterMessage("<warning>⚠ Je kunt momenteel niks kopen! Contacteer een beheerder als jij denkt dat dit een fout is."));
-            return;
-        }
-
         Gui.Builder builder = Gui.builder(InventoryType.CHEST, Component.text("Pickaxe Shop"));
         builder.withSize(27);
 
+        MiningJobConfiguration config = MiningModule.getConfig();
         List<Pickaxe> unlockedPickaxes = this.getUnlockedPickaxes(playerLevel, config);
         int[] slots = this.getSlotPositions(unlockedPickaxes.size());
 
         for (int i = 0; i < unlockedPickaxes.size(); i++) {
             Pickaxe pickaxe = unlockedPickaxes.get(i);
+            Price price = pickaxe.price();
+            double amount;
+            String currencyType;
+
+            if (CoreModule.getConfig().isBuyInTokens()) {
+                amount = price.grindToken();
+                currencyType = " Tokens";
+            } else {
+                currencyType = "";
+                amount = price.cash();
+            }
+
             GuiButton button = GuiButton.builder()
                     .withMaterial(this.getMaterialFromPickaxe(pickaxe.name()))
                     .withName(this.getPickaxeName(pickaxe.name()))
                     .withLore(
-                            MessageUtil.filterMessage("<gray>Prijs: <bold>" + pickaxe.price() + "<!bold>"),
+                            MessageUtil.filterMessage("<gray>Prijs: <bold>" + amount + currencyType + "<!bold>"),
                             MessageUtil.filterMessage("<green>Klik om te kopen!")
                             )
                     .withClickEvent((gui, p, type) -> {
@@ -60,13 +70,15 @@ public class PickaxeShopMenu extends ShopMenu {
 
                         String pickaxeName = PlainTextComponentSerializer.plainText().serialize(this.getPickaxeName(pickaxe.name()));
 
-                        double amount = pickaxe.price();
-                        this.removeCash(player, amount, pickaxeName);
-
-                        p.getInventory().addItem(item);
-                        p.sendMessage(MessageUtil.filterMessage(
-                                "<green>Je hebt een <bold>" + pickaxeName + "<!bold> <green>gekocht voor <bold>" + pickaxe.price() + "<!bold>!"
-                        ));
+                        CurrencyUtil.removeForBuy(p, amount, pickaxeName).thenAccept(map -> {
+                            boolean success = !map.isEmpty();
+                            if (success) {
+                                p.getInventory().addItem(item);
+                                p.sendMessage(MessageUtil.filterMessage(
+                                        "<green>Je hebt een <bold>" + pickaxeName + "<!bold> <green>gekocht voor <bold>" + amount + currencyType + "<!bold>!"
+                                ));
+                            }
+                        });
                         gui.close(p);
                     })
                     .build();

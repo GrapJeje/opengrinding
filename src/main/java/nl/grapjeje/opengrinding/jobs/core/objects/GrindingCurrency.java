@@ -41,11 +41,12 @@ public class GrindingCurrency {
         if (model.needsUpdate(now)) {
             model.setTokensFromToday(0.0);
             model.setCashFromToday(0.0);
-            model.setLastUpdated(now);
+            model.setLastUpdatedDate(now);
             this.save();
 
             Player player = this.getPlayer().getBukkit().getPlayer();
-            if (player == null) return true;
+            if (player == null) return false;
+            if (!CoreModule.getConfig().isDailyLimit()) return false;
 
             if (CoreModule.getConfig().isSellInTokens())
                 player.sendMessage(MessageUtil.filterMessage("<green>Jouw grindtokens limiet is gereset!"));
