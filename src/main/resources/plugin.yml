@@ -25,3 +25,5 @@ commands:
     description: Grindtokens command
   dailylimit:
     description: Dailylimit command
+  mailman:
+    description: Mailman openmenu command

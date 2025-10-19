@@ -5,6 +5,7 @@ import net.objecthunter.exp4j.Expression;
 import net.objecthunter.exp4j.ExpressionBuilder;
 import nl.grapjeje.opengrinding.utils.configuration.JobConfig;
 import nl.grapjeje.opengrinding.utils.configuration.LevelConfig;
+import nl.grapjeje.opengrinding.utils.currency.Price;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 
@@ -20,7 +21,10 @@ import java.util.concurrent.Executors;
 @Getter
 public class MailmanJobConfiguration extends JobConfig implements LevelConfig {
     private final List<Material> blockWhitelist;
-    private int waitTimeInMinutes;
+    public record Amount(int min, int max) {}
+    public record Package(int level, int waitTime, Price price, Amount amount) {}
+
+    private final Map<Integer, Package> packages;
 
     private int maxLevel;
     private String formula;
@@ -29,8 +33,9 @@ public class MailmanJobConfiguration extends JobConfig implements LevelConfig {
     public MailmanJobConfiguration(File file) {
         super(file, "mailman.yml", "default/jobs/mailman.yml", true);
 
-        levelOverrides = new LinkedHashMap<>();
         blockWhitelist = new ArrayList<>();
+        packages = new LinkedHashMap<>();
+        levelOverrides = new LinkedHashMap<>();
 
         this.values();
     }
@@ -38,13 +43,47 @@ public class MailmanJobConfiguration extends JobConfig implements LevelConfig {
     @Override
     public void values() {
         this.enabled = config.getBoolean("enabled", true);
-        this.waitTimeInMinutes = config.getInt("wait-time", 1);
+
 
         ConfigurationSection whitelistSection = config.getConfigurationSection("whitelist");
         if (whitelistSection != null) {
             for (String key : whitelistSection.getKeys(false)) {
                 Material material = Material.getMaterial(whitelistSection.getString(key));
                 if (material != null) blockWhitelist.add(material);
+            }
+        }
+
+        packages.clear();
+        ConfigurationSection pickaxeSection = config.getConfigurationSection("packages");
+        if (pickaxeSection != null) {
+            for (String key : pickaxeSection.getKeys(false)) {
+                ConfigurationSection section = pickaxeSection.getConfigurationSection(key);
+                if (section != null) {
+                    int level;
+                    try {
+                        level = Integer.parseInt(key);
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                        continue;
+                    }
+                    int waitTime = section.getInt("wait-time");
+
+                    ConfigurationSection priceSection = section.getConfigurationSection("reward");
+                    double cash = priceSection != null ? priceSection.getDouble("cash", 0.0) : 0.0;
+                    double tokens = priceSection != null ? priceSection.getDouble("tokens", 0.0) : 0.0;
+
+                    ConfigurationSection amountSection = section.getConfigurationSection("amount");
+                    int min = amountSection != null ? amountSection.getInt("min", 0) : 0;
+                    int max = amountSection != null ? amountSection.getInt("max", 0) : 0;
+
+                    Package packace = new Package(
+                            level,
+                            waitTime,
+                            new Price(cash, tokens),
+                            new Amount(min, max)
+                    );
+                    packages.put(level, packace);
+                }
             }
         }
 

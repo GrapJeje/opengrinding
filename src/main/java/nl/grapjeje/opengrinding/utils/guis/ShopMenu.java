@@ -43,42 +43,6 @@ public abstract class ShopMenu extends Menu {
         this.open(player);
     }
 
-    protected void removeCash(Player player, double amount, String name) {
-        BankingModule bankingModule = (BankingModule) OpenMinetopia.getModuleManager().get(BankingModule.class);
-        bankingModule.getAccountByNameAsync(player.getName()).whenComplete((accountModel, throwable) -> {
-            if (accountModel == null) {
-                player.sendMessage(MessageConfiguration.component("banking_account_not_found"));
-            } else {
-                TransactionUpdateEvent event = new TransactionUpdateEvent(
-                        player.getUniqueId(),
-                        player.getName(),
-                        TransactionType.WITHDRAW,
-                        amount,
-                        accountModel,
-                        "Bought " + name,
-                        System.currentTimeMillis()
-                );
-                if (EventUtils.callCancellable(event)) {
-                    player.sendMessage(ChatUtils.color("<red>De transactie is geannuleerd door een plugin."));
-                } else {
-                    accountModel.setBalance(accountModel.getBalance() - amount);
-                    accountModel.save();
-                    TransactionsModule transactionsModule =
-                            (TransactionsModule) OpenMinetopia.getModuleManager().get(TransactionsModule.class);
-                    transactionsModule.createTransactionLog(
-                            System.currentTimeMillis(),
-                            player.getUniqueId(),
-                            player.getName(),
-                            TransactionType.WITHDRAW,
-                            amount,
-                            accountModel.getUniqueId(),
-                            "Bought " + name
-                    );
-                }
-            }
-        });
-    }
-
     protected boolean contains(int[] arr, int val) {
         for (int i : arr) if (i == val) return true;
         return false;

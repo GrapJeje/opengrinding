@@ -1,15 +1,39 @@
 enabled: true
-wait-time: 10 # Wacht tijd tussen de diensten
 
 whitelist: # Op welke blokken je kunt klikken om je pakketje te bezorgen
   - OAK_DOOR
   - OAK_TRAPDOOR
 
+packages:
+  0: # Player level
+    wait-time: 30 # Wacht tijd tussen de diensten
+    reward:
+      cash: 100.0
+      tokens: 0.1
+    amount:
+      min: 1
+      max: 3
+  1:
+    wait-time: 20
+    reward:
+      cash: 500.0
+      tokens: 0.5
+    amount:
+      min: 3
+      max: 5
+  2:
+    wait-time: 10
+    reward:
+      cash: 1000.0
+      tokens: 1.0
+    amount:
+      min: 3
+      max: 9
+
 level:
-  max: 40
+  max: 2
   formula: (100 * level) + ((level / 5) * 50)
   overrides:
     0: 0.0
     1: 0.0
     2: 0.0
-    10: 5000.0
