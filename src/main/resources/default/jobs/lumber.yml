@@ -175,7 +175,7 @@ axes:
     unlock-level: 35
 
 level:
-  max: 50
+  max: 52
   formula: (100 * level) + ((level / 5) * 50)
   overrides:
     0: 0.0
