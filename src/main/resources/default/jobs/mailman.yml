@@ -1,0 +1,15 @@
+enabled: true
+wait-time: 10 # Wacht tijd tussen de diensten
+
+whitelist: # Op welke blokken je kunt klikken om je pakketje te bezorgen
+  - OAK_DOOR
+  - OAK_TRAPDOOR
+
+level:
+  max: 40
+  formula: (100 * level) + ((level / 5) * 50)
+  overrides:
+    0: 0.0
+    1: 0.0
+    2: 0.0
+    10: 5000.0
