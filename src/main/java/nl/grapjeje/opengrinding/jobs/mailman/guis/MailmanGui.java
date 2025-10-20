@@ -7,18 +7,27 @@ import net.kyori.adventure.text.Component;
 import nl.grapjeje.core.gui.Gui;
 import nl.grapjeje.core.gui.GuiButton;
 import nl.grapjeje.core.text.MessageUtil;
+import nl.grapjeje.opengrinding.OpenGrinding;
 import nl.grapjeje.opengrinding.jobs.Jobs;
 import nl.grapjeje.opengrinding.jobs.core.CoreModule;
 import nl.grapjeje.opengrinding.jobs.core.objects.GrindingPlayer;
+import nl.grapjeje.opengrinding.jobs.core.objects.GrindingRegion;
 import nl.grapjeje.opengrinding.jobs.mailman.MailmanModule;
 import nl.grapjeje.opengrinding.jobs.mailman.configuration.MailmanJobConfiguration;
+import nl.grapjeje.opengrinding.jobs.mailman.objects.MailmanJob;
+import nl.grapjeje.opengrinding.models.GrindingRegionModel;
 import nl.grapjeje.opengrinding.models.PlayerGrindingModel;
 import nl.grapjeje.opengrinding.utils.guis.ShopMenu;
+import nl.openminetopia.modules.data.storm.StormDatabase;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryType;
 
-import java.util.Map;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.ThreadLocalRandom;
 
 @NoArgsConstructor
 public class MailmanGui extends ShopMenu {
@@ -102,7 +111,58 @@ public class MailmanGui extends ShopMenu {
         gui.open(player);
     }
 
-    private void start(Player player, int level) {
+    private final List<GrindingRegion> mailManRegions = new CopyOnWriteArrayList<>();
 
+    private void start(Player player, int level) {
+        // TODO: Add wait-time cooldown by config
+        if (player.getInventory().getItemInOffHand().getType() != Material.AIR) {
+            player.sendMessage(MessageUtil.filterMessage("<warning>⚠ Maak je off-hand leeg om dit te starten!"));
+            return;
+        }
+        Bukkit.getScheduler().runTaskAsynchronously(OpenGrinding.getInstance(), () -> {
+            this.loadAllMailManRegionsAsync(player);
+
+            int min = MailmanModule.getConfig().getPackages().get(level).amount().min();
+            int max = MailmanModule.getConfig().getPackages().get(level).amount().max();
+
+            int amountOfPackages = (min >= max)
+                    ? min
+                    : ThreadLocalRandom.current().nextInt(min, max + 1);
+
+            MailmanJob job = new MailmanJob(player, level);
+            UUID uuid = player.getUniqueId();
+            job.getPlayerRouteValues().put(uuid, new CopyOnWriteArrayList<>());
+
+            for (int i = 0; i < amountOfPackages && i < mailManRegions.size(); i++) {
+                job.getPlayerRouteValues().get(uuid).add(mailManRegions.get(i).getValue());
+            }
+
+            job.setOriginalAmount(job.getPlayerRouteValues().get(uuid).size());
+            job.sendStartMessage();
+            job.startRunnable();
+        });
+    }
+
+    private void loadAllMailManRegionsAsync(Player player) {
+        try {
+            mailManRegions.clear();
+            List<GrindingRegionModel> allRegions = StormDatabase.getInstance().getStorm()
+                    .buildQuery(GrindingRegionModel.class)
+                    .execute()
+                    .join()
+                    .stream()
+                    .toList();
+
+            for (GrindingRegionModel model : allRegions) {
+                GrindingRegion region = new GrindingRegion(model);
+                if (!region.allowsJob(Jobs.MAILMAN)) continue;
+                if (!region.hasValue()) continue;
+                mailManRegions.add(region);
+            }
+            Collections.shuffle(mailManRegions);
+        } catch (Exception e) {
+            e.printStackTrace();
+            Bukkit.getScheduler().runTask(OpenGrinding.getInstance(), () -> player.sendMessage(MessageUtil.filterMessage("<warning>⚠ Er is een fout opgetreden met alle regios op te halen")));
+        }
     }
 }

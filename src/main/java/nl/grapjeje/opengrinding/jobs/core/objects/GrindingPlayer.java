@@ -71,7 +71,7 @@ public class GrindingPlayer {
             m.setValue(0.0);
             GrindingPlayer gp = new GrindingPlayer(player.getUniqueId(), m);
             gp.save();
-            Bukkit.getLogger().info("New player grind model made for " + player.getName());
+            OpenGrinding.getInstance().getLogger().info("New player grind model made for " + player.getName());
             return m;
         });
     }

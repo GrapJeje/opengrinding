@@ -3,7 +3,10 @@ package nl.grapjeje.opengrinding.jobs.mailman;
 import lombok.Getter;
 import nl.grapjeje.opengrinding.OpenGrinding;
 import nl.grapjeje.opengrinding.jobs.mailman.commands.MailmanCommand;
+import nl.grapjeje.opengrinding.jobs.mailman.commands.PackageCommand;
 import nl.grapjeje.opengrinding.jobs.mailman.configuration.MailmanJobConfiguration;
+import nl.grapjeje.opengrinding.jobs.mailman.listeners.*;
+import nl.grapjeje.opengrinding.jobs.mailman.objects.MailmanJob;
 import nl.grapjeje.opengrinding.utils.JobModule;
 import nl.grapjeje.opengrinding.utils.configuration.JobConfig;
 
@@ -27,10 +30,17 @@ public class MailmanModule extends JobModule {
         OpenGrinding.getFramework().registerConfig(config);
 
         OpenGrinding.getFramework().registerCommand(MailmanCommand::new);
+        OpenGrinding.getFramework().registerCommand(PackageCommand::new);
+
+        OpenGrinding.getFramework().registerListener(InteractionListener::new);
+        OpenGrinding.getFramework().registerListener(ItemListener::new);
+        OpenGrinding.getFramework().registerListener(PlayerLeaveListener::new);
+        OpenGrinding.getFramework().registerListener(DeliverPackageListener::new);
     }
 
     @Override
     protected void onDisable() {
-
+        MailmanJob.getJobs().values().forEach(job ->
+                job.stop(false));
     }
 }

@@ -1,4 +1,5 @@
 enabled: true
+npc-name: "<blue> Pieter Post"
 
 whitelist: # Op welke blokken je kunt klikken om je pakketje te bezorgen
   - OAK_DOOR

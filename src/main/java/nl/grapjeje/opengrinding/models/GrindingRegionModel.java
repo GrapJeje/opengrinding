@@ -83,10 +83,6 @@ public class GrindingRegionModel extends StormModel {
         private double x, y, z;
         private float yaw, pitch;
 
-        public LocationData() {
-
-        }
-
         public LocationData(Location loc) {
             this.world = loc.getWorld().getName();
             this.x = loc.getX();

@@ -3,6 +3,7 @@ package nl.grapjeje.opengrinding.jobs.mailman.commands;
 import nl.grapjeje.core.command.Command;
 import nl.grapjeje.core.command.CommandSourceStack;
 import nl.grapjeje.opengrinding.jobs.mailman.guis.MailmanGui;
+import nl.grapjeje.opengrinding.jobs.mailman.objects.MailmanJob;
 import org.bukkit.entity.Player;
 
 public class MailmanCommand implements Command {
@@ -15,6 +16,14 @@ public class MailmanCommand implements Command {
     public void execute(CommandSourceStack source, String[] args) {
         if (!(source.getExecutor() instanceof Player player)) return;
         if (!player.hasPermission("opengrinding.*")) return;
+
+        if (MailmanJob.isActive(player)) {
+            MailmanJob job = MailmanJob.getJobs().get(player.getUniqueId());
+            if (job.isCompleted()) {
+                job.stop(true);
+                return;
+            }
+        }
 
         if (args.length == 0)
             new MailmanGui().open(player);

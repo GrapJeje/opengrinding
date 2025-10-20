@@ -100,6 +100,10 @@ public class GrindingRegion {
         return this.getJobs().contains(job);
     }
 
+    public boolean hasValue() {
+        return this.getValue() != null || !(this.getValue().isEmpty());
+    }
+
     public static boolean isInRegionWithJob(Location loc, Jobs job) {
         try {
             List<GrindingRegionModel> allRegions = StormDatabase.getInstance().getStorm()

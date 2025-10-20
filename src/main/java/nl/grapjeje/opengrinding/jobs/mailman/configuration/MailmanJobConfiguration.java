@@ -3,6 +3,7 @@ package nl.grapjeje.opengrinding.jobs.mailman.configuration;
 import lombok.Getter;
 import net.objecthunter.exp4j.Expression;
 import net.objecthunter.exp4j.ExpressionBuilder;
+import nl.grapjeje.opengrinding.OpenGrinding;
 import nl.grapjeje.opengrinding.utils.configuration.JobConfig;
 import nl.grapjeje.opengrinding.utils.configuration.LevelConfig;
 import nl.grapjeje.opengrinding.utils.currency.Price;
@@ -20,6 +21,8 @@ import java.util.concurrent.Executors;
 
 @Getter
 public class MailmanJobConfiguration extends JobConfig implements LevelConfig {
+    private String name;
+
     private final List<Material> blockWhitelist;
     public record Amount(int min, int max) {}
     public record Package(int level, int waitTime, Price price, Amount amount) {}
@@ -43,14 +46,13 @@ public class MailmanJobConfiguration extends JobConfig implements LevelConfig {
     @Override
     public void values() {
         this.enabled = config.getBoolean("enabled", true);
+        this.name = config.getString("name", "<blue> Pieter Post");
 
-
-        ConfigurationSection whitelistSection = config.getConfigurationSection("whitelist");
-        if (whitelistSection != null) {
-            for (String key : whitelistSection.getKeys(false)) {
-                Material material = Material.getMaterial(whitelistSection.getString(key));
-                if (material != null) blockWhitelist.add(material);
-            }
+        List<String> whitelistStrings = config.getStringList("whitelist");
+        for (String matName : whitelistStrings) {
+            Material material = Material.getMaterial(matName);
+            if (material != null) blockWhitelist.add(material);
+            else OpenGrinding.getInstance().getLogger().warning("Material " + matName + " does not exist!");
         }
 
         packages.clear();

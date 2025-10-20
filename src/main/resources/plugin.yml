@@ -27,3 +27,5 @@ commands:
     description: Dailylimit command
   mailman:
     description: Mailman openmenu command
+  pakketjes:
+    description: See where you need to deliver
