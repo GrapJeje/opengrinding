@@ -9,6 +9,7 @@ import nl.grapjeje.opengrinding.jobs.core.CoreModule;
 import nl.grapjeje.opengrinding.jobs.core.events.PlayerLevelChangeEvent;
 import nl.grapjeje.opengrinding.jobs.core.events.PlayerValueChangeEvent;
 import nl.grapjeje.opengrinding.jobs.lumber.LumberModule;
+import nl.grapjeje.opengrinding.jobs.mailman.MailmanModule;
 import nl.grapjeje.opengrinding.jobs.mining.MiningModule;
 import nl.grapjeje.opengrinding.models.PlayerGrindingModel;
 import nl.grapjeje.opengrinding.utils.configuration.LevelConfig;
@@ -21,7 +22,6 @@ import org.bukkit.entity.Player;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
-import java.util.logging.Logger;
 
 public class GrindingPlayer {
     @Getter
@@ -33,22 +33,21 @@ public class GrindingPlayer {
         this.model = playerGrindingModel;
     }
 
-    public CompletableFuture<Void> save() {
-        CoreModule.getPlayerCache().put(model.getPlayerUuid(), model);
+    public CompletableFuture<Void> save(Jobs job) {
+        CoreModule.putCachedModel(model.getPlayerUuid(), job, model);
         return CompletableFuture.runAsync(() ->
-                StormDatabase.getInstance().saveStormModel(model)
-        );
+                StormDatabase.getInstance().saveStormModel(model));
     }
 
     public static PlayerGrindingModel loadOrCreatePlayerModel(Player player, Jobs job) {
-        if (CoreModule.getPlayerCache().containsKey(player.getUniqueId()))
-            return CoreModule.getPlayerCache().get(player.getUniqueId());
+        PlayerGrindingModel cached = CoreModule.getCachedModel(player.getUniqueId(), job);
+        if (cached != null) return cached;
 
         Optional<PlayerGrindingModel> playerModelOpt;
         try {
             playerModelOpt = StormDatabase.getInstance().getStorm()
                     .buildQuery(PlayerGrindingModel.class)
-                    .where("player_uuid", Where.EQUAL , player.getUniqueId())
+                    .where("player_uuid", Where.EQUAL, player.getUniqueId())
                     .where("job_name", Where.EQUAL, job.name())
                     .limit(1)
                     .execute()
@@ -63,25 +62,27 @@ public class GrindingPlayer {
             throw new RuntimeException(ex);
         }
 
-        return playerModelOpt.orElseGet(() -> {
+        PlayerGrindingModel model = playerModelOpt.orElseGet(() -> {
             PlayerGrindingModel m = new PlayerGrindingModel();
             m.setPlayerUuid(player.getUniqueId());
             m.setJob(job);
             m.setLevel(0);
             m.setValue(0.0);
-            GrindingPlayer gp = new GrindingPlayer(player.getUniqueId(), m);
-            gp.save();
-            OpenGrinding.getInstance().getLogger().info("New player grind model made for " + player.getName());
+            OpenGrinding.getInstance().getLogger().info("New player grind model made for " + player.getName() + " (" + job.name() + ")");
             return m;
         });
+
+        CoreModule.putCachedModel(player.getUniqueId(), job, model);
+        return model;
     }
 
     /* ---------- Progression ---------- */
-    public void addProgress(Jobs job, double xp) { // TODO: Check this. Not very okay
+    public void addProgress(Jobs job, double xp) {
         LevelConfig config;
         switch (job) {
             case MINING -> config = MiningModule.getConfig();
             case LUMBER -> config = LumberModule.getConfig();
+            case MAILMAN -> config = MailmanModule.getConfig();
             default -> throw new IllegalStateException("Unknown job: " + job);
         }
         double oldXp = model.getValue();
@@ -94,11 +95,14 @@ public class GrindingPlayer {
 
         int currentLevel = oldLevel;
         while (currentLevel < config.getMaxLevel()) {
-            Double levelOverride = config.getLevelOverride(currentLevel + 1);
-            double xpNeeded = levelOverride != null
-                    ? levelOverride
-                    : config.getXpForLevel(currentLevel + 1); // TODO <-
+            Double levelOverride = config.getLevelOverride(currentLevel);
 
+            double xpNeeded;
+            if (levelOverride != null && levelOverride > 0)
+                xpNeeded = levelOverride;
+            else xpNeeded = config.getXpForLevel(currentLevel + 1);
+
+            if (xpNeeded <= 0) break;
             if (newXp >= xpNeeded) {
                 newXp -= xpNeeded;
                 currentLevel++;
@@ -108,12 +112,11 @@ public class GrindingPlayer {
 
                 Bukkit.getScheduler().runTask(OpenGrinding.getInstance(), () ->
                         new PlayerLevelChangeEvent(this, job, finalOldLevel, finalCurrentLevel).callEvent());
-                oldLevel = currentLevel;
-            } else break;
-        }
 
+                oldLevel = currentLevel;
+            }
+        }
         model.setLevel(currentLevel);
         model.setValue(newXp);
     }
-
 }

@@ -129,7 +129,7 @@ public class BlockBreakListener implements Listener {
                 Bukkit.getScheduler().runTaskAsynchronously(OpenGrinding.getInstance(), () -> {
                     GrindingPlayer gp = new GrindingPlayer(player.getUniqueId(), model);
                     gp.addProgress(Jobs.LUMBER, woodRecord.points());
-                    gp.save();
+                    gp.save(Jobs.LUMBER);
                 });
             });
         });

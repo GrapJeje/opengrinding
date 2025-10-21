@@ -111,7 +111,8 @@ public class MailmanJob {
             GrindingPlayer gp = new GrindingPlayer(player.getUniqueId(), GrindingPlayer.loadOrCreatePlayerModel(player, Jobs.MAILMAN));
             gp.addProgress(Jobs.MAILMAN, 1);
 
-            Bukkit.getScheduler().runTaskAsynchronously(OpenGrinding.getInstance(), gp::save);
+            Bukkit.getScheduler().runTaskAsynchronously(OpenGrinding.getInstance(),
+                    () -> gp.save(Jobs.MAILMAN));
         }
         jobs.remove(player.getUniqueId());
     }

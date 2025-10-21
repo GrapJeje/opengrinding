@@ -3,6 +3,7 @@ package nl.grapjeje.opengrinding.jobs.core;
 import lombok.Getter;
 import nl.grapjeje.core.modules.Module;
 import nl.grapjeje.opengrinding.OpenGrinding;
+import nl.grapjeje.opengrinding.jobs.Jobs;
 import nl.grapjeje.opengrinding.jobs.core.commands.*;
 import nl.grapjeje.opengrinding.jobs.core.configuration.DefaultConfiguration;
 import nl.grapjeje.opengrinding.jobs.core.listeners.HeadBlockerListener;
@@ -21,7 +22,7 @@ import java.util.UUID;
 
 public class CoreModule extends Module {
     @Getter
-    private static final Map<UUID, PlayerGrindingModel> playerCache = new HashMap<>();
+    private static final Map<UUID, Map<Jobs, PlayerGrindingModel>> playerCache = new HashMap<>();
     @Getter
     private static final DefaultConfiguration config = new DefaultConfiguration(OpenGrinding.getInstance().getDataFolder());
 
@@ -63,5 +64,13 @@ public class CoreModule extends Module {
     @Override
     protected void onDisable() {
 
+    }
+
+    public static PlayerGrindingModel getCachedModel(UUID uuid, Jobs job) {
+        return playerCache.getOrDefault(uuid, Map.of()).get(job);
+    }
+
+    public static void putCachedModel(UUID uuid, Jobs job, PlayerGrindingModel model) {
+        playerCache.computeIfAbsent(uuid, k -> new HashMap<>()).put(job, model);
     }
 }

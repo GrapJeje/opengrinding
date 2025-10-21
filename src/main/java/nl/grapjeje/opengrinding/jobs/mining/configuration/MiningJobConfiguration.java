@@ -136,20 +136,19 @@ public class MiningJobConfiguration extends JobConfig implements ShopConfig, Lev
         if (xpCache.containsKey(level))
             return xpCache.get(level);
 
-        xpExecutor.submit(() -> {
-            try {
-                Expression expression = new ExpressionBuilder(formula)
-                        .variable("level")
-                        .build()
-                        .setVariable("level", level);
+        try {
+            Expression expression = new ExpressionBuilder(formula)
+                    .variable("level")
+                    .build()
+                    .setVariable("level", level);
 
-                double value = expression.evaluate();
-                xpCache.put(level, value);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        });
-        return 0.0;
+            double value = expression.evaluate();
+            xpCache.put(level, value);
+            return value;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return 0.0;
+        }
     }
 
     @Override

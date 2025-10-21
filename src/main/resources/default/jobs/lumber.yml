@@ -3,7 +3,7 @@ enabled: true
 economy:
   sell:
     enabled: true
-    open-buy-shop: true
+    open-buy-shop: false
   buy:
     enabled: true
 
@@ -176,7 +176,7 @@ axes:
 
 level:
   max: 52
-  formula: (100 * level) + ((level / 5) * 50)
+  formula: "(75 * level * level) + (100 * level) + 50"
   overrides:
-    0: 0.0
-    1: 0.0
+    '0': 1
+    '1': 0
