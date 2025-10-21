@@ -57,89 +57,92 @@ public class BlockBreakListener implements Listener {
         final Material originalType = block.getType();
         final Location location = block.getLocation();
 
-        if (!GrindingRegion.isInRegionWithJob(location, Jobs.LUMBER)) return;
-        if (!this.canMine(block)) return;
+        GrindingRegion.isInRegionWithJob(location, Jobs.LUMBER, inRegion -> {
+            if (!inRegion) return;
 
-        Material heldItem = player.getInventory().getItemInMainHand().getType();
-        if (!heldItem.name().endsWith("AXE") || heldItem.name().endsWith("PICKAXE")) return;
+            if (!this.canMine(block)) return;
 
-        e.setDropItems(false);
+            Material heldItem = player.getInventory().getItemInMainHand().getType();
+            if (!heldItem.name().endsWith("AXE") || heldItem.name().endsWith("PICKAXE")) return;
 
-        Bukkit.getScheduler().runTaskAsynchronously(OpenGrinding.getInstance(), () -> {
-            PlayerGrindingModel model = GrindingPlayer.loadOrCreatePlayerModel(player, Jobs.LUMBER);
-            LumberJobConfiguration config = LumberModule.getConfig();
+            e.setDropItems(false);
 
-            Wood woodEnum = null;
-            String woodType = null;
-            for (Wood wood : Wood.values()) {
-                if (originalType == wood.getBarkMaterial()) {
-                    woodEnum = wood;
-                    woodType = "bark";
-                    break;
+            Bukkit.getScheduler().runTaskAsynchronously(OpenGrinding.getInstance(), () -> {
+                PlayerGrindingModel model = GrindingPlayer.loadOrCreatePlayerModel(player, Jobs.LUMBER);
+                LumberJobConfiguration config = LumberModule.getConfig();
+
+                Wood woodEnum = null;
+                String woodType = null;
+                for (Wood wood : Wood.values()) {
+                    if (originalType == wood.getBarkMaterial()) {
+                        woodEnum = wood;
+                        woodType = "bark";
+                        break;
+                    }
+                    if (originalType == wood.getStrippedMaterial()) {
+                        woodEnum = wood;
+                        woodType = "wood";
+                        break;
+                    }
                 }
-                if (originalType == wood.getStrippedMaterial()) {
-                    woodEnum = wood;
-                    woodType = "wood";
-                    break;
-                }
-            }
-            if (woodEnum == null || woodType == null) return;
+                if (woodEnum == null || woodType == null) return;
 
-            LumberJobConfiguration.WoodRecord woodRecord = config.getWood(woodEnum);
-            if (woodRecord == null) return;
+                LumberJobConfiguration.WoodRecord woodRecord = config.getWood(woodEnum);
+                if (woodRecord == null) return;
 
-            int unlockLevel = woodRecord.unlockLevels().getOrDefault(woodType, 0);
+                int unlockLevel = woodRecord.unlockLevels().getOrDefault(woodType, 0);
 
-            if (model.getLevel() < unlockLevel) {
-                Bukkit.getScheduler().runTask(OpenGrinding.getInstance(), () -> {
-                    e.setCancelled(true);
-                    block.setType(originalType);
-                    player.sendMessage(MessageUtil.filterMessage(
-                            "<warning>⚠ Jij bent niet hoog genoeg level voor dit blok! (Nodig: " + unlockLevel + ")"
-                    ));
-                    player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 0.5F, 1.0F);
-                });
-                return;
-            }
-
-            Wood finalWoodEnum = woodEnum;
-            Bukkit.getScheduler().runTask(OpenGrinding.getInstance(), () -> {
-                if (this.isInventoryFull(player)) {
-                    e.setCancelled(true);
-                    block.setType(originalType);
-                    Component title = MessageUtil.filterMessage("<red>Je inventory zit vol!");
-                    Component subtitle = MessageUtil.filterMessage("<gold>Verkoop wat blokjes!");
-                    player.sendTitlePart(TitlePart.TITLE, title);
-                    player.sendTitlePart(TitlePart.SUBTITLE, subtitle);
-                    player.sendTitlePart(TitlePart.TIMES, Title.Times.times(
-                            Duration.ofMillis(500),
-                            Duration.ofMillis(3500),
-                            Duration.ofMillis(1000)
-                    ));
-                    player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 3.0F, 0.5F);
+                if (model.getLevel() < unlockLevel) {
+                    Bukkit.getScheduler().runTask(OpenGrinding.getInstance(), () -> {
+                        e.setCancelled(true);
+                        block.setType(originalType);
+                        player.sendMessage(MessageUtil.filterMessage(
+                                "<warning>⚠ Jij bent niet hoog genoeg level voor dit blok! (Nodig: " + unlockLevel + ")"
+                        ));
+                        player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 0.5F, 1.0F);
+                    });
                     return;
                 }
 
-                ItemStack item = LumberModule.getWoodHead(originalType);
-                if (item != null) player.getInventory().addItem(item);
-
-                if (originalType == finalWoodEnum.getBarkMaterial()) {
-                    block.setType(finalWoodEnum.getStrippedMaterial());
-                    LumberModule.getWoods().add(new LumberModule.LumberWood(location, originalType, System.currentTimeMillis()));
-                } else if (originalType == finalWoodEnum.getStrippedMaterial()) {
-                    block.setType(Material.AIR);
-                    for (LumberModule.LumberWood wood : LumberModule.getWoods()) {
-                        if (wood.location() != location) continue;
-                        Material type = wood.material();
-                        LumberModule.getWoods().remove(wood);
-                        LumberModule.getWoods().add(new LumberModule.LumberWood(location, type, System.currentTimeMillis()));
+                Wood finalWoodEnum = woodEnum;
+                Bukkit.getScheduler().runTask(OpenGrinding.getInstance(), () -> {
+                    if (this.isInventoryFull(player)) {
+                        e.setCancelled(true);
+                        block.setType(originalType);
+                        Component title = MessageUtil.filterMessage("<red>Je inventory zit vol!");
+                        Component subtitle = MessageUtil.filterMessage("<gold>Verkoop wat blokjes!");
+                        player.sendTitlePart(TitlePart.TITLE, title);
+                        player.sendTitlePart(TitlePart.SUBTITLE, subtitle);
+                        player.sendTitlePart(TitlePart.TIMES, Title.Times.times(
+                                Duration.ofMillis(500),
+                                Duration.ofMillis(3500),
+                                Duration.ofMillis(1000)
+                        ));
+                        player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 3.0F, 0.5F);
+                        return;
                     }
-                }
 
-                Bukkit.getScheduler().runTaskAsynchronously(OpenGrinding.getInstance(), () -> {
-                    GrindingPlayer gp = new GrindingPlayer(player.getUniqueId(), model);
-                    gp.addProgress(Jobs.LUMBER, woodRecord.points());
-                    gp.save(Jobs.LUMBER);
+                    ItemStack item = LumberModule.getWoodHead(originalType);
+                    if (item != null) player.getInventory().addItem(item);
+
+                    if (originalType == finalWoodEnum.getBarkMaterial()) {
+                        block.setType(finalWoodEnum.getStrippedMaterial());
+                        LumberModule.getWoods().add(new LumberModule.LumberWood(location, originalType, System.currentTimeMillis()));
+                    } else if (originalType == finalWoodEnum.getStrippedMaterial()) {
+                        block.setType(Material.AIR);
+                        for (LumberModule.LumberWood wood : LumberModule.getWoods()) {
+                            if (wood.location() != location) continue;
+                            Material type = wood.material();
+                            LumberModule.getWoods().remove(wood);
+                            LumberModule.getWoods().add(new LumberModule.LumberWood(location, type, System.currentTimeMillis()));
+                        }
+                    }
+
+                    Bukkit.getScheduler().runTaskAsynchronously(OpenGrinding.getInstance(), () -> {
+                        GrindingPlayer gp = new GrindingPlayer(player.getUniqueId(), model);
+                        gp.addProgress(Jobs.LUMBER, woodRecord.points());
+                        gp.save(Jobs.LUMBER);
+                    });
                 });
             });
         });

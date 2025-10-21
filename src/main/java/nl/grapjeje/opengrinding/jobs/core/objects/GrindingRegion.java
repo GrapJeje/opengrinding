@@ -3,13 +3,16 @@ package nl.grapjeje.opengrinding.jobs.core.objects;
 import com.craftmend.storm.api.enums.Where;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import nl.grapjeje.opengrinding.OpenGrinding;
 import nl.grapjeje.opengrinding.jobs.Jobs;
 import nl.grapjeje.opengrinding.models.GrindingRegionModel;
 import nl.openminetopia.modules.data.storm.StormDatabase;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 @Getter
@@ -104,24 +107,33 @@ public class GrindingRegion {
         return this.getValue() != null || !(this.getValue().isEmpty());
     }
 
-    public static boolean isInRegionWithJob(Location loc, Jobs job) {
-        try {
-            List<GrindingRegionModel> allRegions = StormDatabase.getInstance().getStorm()
-                    .buildQuery(GrindingRegionModel.class)
-                    .execute()
-                    .join()
-                    .stream()
-                    .toList();
+    public static void isInRegionWithJob(Location loc, Jobs job, Consumer<Boolean> callback) {
+        Bukkit.getScheduler().runTaskAsynchronously(OpenGrinding.getInstance(), () -> {
+            boolean result = false;
+            try {
+                List<GrindingRegionModel> allRegions = StormDatabase.getInstance().getStorm()
+                        .buildQuery(GrindingRegionModel.class)
+                        .execute()
+                        .join()
+                        .stream()
+                        .toList();
 
-            for (GrindingRegionModel model : allRegions) {
-                GrindingRegion region = new GrindingRegion(model);
-                if (region.contains(loc) && region.allowsJob(job))
-                    return true;
+                for (GrindingRegionModel model : allRegions) {
+                    GrindingRegion region = new GrindingRegion(model);
+                    if (region.contains(loc) && region.allowsJob(job)) {
+                        result = true;
+                        break;
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
             }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return false;
+
+            boolean finalResult = result;
+            Bukkit.getScheduler().runTask(OpenGrinding.getInstance(), () -> {
+                callback.accept(finalResult);
+            });
+        });
     }
 
     public static GrindingRegion getRegionAt(Location loc) {
