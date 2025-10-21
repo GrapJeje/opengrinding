@@ -21,15 +21,25 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.inventory.ItemStack;
 
 import java.time.Duration;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 public class BlockBreakListener implements Listener {
     private static final Set<Material> WHITELIST = createWhitelist();
+    private static final Map<UUID, Long> cooldowns = new HashMap<>();
+    private static final long COOLDOWN_MS = 500;
 
     @EventHandler
     public void onBlockBreak(BlockBreakEvent e) {
         Player player = e.getPlayer();
+        UUID uuid = player.getUniqueId();
+
+        long now = System.currentTimeMillis();
+        if (cooldowns.containsKey(uuid) && now - cooldowns.get(uuid) < COOLDOWN_MS) {
+            e.setCancelled(true);
+            return;
+        }
+        cooldowns.put(uuid, now);
+
         LumberModule lumberModule = OpenGrinding.getFramework().getModuleLoader()
                 .getModules().stream()
                 .filter(m -> m instanceof LumberModule)

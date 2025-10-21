@@ -37,9 +37,21 @@ public class BlockBreakListener implements Listener {
             Material.EMERALD_ORE
     );
 
+    private static final Map<UUID, Long> cooldowns = new HashMap<>();
+    private static final long COOLDOWN_MS = 500;
+
     @EventHandler
     public void onBlockBreak(BlockBreakEvent e) {
         Player player = e.getPlayer();
+        UUID uuid = player.getUniqueId();
+
+        long now = System.currentTimeMillis();
+        if (cooldowns.containsKey(uuid) && now - cooldowns.get(uuid) < COOLDOWN_MS) {
+            e.setCancelled(true);
+            return;
+        }
+        cooldowns.put(uuid, now);
+
         MiningModule miningModule = OpenGrinding.getFramework().getModuleLoader()
                 .getModules().stream()
                 .filter(m -> m instanceof MiningModule)
