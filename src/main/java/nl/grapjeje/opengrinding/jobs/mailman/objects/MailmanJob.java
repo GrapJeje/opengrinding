@@ -98,6 +98,7 @@ public class MailmanJob {
         player.getInventory().setItemInOffHand(ItemStack.of(Material.AIR));
 
         if (completed) {
+            MailmanModule.getPlayerCooldown().put(player.getUniqueId(), System.currentTimeMillis());
             Price price = MailmanModule.getConfig().getPackages().get(level).price();
             double cashAmount = price.cash() * this.getOriginalAmount();
             double tokenAmount = price.grindToken() * this.getOriginalAmount();

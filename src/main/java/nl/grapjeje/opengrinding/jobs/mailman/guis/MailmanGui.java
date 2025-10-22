@@ -28,6 +28,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.TimeUnit;
 
 @NoArgsConstructor
 public class MailmanGui extends ShopMenu {
@@ -114,7 +115,22 @@ public class MailmanGui extends ShopMenu {
     private final List<GrindingRegion> mailManRegions = new CopyOnWriteArrayList<>();
 
     private void start(Player player, int level) {
-        // TODO: Add wait-time cooldown by config
+        long waitTimeMs = TimeUnit.MINUTES.toMillis(
+                MailmanModule.getConfig().getPackages().get(level).waitTime()
+        );
+
+        if (MailmanModule.getPlayerCooldown().containsKey(player.getUniqueId())) {
+            long lastActionTime = MailmanModule.getPlayerCooldown().get(player.getUniqueId());
+            long timePassed = System.currentTimeMillis() - lastActionTime;
+
+            if (timePassed < waitTimeMs) {
+                long remaining = waitTimeMs - timePassed;
+                player.sendMessage(MessageUtil.filterMessage(
+                        "<warning>⚠ Je moet nog <bold>" + TimeUnit.MILLISECONDS.toMinutes(remaining) + "<!bold> minuten wachten!"));
+                return;
+            } else MailmanModule.getPlayerCooldown().remove(player.getUniqueId());
+        }
+
         if (player.getInventory().getItemInOffHand().getType() != Material.AIR) {
             player.sendMessage(MessageUtil.filterMessage("<warning>⚠ Maak je off-hand leeg om dit te starten!"));
             return;

@@ -10,11 +10,18 @@ import nl.grapjeje.opengrinding.jobs.mailman.objects.MailmanJob;
 import nl.grapjeje.opengrinding.utils.JobModule;
 import nl.grapjeje.opengrinding.utils.configuration.JobConfig;
 
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+
 public class MailmanModule extends JobModule {
     @Getter
     private static MailmanJobConfiguration config = new MailmanJobConfiguration(OpenGrinding.getInstance().getDataFolder());
     @Getter
     private static String packageUrl = "https://textures.minecraft.net/texture/37c648e832d5ecc7a0ca94dcf4308a02714a052a76e594be5730a713bc41a3dd";
+    @Getter
+    private static Map<UUID, Long> playerCooldown = new ConcurrentHashMap<>();
 
     public MailmanModule() {
         super("mailman");

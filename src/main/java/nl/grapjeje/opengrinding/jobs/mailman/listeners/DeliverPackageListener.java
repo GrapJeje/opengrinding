@@ -1,6 +1,9 @@
 package nl.grapjeje.opengrinding.jobs.mailman.listeners;
 
+import nl.grapjeje.core.text.MessageUtil;
+import nl.grapjeje.opengrinding.jobs.mailman.MailmanModule;
 import nl.grapjeje.opengrinding.jobs.mailman.events.DeliverPackageEvent;
+import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -26,6 +29,8 @@ public class DeliverPackageListener implements Listener {
         if (values.isEmpty()) {
             e.getJob().getPlayerRouteValues().remove(uuid);
             e.getJob().setCompleted(true);
+            player.sendMessage(MessageUtil.filterMessage(MailmanModule.getConfig().getName() + "<dark_gray> >> <gray>Perfect! Kom nu terug naar mij om je beloning op te halen."));
+            player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_AMBIENT, 1.0f, 1.0f);
         } else {
             if (player.getInventory().getItemInOffHand().getAmount() > 0)
                 player.getInventory().getItemInOffHand().setAmount(player.getInventory().getItemInOffHand().getAmount() - 1);
