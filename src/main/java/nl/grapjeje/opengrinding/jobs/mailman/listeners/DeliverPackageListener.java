@@ -26,15 +26,14 @@ public class DeliverPackageListener implements Listener {
         values.remove(e.getRegion().getValue());
         e.getJob().getPlayerRouteValues().put(uuid, values);
 
+        if (player.getInventory().getItemInOffHand().getAmount() > 0)
+            player.getInventory().getItemInOffHand().setAmount(player.getInventory().getItemInOffHand().getAmount() - 1);
+
         if (values.isEmpty()) {
             e.getJob().getPlayerRouteValues().remove(uuid);
             e.getJob().setCompleted(true);
             player.sendMessage(MessageUtil.filterMessage(MailmanModule.getConfig().getName() + "<dark_gray> >> <gray>Perfect! Kom nu terug naar mij om je beloning op te halen."));
             player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_AMBIENT, 1.0f, 1.0f);
-        } else {
-            if (player.getInventory().getItemInOffHand().getAmount() > 0)
-                player.getInventory().getItemInOffHand().setAmount(player.getInventory().getItemInOffHand().getAmount() - 1);
-            e.getJob().sendRegionsList();
-        }
+        } else e.getJob().sendRegionsList();
     }
 }
