@@ -1,6 +1,8 @@
 package nl.grapjeje.opengrinding.jobs.core.listeners;
 
 import nl.grapjeje.opengrinding.jobs.core.CoreModule;
+import nl.grapjeje.opengrinding.jobs.lumber.objects.Wood;
+import nl.grapjeje.opengrinding.jobs.mailman.MailmanModule;
 import nl.grapjeje.opengrinding.jobs.mining.objects.Ore;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -10,6 +12,9 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.SkullMeta;
 import org.bukkit.event.inventory.ClickType;
+
+import java.nio.charset.StandardCharsets;
+import java.util.UUID;
 
 public class HeadBlockerListener implements Listener {
 
@@ -42,6 +47,30 @@ public class HeadBlockerListener implements Listener {
                 if (shiftClick) player.getInventory().setItem(e.getSlot(), itemToCheck);
                 return;
             }
+        }
+
+        for (Wood wood : Wood.values()) {
+            UUID id = null;
+
+            String itemName = meta.hasDisplayName() ? meta.getDisplayName().toLowerCase() : "";
+            if (itemName.contains("bark"))
+                id = wood.getBarkUUID();
+            else if (itemName.contains("wood"))
+                id = wood.getWoodUUID();
+            if (id == null) continue;
+
+            if (meta.getPlayerProfile().getId().equals(id)) {
+                e.setCancelled(true);
+                if (shiftClick) player.getInventory().setItem(e.getSlot(), itemToCheck);
+                return;
+            }
+        }
+
+        UUID mailmanId = UUID.nameUUIDFromBytes(MailmanModule.getPackageUrl().getBytes(StandardCharsets.UTF_8));
+        if (meta.getPlayerProfile().getId().equals(mailmanId)) {
+            e.setCancelled(true);
+            if (shiftClick) player.getInventory().setItem(e.getSlot(), itemToCheck);
+            return;
         }
 
         // Add more for loops if add more heads

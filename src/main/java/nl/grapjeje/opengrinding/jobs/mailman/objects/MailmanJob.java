@@ -19,6 +19,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.SkullMeta;
 import org.bukkit.scheduler.BukkitTask;
 
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -137,7 +138,8 @@ public class MailmanJob {
 
     private void givePackages() {
         Bukkit.getScheduler().runTask(OpenGrinding.getInstance(), () -> {
-            ItemStack head = SkullUtil.getCustomHead(MailmanModule.getPackageUrl());
+            UUID id = UUID.nameUUIDFromBytes(MailmanModule.getPackageUrl().getBytes(StandardCharsets.UTF_8));
+            ItemStack head = SkullUtil.getCustomHead(MailmanModule.getPackageUrl(), id);
             SkullMeta meta = (SkullMeta) head.getItemMeta();
             if (meta != null) {
                 meta.displayName(MessageUtil.filterMessage("<warning>Pakketje"));
