@@ -1,7 +1,5 @@
 package nl.grapjeje.opengrinding.jobs.lumber.listeners;
 
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.title.Title;
 import net.kyori.adventure.title.TitlePart;
 import nl.grapjeje.core.text.MessageUtil;
 import nl.grapjeje.opengrinding.OpenGrinding;
@@ -16,11 +14,13 @@ import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.Damageable;
+import org.bukkit.inventory.meta.ItemMeta;
 
-import java.time.Duration;
 import java.util.*;
 
 public class BlockBreakListener implements Listener {
@@ -28,45 +28,55 @@ public class BlockBreakListener implements Listener {
     private static final Map<UUID, Long> cooldowns = new HashMap<>();
     private static final long COOLDOWN_MS = 500;
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.HIGHEST)
     public void onBlockBreak(BlockBreakEvent e) {
         Player player = e.getPlayer();
+        Block block = e.getBlock();
+        Material type = block.getType();
         UUID uuid = player.getUniqueId();
 
-        long now = System.currentTimeMillis();
-        if (cooldowns.containsKey(uuid) && now - cooldowns.get(uuid) < COOLDOWN_MS) {
+        if (!WHITELIST.contains(type)) return;
+
+        if (!(player.getGameMode() == GameMode.CREATIVE || player.getGameMode() == GameMode.SPECTATOR)) {
+            long now = System.currentTimeMillis();
+            if (cooldowns.containsKey(uuid) && now - cooldowns.get(uuid) < COOLDOWN_MS) {
+                e.setCancelled(true);
+                return;
+            }
+            cooldowns.put(uuid, now);
+
+            e.setCancelled(true);
+            e.setDropItems(false);
+            e.setExpToDrop(0);
+        }
+
+        Material heldItem = player.getInventory().getItemInMainHand().getType();
+        if (!heldItem.name().endsWith("AXE") || heldItem.name().endsWith("PICKAXE")) return;
+        if (player.getGameMode() == GameMode.CREATIVE || player.getGameMode() == GameMode.SPECTATOR) {
+            player.sendMessage(MessageUtil.filterMessage("<warning>⚠ Je kunt geen hout hakken in deze gamemode!"));
             e.setCancelled(true);
             return;
         }
-        cooldowns.put(uuid, now);
-
         LumberModule lumberModule = OpenGrinding.getFramework().getModuleLoader()
                 .getModules().stream()
                 .filter(m -> m instanceof LumberModule)
                 .map(m -> (LumberModule) m)
                 .findFirst()
                 .orElse(null);
-
         if (lumberModule == null || lumberModule.isDisabled()) {
             player.sendMessage(MessageUtil.filterMessage("<warning>⚠ De lumber module is momenteel uitgeschakeld!"));
             return;
         }
-        if (player.getGameMode() == GameMode.CREATIVE || player.getGameMode() == GameMode.SPECTATOR) return;
-
-        Block block = e.getBlock();
-        final Material originalType = block.getType();
         final Location location = block.getLocation();
-
         GrindingRegion.isInRegionWithJob(location, Jobs.LUMBER, inRegion -> {
             if (!inRegion) return;
 
-            if (!this.canMine(block)) return;
-
-            Material heldItem = player.getInventory().getItemInMainHand().getType();
-            if (!heldItem.name().endsWith("AXE") || heldItem.name().endsWith("PICKAXE")) return;
-
-            e.setDropItems(false);
-
+            if (this.isInventoryFull(player)) {
+                player.sendTitlePart(TitlePart.TITLE, MessageUtil.filterMessage("<red>Je inventory zit vol!"));
+                player.sendTitlePart(TitlePart.SUBTITLE, MessageUtil.filterMessage("<gold>Verkoop wat blokjes!"));
+                player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 3.0F, 0.5F);
+                return;
+            }
             Bukkit.getScheduler().runTaskAsynchronously(OpenGrinding.getInstance(), () -> {
                 PlayerGrindingModel model = GrindingPlayer.loadOrCreatePlayerModel(player, Jobs.LUMBER);
                 LumberJobConfiguration config = LumberModule.getConfig();
@@ -74,12 +84,12 @@ public class BlockBreakListener implements Listener {
                 Wood woodEnum = null;
                 String woodType = null;
                 for (Wood wood : Wood.values()) {
-                    if (originalType == wood.getBarkMaterial()) {
+                    if (type == wood.getBarkMaterial()) {
                         woodEnum = wood;
                         woodType = "bark";
                         break;
                     }
-                    if (originalType == wood.getStrippedMaterial()) {
+                    if (type == wood.getStrippedMaterial()) {
                         woodEnum = wood;
                         woodType = "wood";
                         break;
@@ -91,11 +101,10 @@ public class BlockBreakListener implements Listener {
                 if (woodRecord == null) return;
 
                 int unlockLevel = woodRecord.unlockLevels().getOrDefault(woodType, 0);
-
                 if (model.getLevel() < unlockLevel) {
                     Bukkit.getScheduler().runTask(OpenGrinding.getInstance(), () -> {
                         e.setCancelled(true);
-                        block.setType(originalType);
+                        block.setType(type);
                         player.sendMessage(MessageUtil.filterMessage(
                                 "<warning>⚠ Jij bent niet hoog genoeg level voor dit blok! (Nodig: " + unlockLevel + ")"
                         ));
@@ -106,50 +115,46 @@ public class BlockBreakListener implements Listener {
 
                 Wood finalWoodEnum = woodEnum;
                 Bukkit.getScheduler().runTask(OpenGrinding.getInstance(), () -> {
-                    if (this.isInventoryFull(player)) {
-                        e.setCancelled(true);
-                        block.setType(originalType);
-                        Component title = MessageUtil.filterMessage("<red>Je inventory zit vol!");
-                        Component subtitle = MessageUtil.filterMessage("<gold>Verkoop wat blokjes!");
-                        player.sendTitlePart(TitlePart.TITLE, title);
-                        player.sendTitlePart(TitlePart.SUBTITLE, subtitle);
-                        player.sendTitlePart(TitlePart.TIMES, Title.Times.times(
-                                Duration.ofMillis(500),
-                                Duration.ofMillis(3500),
-                                Duration.ofMillis(1000)
-                        ));
-                        player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 3.0F, 0.5F);
-                        return;
-                    }
-
-                    ItemStack item = LumberModule.getWoodHead(originalType);
+                    ItemStack item = LumberModule.getWoodHead(type);
                     if (item != null) player.getInventory().addItem(item);
 
-                    if (originalType == finalWoodEnum.getBarkMaterial()) {
+                    if (type == finalWoodEnum.getBarkMaterial()) {
                         block.setType(finalWoodEnum.getStrippedMaterial());
-                        LumberModule.getWoods().add(new LumberModule.LumberWood(location, originalType, System.currentTimeMillis()));
-                    } else if (originalType == finalWoodEnum.getStrippedMaterial()) {
+                        LumberModule.getWoods().add(new LumberModule.LumberWood(location, type, System.currentTimeMillis()));
+                    } else if (type == finalWoodEnum.getStrippedMaterial()) {
                         block.setType(Material.AIR);
                         for (LumberModule.LumberWood wood : LumberModule.getWoods()) {
                             if (wood.location() != location) continue;
-                            Material type = wood.material();
+                            Material t = wood.material();
                             LumberModule.getWoods().remove(wood);
-                            LumberModule.getWoods().add(new LumberModule.LumberWood(location, type, System.currentTimeMillis()));
+                            LumberModule.getWoods().add(new LumberModule.LumberWood(location, t, System.currentTimeMillis()));
                         }
                     }
 
-                    Bukkit.getScheduler().runTaskAsynchronously(OpenGrinding.getInstance(), () -> {
-                        GrindingPlayer gp = new GrindingPlayer(player.getUniqueId(), model);
-                        gp.addProgress(Jobs.LUMBER, woodRecord.points());
-                        gp.save(Jobs.LUMBER);
-                    });
+                    ItemStack handItem = player.getInventory().getItemInMainHand();
+                    if (handItem != null && handItem.getType() != Material.AIR) {
+                        ItemMeta meta = handItem.getItemMeta();
+                        if (meta instanceof Damageable damageable) {
+                            int currentDamage = damageable.getDamage();
+                            int maxDurability = handItem.getType().getMaxDurability();
+
+                            if (currentDamage + 1 < maxDurability)
+                                damageable.setDamage(currentDamage + 1);
+                            else {
+                                handItem.setAmount(handItem.getAmount() - 1);
+                                return;
+                            }
+
+                            handItem.setItemMeta(damageable);
+                        }
+                    }
                 });
+
+                GrindingPlayer gp = new GrindingPlayer(player.getUniqueId(), model);
+                gp.addProgress(Jobs.LUMBER, woodRecord.points());
+                gp.save(Jobs.LUMBER);
             });
         });
-    }
-
-    private boolean canMine(Block block) {
-        return WHITELIST.contains(block.getType());
     }
 
     private static Set<Material> createWhitelist() {

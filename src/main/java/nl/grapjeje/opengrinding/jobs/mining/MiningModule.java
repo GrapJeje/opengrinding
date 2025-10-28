@@ -5,7 +5,7 @@ import nl.grapjeje.core.SkullUtil;
 import nl.grapjeje.core.text.MessageUtil;
 import nl.grapjeje.opengrinding.OpenGrinding;
 import nl.grapjeje.opengrinding.jobs.mining.configuration.MiningJobConfiguration;
-import nl.grapjeje.opengrinding.jobs.mining.listener.BlockBreakListener;
+import nl.grapjeje.opengrinding.jobs.mining.listeners.BlockBreakListener;
 import nl.grapjeje.opengrinding.jobs.mining.objects.MiningOres;
 import nl.grapjeje.opengrinding.jobs.mining.objects.Ore;
 import nl.grapjeje.opengrinding.jobs.mining.timers.OreTimer;
