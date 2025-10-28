@@ -42,11 +42,13 @@ public class MiningModule extends JobModule {
     @Override
     protected void onDisable() {
         Bukkit.getLogger().info("Replacing all ores...");
-        for (MiningOres ore : ores) {
-            if (ore != null && ore.location() != null)
-                ore.location().getBlock().setType(ore.material());
-        }
-        ores.clear();
+        Bukkit.getScheduler().runTask(OpenGrinding.getInstance(), () -> {
+            for (MiningOres ore : ores) {
+                if (ore != null && ore.location() != null)
+                    ore.location().getBlock().setType(ore.material());
+            }
+            ores.clear();
+        });
     }
 
     @Override
