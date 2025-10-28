@@ -45,16 +45,14 @@ public class LumberModule extends JobModule {
     @Override
     protected void onDisable() {
         Bukkit.getLogger().info("Replacing all lumber...");
-        Bukkit.getScheduler().runTask(OpenGrinding.getInstance(), () -> {
-            for (LumberWood wood : woods) {
-                if (wood != null && wood.location() != null) {
-                    if (!wood.location().getChunk().isLoaded())
-                        wood.location().getChunk().load();
-                    wood.location().getBlock().setType(wood.material());
-                }
+        for (LumberWood wood : woods) {
+            if (wood != null && wood.location() != null) {
+                if (!wood.location().getChunk().isLoaded())
+                    wood.location().getChunk().load();
+                wood.location().getBlock().setType(wood.material());
             }
-            woods.clear();
-        });
+        }
+        woods.clear();
     }
 
     @Override
@@ -90,5 +88,6 @@ public class LumberModule extends JobModule {
         return head;
     }
 
-    public static record LumberWood(Location location, Material material, long time) {}
+    public static record LumberWood(Location location, Material material, long time) {
+    }
 }
