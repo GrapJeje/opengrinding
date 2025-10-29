@@ -95,18 +95,9 @@ public class GrindingPlayer {
         int currentLevel = oldLevel;
         while (currentLevel < config.getMaxLevel()) {
             Double levelOverride = config.getLevelOverride(currentLevel);
-            double configXp = config.getXpForLevel(currentLevel);
-            Bukkit.getLogger().severe("[DEBUG] Level: " + currentLevel +
-                    ", Override: " + levelOverride +
-                    ", Config XP: " + configXp);
-
             double xpNeeded = (levelOverride != null && levelOverride > 0.0)
                     ? levelOverride
-                    : configXp;
-
-            Bukkit.getLogger().severe("[LevelSystem] Level: " + currentLevel + ", Needed XP: " + xpNeeded +
-                    ((levelOverride != null && levelOverride > 0.0) ? " (Overridden)" : ""));
-
+                    : config.getXpForLevel(currentLevel);
             if (xpNeeded <= 0) break;
 
             if (newXp >= xpNeeded) {

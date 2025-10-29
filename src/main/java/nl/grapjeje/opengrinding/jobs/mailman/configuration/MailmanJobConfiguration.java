@@ -40,6 +40,9 @@ public class MailmanJobConfiguration extends JobConfig implements LevelConfig {
         packages = new LinkedHashMap<>();
         levelOverrides = new LinkedHashMap<>();
 
+        // Reset xpCache
+        xpCache.clear();
+
         this.values();
     }
 

@@ -41,6 +41,9 @@ public class LumberJobConfiguration extends JobConfig implements ShopConfig, Lev
         axes = new LinkedHashMap<>();
         levelOverrides = new LinkedHashMap<>();
 
+        // Reset xpCache
+        xpCache.clear();
+
         this.values();
     }
 
@@ -145,7 +148,6 @@ public class LumberJobConfiguration extends JobConfig implements ShopConfig, Lev
     public double getXpForLevel(int level) {
         if (xpCache.containsKey(level)) {
             double cachedValue = xpCache.get(level);
-            Bukkit.getLogger().severe("[DEBUG] Level " + level + " cached XP: " + cachedValue);
             return cachedValue;
         }
         try {
@@ -156,15 +158,12 @@ public class LumberJobConfiguration extends JobConfig implements ShopConfig, Lev
 
             double value = expression.evaluate();
             xpCache.put(level, value);
-            Bukkit.getLogger().severe("[DEBUG] Level " + level + " computed XP: " + value);
             return value;
         } catch (Exception e) {
             e.printStackTrace();
-            Bukkit.getLogger().severe("[ERROR] Failed to compute XP for level " + level + ", returning 0.0");
             return 0.0;
         }
     }
-
 
     @Override
     public Double getLevelOverride(int level) {

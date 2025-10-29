@@ -40,6 +40,9 @@ public class MiningJobConfiguration extends JobConfig implements ShopConfig, Lev
         pickaxes = new LinkedHashMap<>();
         levelOverrides = new LinkedHashMap<>();
 
+        // Reset xpCache
+        xpCache.clear();
+
         this.values();
     }
 
