@@ -9,7 +9,12 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 
+import java.util.*;
+
 public class PlayerLevelUpListener implements Listener {
+    private record PlayerJob(UUID playerId, Jobs job, Integer oldLevel, Integer newLevel) {}
+
+    private final Map<PlayerJob, Long> levelUpCooldowns = new HashMap<>();
 
     @EventHandler
     public void onLevelUp(PlayerLevelChangeEvent e) {
@@ -20,14 +25,24 @@ public class PlayerLevelUpListener implements Listener {
         GrindingPlayer gp = e.getPlayer();
         Player player = gp.getPlayer().getBukkit().getPlayer();
         if (player == null) return;
-        player.sendMessage(MessageUtil.filterMessage("<green>Level up! " + this.getJobName(e.getJob()) + " level <bold>"
+
+        PlayerJob key = new PlayerJob(player.getUniqueId(), e.getJob(), oldLvl, newLvl);
+        long now = System.currentTimeMillis();
+
+        long COOLDOWN_MS = 1000;
+        if (levelUpCooldowns.containsKey(key) && now - levelUpCooldowns.get(key) < COOLDOWN_MS) return;
+        levelUpCooldowns.put(key, now);
+
+        player.sendMessage(MessageUtil.filterMessage("<green>Level up! " + getJobName(e.getJob()) + " level <bold>"
                 + oldLvl + "<!bold> -> <bold>" + newLvl + "</bold>!"));
         player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1.0F, 0.5F);
     }
 
-    String getJobName(Jobs job) {
+    private String getJobName(Jobs job) {
         return switch (job) {
             case MINING -> "Mine";
+            case LUMBER -> "Lumber";
+            case MAILMAN -> "Postbode";
             default -> "";
         };
     }
