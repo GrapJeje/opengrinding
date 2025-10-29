@@ -10,11 +10,7 @@ import nl.openminetopia.OpenMinetopia;
 import nl.openminetopia.configuration.MessageConfiguration;
 import nl.openminetopia.modules.banking.BankingModule;
 import nl.openminetopia.modules.data.storm.StormDatabase;
-import nl.openminetopia.modules.transactions.TransactionsModule;
-import nl.openminetopia.modules.transactions.enums.TransactionType;
-import nl.openminetopia.modules.transactions.events.TransactionUpdateEvent;
 import nl.openminetopia.utils.ChatUtils;
-import nl.openminetopia.utils.events.EventUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
@@ -61,54 +57,25 @@ public class CurrencyUtil {
             CompletableFuture<Map<Currency, Double>> future = new CompletableFuture<>();
             BankingModule bankingModule = (BankingModule) OpenMinetopia.getModuleManager().get(BankingModule.class);
 
-            bankingModule.getAccountByNameAsync(player.getName()).whenComplete((accountModel, throwable) -> {
+            bankingModule.getAccountByIdAsync(player.getUniqueId()).whenComplete((accountModel, throwable) -> {
                 if (accountModel == null) {
                     Bukkit.getScheduler().runTask(OpenGrinding.getInstance(), () ->
                             player.sendMessage(MessageConfiguration.component("banking_account_not_found"))
                     );
                     future.complete(new HashMap<Currency, Double>());
                 } else {
-                    TransactionUpdateEvent event = new TransactionUpdateEvent(
-                            player.getUniqueId(),
-                            player.getName(),
-                            TransactionType.WITHDRAW,
-                            amount,
-                            accountModel,
-                            "Bought " + reason,
-                            System.currentTimeMillis()
-                    );
-
-                    if (EventUtils.callCancellable(event)) {
+                    if (accountModel.getBalance() < amount) {
                         Bukkit.getScheduler().runTask(OpenGrinding.getInstance(), () ->
-                                player.sendMessage(ChatUtils.color("<warning>⚠ De transactie is geannuleerd door een plugin."))
+                                player.sendMessage(ChatUtils.color("<warning>⚠ Je hebt niet genoeg saldo op je rekening."))
                         );
                         future.complete(new HashMap<Currency, Double>());
-                    } else {
-                        if (accountModel.getBalance() < amount) {
-                            Bukkit.getScheduler().runTask(OpenGrinding.getInstance(), () ->
-                                    player.sendMessage(ChatUtils.color("<warning>⚠ Je hebt niet genoeg saldo op je rekening."))
-                            );
-                            future.complete(new HashMap<Currency, Double>());
-                            return;
-                        }
-
-                        accountModel.setBalance(accountModel.getBalance() - amount);
-                        accountModel.save();
-
-                        TransactionsModule transactionsModule =
-                                (TransactionsModule) OpenMinetopia.getModuleManager().get(TransactionsModule.class);
-                        transactionsModule.createTransactionLog(
-                                System.currentTimeMillis(),
-                                player.getUniqueId(),
-                                player.getName(),
-                                TransactionType.WITHDRAW,
-                                amount,
-                                accountModel.getUniqueId(),
-                                "Bought " + reason
-                        );
-
-                        future.complete((Map<Currency, Double>) (Map<?, ?>) Map.of(Currency.CASH, amount));
+                        return;
                     }
+
+                    accountModel.setBalance(accountModel.getBalance() - amount);
+                    accountModel.save();
+
+                    future.complete((Map<Currency, Double>) (Map<?, ?>) Map.of(Currency.CASH, amount));
                 }
             });
 
@@ -142,44 +109,15 @@ public class CurrencyUtil {
 
             BankingModule bankingModule = (BankingModule) OpenMinetopia.getModuleManager().get(BankingModule.class);
             double finalAllowed = allowed;
-            bankingModule.getAccountByNameAsync(player.getName()).whenComplete((accountModel, throwable) -> {
+            bankingModule.getAccountByIdAsync(player.getUniqueId()).whenComplete((accountModel, throwable) -> {
                 if (accountModel == null) {
                     Bukkit.getScheduler().runTask(OpenGrinding.getInstance(), () ->
                             player.sendMessage(MessageConfiguration.component("banking_account_not_found"))
                     );
                     return;
                 }
-
-                TransactionUpdateEvent event = new TransactionUpdateEvent(
-                        player.getUniqueId(),
-                        player.getName(),
-                        TransactionType.DEPOSIT,
-                        finalAllowed,
-                        accountModel,
-                        reason,
-                        System.currentTimeMillis()
-                );
-
-                if (EventUtils.callCancellable(event)) {
-                    Bukkit.getScheduler().runTask(OpenGrinding.getInstance(), () ->
-                            player.sendMessage(ChatUtils.color("<warning>⚠ De transactie is geannuleerd door een plugin."))
-                    );
-                    return;
-                }
                 accountModel.setBalance(accountModel.getBalance() + finalAllowed);
                 accountModel.save();
-
-                TransactionsModule transactionsModule =
-                        (TransactionsModule) OpenMinetopia.getModuleManager().get(TransactionsModule.class);
-                transactionsModule.createTransactionLog(
-                        System.currentTimeMillis(),
-                        player.getUniqueId(),
-                        player.getName(),
-                        TransactionType.DEPOSIT,
-                        finalAllowed,
-                        accountModel.getUniqueId(),
-                        reason
-                );
             });
             return (Map<Currency, Double>) (Map<?, ?>) Map.of(currency, allowed);
         });
