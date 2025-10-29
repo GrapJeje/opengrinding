@@ -1,3 +1,14 @@
+/*
+ * WARNING:
+ * This command (/opengrinding) is part of the OpenGrinding plugin and is
+ * covered by the custom MIT-based license.
+ * Before making any modifications to this command, you MUST read and fully
+ * understand the license terms.
+ * Any redistribution or changes must comply with the license requirements,
+ * including keeping the command publicly executable and preserving the
+ * attribution to "GrapJeje".
+ */
+
 package nl.grapjeje.opengrinding.jobs.core.commands;
 
 import nl.grapjeje.core.Framework;

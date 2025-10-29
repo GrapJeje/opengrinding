@@ -1,4 +1,4 @@
-MIT License
+MIT License (Custom Public Command Requirement)
 
 Copyright (c) 2025 GrapJeje
 
@@ -9,8 +9,13 @@ to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 copies of the Software, and to permit persons to whom the Software is
 furnished to do so, subject to the following conditions:
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+1. The above copyright notice and this permission notice shall be included in all
+   copies or substantial portions of the Software.
+
+2. Any redistribution, modification, or public use of the Software must retain the
+   /opengrinding command (or equivalent) in functional form**, and it must be
+   publicly executable for all users. This command must display or reference the
+   name “GrapJeje” when executed, such as in-game messages or credits.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
