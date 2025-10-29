@@ -25,7 +25,6 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
 public class BlockBreakListener implements Listener {
-
     private static final Set<Material> WHITELIST = Set.of(
             Material.COAL_ORE,
             Material.COPPER_ORE,
@@ -47,6 +46,17 @@ public class BlockBreakListener implements Listener {
         Material type = block.getType();
         UUID uuid = player.getUniqueId();
 
+        MiningModule miningModule = OpenGrinding.getFramework().getModuleLoader()
+                .getModules().stream()
+                .filter(m -> m instanceof MiningModule)
+                .map(m -> (MiningModule) m)
+                .findFirst()
+                .orElse(null);
+        if (miningModule == null || miningModule.isDisabled()) {
+            player.sendMessage(MessageUtil.filterMessage("<warning>⚠ De mining module is momenteel uitgeschakeld!"));
+            return;
+        }
+
         if (!WHITELIST.contains(type)) return;
 
         if (!(player.getGameMode() == GameMode.CREATIVE || player.getGameMode() == GameMode.SPECTATOR)) {
@@ -61,76 +71,67 @@ public class BlockBreakListener implements Listener {
             e.setDropItems(false);
             e.setExpToDrop(0);
         }
-
-        Material heldItem = player.getInventory().getItemInMainHand().getType();
-        if (!heldItem.name().endsWith("PICKAXE")) return;
-        if (player.getGameMode() == GameMode.CREATIVE || player.getGameMode() == GameMode.SPECTATOR) {
-            player.sendMessage(MessageUtil.filterMessage("<warning>⚠ Je kunt geen ores hakken in deze gamemode!"));
-            e.setCancelled(true);
-            return;
-        }
-        MiningModule miningModule = OpenGrinding.getFramework().getModuleLoader()
-                .getModules().stream()
-                .filter(m -> m instanceof MiningModule)
-                .map(m -> (MiningModule) m)
-                .findFirst()
-                .orElse(null);
-        if (miningModule == null || miningModule.isDisabled()) {
-            player.sendMessage(MessageUtil.filterMessage("<warning>⚠ De mining module is momenteel uitgeschakeld!"));
-            return;
-        }
-        final Location loc = block.getLocation();
-        GrindingRegion.isInRegionWithJob(loc, Jobs.MINING, inRegion -> {
-            if (!inRegion) return;
-
-            if (this.isInventoryFull(player)) {
-                player.sendTitlePart(TitlePart.TITLE, MessageUtil.filterMessage("<red>Je inventory zit vol!"));
-                player.sendTitlePart(TitlePart.SUBTITLE, MessageUtil.filterMessage("<gold>Verkoop wat blokjes!"));
-                player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 3.0F, 0.5F);
+        final Location location = block.getLocation();
+        GrindingRegion.isInRegionWithJob(location, Jobs.MINING, inRegion -> {
+            if (!inRegion) {
+                block.breakNaturally(player.getInventory().getItemInMainHand());
                 return;
             }
-            GrindingPlayer.loadOrCreatePlayerModelAsync(player, Jobs.MINING)
-                    .thenAccept(model -> {
-                        MiningJobConfiguration config = MiningModule.getConfig();
+            Bukkit.getScheduler().runTask(OpenGrinding.getInstance(), () -> {
+                Material heldItem = player.getInventory().getItemInMainHand().getType();
+                if (!heldItem.name().endsWith("PICKAXE")) return;
+                if (player.getGameMode() == GameMode.CREATIVE || player.getGameMode() == GameMode.SPECTATOR) {
+                    player.sendMessage(MessageUtil.filterMessage("<warning>⚠ Je kunt geen ores hakken in deze gamemode!"));
+                    return;
+                }
 
-                        String oreKey = type.name().replace("_ORE", "");
-                        Ore oreEnum = Ore.valueOf(oreKey);
-                        MiningJobConfiguration.OreRecord oreRecord = config.getOre(oreEnum);
-                        if (oreRecord == null) return;
+                if (this.isInventoryFull(player)) {
+                    player.sendTitlePart(TitlePart.TITLE, MessageUtil.filterMessage("<red>Je inventory zit vol!"));
+                    player.sendTitlePart(TitlePart.SUBTITLE, MessageUtil.filterMessage("<gold>Verkoop wat blokjes!"));
+                    player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 3.0F, 0.5F);
+                    return;
+                }
+                GrindingPlayer.loadOrCreatePlayerModelAsync(player, Jobs.MINING)
+                        .thenAccept(model -> {
+                            MiningJobConfiguration config = MiningModule.getConfig();
 
-                        int unlockLevel = oreRecord.unlockLevel();
+                            String oreKey = type.name().replace("_ORE", "");
+                            Ore oreEnum = Ore.valueOf(oreKey);
+                            MiningJobConfiguration.OreRecord oreRecord = config.getOre(oreEnum);
+                            if (oreRecord == null) return;
 
-                        Bukkit.getScheduler().runTask(OpenGrinding.getInstance(), () -> {
-                            if (model.getLevel() < unlockLevel) {
-                                block.setType(type);
-                                player.sendMessage(MessageUtil.filterMessage(
-                                        "<warning>⚠ Jij bent niet hoog genoeg level voor dit blok! (Nodig: " + unlockLevel + ")"
-                                ));
-                                player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 0.5F, 1.0F);
-                                return;
-                            }
-                            ItemStack custom = MiningModule.getBlockHead(type);
-                            if (custom != null) player.getInventory().addItem(custom);
+                            int unlockLevel = oreRecord.unlockLevel();
 
-                            block.setType(Material.BEDROCK);
-                            MiningModule.getOres().add(new MiningOres(loc, type, System.currentTimeMillis()));
-
-                            ItemStack item = player.getInventory().getItemInMainHand();
-                            if (item != null && item.getType() != Material.AIR) {
-                                ItemMeta meta = item.getItemMeta();
-                                if (meta instanceof Damageable damageable) {
-                                    int currentDamage = damageable.getDamage();
-                                    int maxDurability = item.getType().getMaxDurability();
-
-                                    if (currentDamage + 1 < maxDurability)
-                                        damageable.setDamage(currentDamage + 1);
-                                    else
-                                        item.setAmount(item.getAmount() - 1);
-
-                                    item.setItemMeta(damageable);
+                            Bukkit.getScheduler().runTask(OpenGrinding.getInstance(), () -> {
+                                if (model.getLevel() < unlockLevel) {
+                                    block.setType(type);
+                                    player.sendMessage(MessageUtil.filterMessage(
+                                            "<warning>⚠ Jij bent niet hoog genoeg level voor dit blok! (Nodig: " + unlockLevel + ")"
+                                    ));
+                                    player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 0.5F, 1.0F);
+                                    return;
                                 }
-                            }
-                            player.giveExp(0);
+                                ItemStack custom = MiningModule.getBlockHead(type);
+                                if (custom != null) player.getInventory().addItem(custom);
+
+                                block.setType(Material.BEDROCK);
+                                MiningModule.getOres().add(new MiningOres(location, type, System.currentTimeMillis()));
+
+                                ItemStack item = player.getInventory().getItemInMainHand();
+                                if (item != null && item.getType() != Material.AIR) {
+                                    ItemMeta meta = item.getItemMeta();
+                                    if (meta instanceof Damageable damageable) {
+                                        int currentDamage = damageable.getDamage();
+                                        int maxDurability = item.getType().getMaxDurability();
+
+                                        if (currentDamage + 1 < maxDurability)
+                                            damageable.setDamage(currentDamage + 1);
+                                        else item.setAmount(item.getAmount() - 1);
+                                        item.setItemMeta(damageable);
+                                    }
+                                }
+                                player.giveExp(0);
+                            });
 
                             CompletableFuture.runAsync(() -> {
                                 GrindingPlayer gp = new GrindingPlayer(player.getUniqueId(), model);
@@ -138,7 +139,7 @@ public class BlockBreakListener implements Listener {
                                 gp.save(Jobs.MINING);
                             });
                         });
-                    });
+            });
         });
     }
 
