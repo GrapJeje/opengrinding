@@ -124,7 +124,7 @@ public class BlockBreakListener implements Listener {
                             } else if (type == finalWoodEnum.getStrippedMaterial()) {
                                 block.setType(Material.AIR);
                                 LumberModule.getWoods().removeIf(wood -> wood.location().equals(location));
-                                LumberModule.getWoods().add(new LumberModule.LumberWood(location, type, System.currentTimeMillis()));
+                                LumberModule.getWoods().add(new LumberModule.LumberWood(location, finalWoodEnum.getBarkMaterial(), System.currentTimeMillis()));
                             }
 
                             ItemStack handItem = player.getInventory().getItemInMainHand();
