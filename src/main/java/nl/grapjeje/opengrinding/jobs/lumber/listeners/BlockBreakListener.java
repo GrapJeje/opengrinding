@@ -22,6 +22,7 @@ import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 
 public class BlockBreakListener implements Listener {
     private static final Set<Material> WHITELIST = createWhitelist();
@@ -77,83 +78,77 @@ public class BlockBreakListener implements Listener {
                 player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 3.0F, 0.5F);
                 return;
             }
-            Bukkit.getScheduler().runTaskAsynchronously(OpenGrinding.getInstance(), () -> {
-                PlayerGrindingModel model = GrindingPlayer.loadOrCreatePlayerModel(player, Jobs.LUMBER);
-                LumberJobConfiguration config = LumberModule.getConfig();
+            GrindingPlayer.loadOrCreatePlayerModelAsync(player, Jobs.LUMBER)
+                    .thenAccept(model -> {
+                        LumberJobConfiguration config = LumberModule.getConfig();
 
-                Wood woodEnum = null;
-                String woodType = null;
-                for (Wood wood : Wood.values()) {
-                    if (type == wood.getBarkMaterial()) {
-                        woodEnum = wood;
-                        woodType = "bark";
-                        break;
-                    }
-                    if (type == wood.getStrippedMaterial()) {
-                        woodEnum = wood;
-                        woodType = "wood";
-                        break;
-                    }
-                }
-                if (woodEnum == null || woodType == null) return;
-
-                LumberJobConfiguration.WoodRecord woodRecord = config.getWood(woodEnum);
-                if (woodRecord == null) return;
-
-                int unlockLevel = woodRecord.unlockLevels().getOrDefault(woodType, 0);
-                if (model.getLevel() < unlockLevel) {
-                    Bukkit.getScheduler().runTask(OpenGrinding.getInstance(), () -> {
-                        e.setCancelled(true);
-                        block.setType(type);
-                        player.sendMessage(MessageUtil.filterMessage(
-                                "<warning>⚠ Jij bent niet hoog genoeg level voor dit blok! (Nodig: " + unlockLevel + ")"
-                        ));
-                        player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 0.5F, 1.0F);
-                    });
-                    return;
-                }
-
-                Wood finalWoodEnum = woodEnum;
-                Bukkit.getScheduler().runTask(OpenGrinding.getInstance(), () -> {
-                    ItemStack item = LumberModule.getWoodHead(type);
-                    if (item != null) player.getInventory().addItem(item);
-
-                    if (type == finalWoodEnum.getBarkMaterial()) {
-                        block.setType(finalWoodEnum.getStrippedMaterial());
-                        LumberModule.getWoods().add(new LumberModule.LumberWood(location, type, System.currentTimeMillis()));
-                    } else if (type == finalWoodEnum.getStrippedMaterial()) {
-                        block.setType(Material.AIR);
-                        for (LumberModule.LumberWood wood : LumberModule.getWoods()) {
-                            if (wood.location() != location) continue;
-                            Material t = wood.material();
-                            LumberModule.getWoods().remove(wood);
-                            LumberModule.getWoods().add(new LumberModule.LumberWood(location, t, System.currentTimeMillis()));
+                        Wood woodEnum = null;
+                        String woodType = null;
+                        for (Wood wood : Wood.values()) {
+                            if (type == wood.getBarkMaterial()) {
+                                woodEnum = wood;
+                                woodType = "bark";
+                                break;
+                            }
+                            if (type == wood.getStrippedMaterial()) {
+                                woodEnum = wood;
+                                woodType = "wood";
+                                break;
+                            }
                         }
-                    }
+                        if (woodEnum == null || woodType == null) return;
 
-                    ItemStack handItem = player.getInventory().getItemInMainHand();
-                    if (handItem != null && handItem.getType() != Material.AIR) {
-                        ItemMeta meta = handItem.getItemMeta();
-                        if (meta instanceof Damageable damageable) {
-                            int currentDamage = damageable.getDamage();
-                            int maxDurability = handItem.getType().getMaxDurability();
+                        LumberJobConfiguration.WoodRecord woodRecord = config.getWood(woodEnum);
+                        if (woodRecord == null) return;
 
-                            if (currentDamage + 1 < maxDurability)
-                                damageable.setDamage(currentDamage + 1);
-                            else {
-                                handItem.setAmount(handItem.getAmount() - 1);
+                        int unlockLevel = woodRecord.unlockLevels().getOrDefault(woodType, 0);
+
+                        Wood finalWoodEnum = woodEnum;
+                        Bukkit.getScheduler().runTask(OpenGrinding.getInstance(), () -> {
+                            if (model.getLevel() < unlockLevel) {
+                                e.setCancelled(true);
+                                block.setType(type);
+                                player.sendMessage(MessageUtil.filterMessage(
+                                        "<warning>⚠ Jij bent niet hoog genoeg level voor dit blok! (Nodig: " + unlockLevel + ")"
+                                ));
+                                player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 0.5F, 1.0F);
                                 return;
                             }
 
-                            handItem.setItemMeta(damageable);
-                        }
-                    }
-                });
+                            ItemStack item = LumberModule.getWoodHead(type);
+                            if (item != null) player.getInventory().addItem(item);
 
-                GrindingPlayer gp = new GrindingPlayer(player.getUniqueId(), model);
-                gp.addProgress(Jobs.LUMBER, woodRecord.points());
-                gp.save(Jobs.LUMBER);
-            });
+                            if (type == finalWoodEnum.getBarkMaterial()) {
+                                block.setType(finalWoodEnum.getStrippedMaterial());
+                                LumberModule.getWoods().add(new LumberModule.LumberWood(location, type, System.currentTimeMillis()));
+                            } else if (type == finalWoodEnum.getStrippedMaterial()) {
+                                block.setType(Material.AIR);
+                                LumberModule.getWoods().removeIf(wood -> wood.location().equals(location));
+                                LumberModule.getWoods().add(new LumberModule.LumberWood(location, type, System.currentTimeMillis()));
+                            }
+
+                            ItemStack handItem = player.getInventory().getItemInMainHand();
+                            if (handItem != null && handItem.getType() != Material.AIR) {
+                                ItemMeta meta = handItem.getItemMeta();
+                                if (meta instanceof Damageable damageable) {
+                                    int currentDamage = damageable.getDamage();
+                                    int maxDurability = handItem.getType().getMaxDurability();
+
+                                    if (currentDamage + 1 < maxDurability)
+                                        damageable.setDamage(currentDamage + 1);
+                                    else handItem.setAmount(handItem.getAmount() - 1);
+                                    handItem.setItemMeta(damageable);
+                                }
+                            }
+
+                            CompletableFuture.runAsync(() -> {
+                                GrindingPlayer gp = new GrindingPlayer(player.getUniqueId(), model);
+                                gp.addProgress(Jobs.LUMBER, woodRecord.points());
+                                gp.save(Jobs.LUMBER);
+                            });
+                        });
+                    });
+
         });
     }
 

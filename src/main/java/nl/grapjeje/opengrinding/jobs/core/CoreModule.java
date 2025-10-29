@@ -13,16 +13,15 @@ import nl.grapjeje.opengrinding.jobs.core.listeners.PlayerRegionWandListener;
 import nl.grapjeje.opengrinding.models.GrindingRegionModel;
 import nl.grapjeje.opengrinding.models.PlayerGrindingModel;
 import nl.openminetopia.modules.data.storm.StormDatabase;
-import org.bukkit.Bukkit;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class CoreModule extends Module {
     @Getter
-    private static final Map<UUID, Map<Jobs, PlayerGrindingModel>> playerCache = new HashMap<>();
+    private static final Map<UUID, Map<Jobs, PlayerGrindingModel>> playerCache = new ConcurrentHashMap<>();
     @Getter
     private static final DefaultConfiguration config = new DefaultConfiguration(OpenGrinding.getInstance().getDataFolder());
 
@@ -32,6 +31,8 @@ public class CoreModule extends Module {
 
     @Override
     protected void onEnable() {
+        OpenGrinding.getInstance().getLogger().info("Clearing playerCache...");
+        playerCache.clear();
         OpenGrinding.getFramework().registerConfig(config);
 
         OpenGrinding.getFramework().registerCommand(OpenGrindingCommand::new);
@@ -48,14 +49,14 @@ public class CoreModule extends Module {
         OpenGrinding.getFramework().registerListener(PlayerJoinListener::new);
 
         try {
-            Bukkit.getLogger().info("Loading grinding regions...");
+            OpenGrinding.getInstance().getLogger().info("Loading grinding regions...");
             List<GrindingRegionModel> models = StormDatabase.getInstance().getStorm()
                     .buildQuery(GrindingRegionModel.class)
                     .execute()
                     .join()
                     .stream()
                     .toList();
-            Bukkit.getLogger().info("Loaded " + models.size() + " grinding regions.");
+            OpenGrinding.getInstance().getLogger().info("Loaded " + models.size() + " grinding regions.");
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -67,10 +68,10 @@ public class CoreModule extends Module {
     }
 
     public static PlayerGrindingModel getCachedModel(UUID uuid, Jobs job) {
-        return playerCache.getOrDefault(uuid, Map.of()).get(job);
+        return playerCache.getOrDefault(uuid, new ConcurrentHashMap<>()).get(job);
     }
 
     public static void putCachedModel(UUID uuid, Jobs job, PlayerGrindingModel model) {
-        playerCache.computeIfAbsent(uuid, k -> new HashMap<>()).put(job, model);
+        playerCache.computeIfAbsent(uuid, k -> new ConcurrentHashMap<>()).put(job, model);
     }
 }

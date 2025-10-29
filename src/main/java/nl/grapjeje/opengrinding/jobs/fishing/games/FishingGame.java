@@ -55,8 +55,12 @@ public abstract class FishingGame extends Menu {
             ItemStack item = PlayerCatchListener.getPlayerLoot().get(player.getUniqueId());
             if (item != null) {
                 player.getInventory().addItem(item);
-                GrindingPlayer gp = new GrindingPlayer(player.getUniqueId(), GrindingPlayer.loadOrCreatePlayerModel(player, Jobs.FISHING));
-                new PlayerFishCatchEvent(gp, item).callEvent();
+                GrindingPlayer.loadOrCreatePlayerModelAsync(player, Jobs.FISHING)
+                        .thenAccept(model ->
+                                Bukkit.getScheduler().runTask(OpenGrinding.getInstance(), () -> {
+                                    GrindingPlayer gp = new GrindingPlayer(player.getUniqueId(), model);
+                                    new PlayerFishCatchEvent(gp, item).callEvent();
+                                }));
             }
         }
         playersInGame.remove(player.getUniqueId());

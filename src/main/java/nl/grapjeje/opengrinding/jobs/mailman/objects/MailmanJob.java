@@ -23,6 +23,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Getter
@@ -110,11 +111,12 @@ public class MailmanJob {
                             this.sendMessage("Bedankt voor het bezorgen! Als beloning krijg je <bold>" + receivedAmount + (CoreModule.getConfig().isSellInTokens() ? " tokens" : "") + "<!bold>!");
                     });
 
-            GrindingPlayer gp = new GrindingPlayer(player.getUniqueId(), GrindingPlayer.loadOrCreatePlayerModel(player, Jobs.MAILMAN));
-            gp.addProgress(Jobs.MAILMAN, 1);
-
-            Bukkit.getScheduler().runTaskAsynchronously(OpenGrinding.getInstance(),
-                    () -> gp.save(Jobs.MAILMAN));
+            GrindingPlayer.loadOrCreatePlayerModelAsync(player, Jobs.MAILMAN)
+                    .thenAccept(model -> {
+                        GrindingPlayer gp = new GrindingPlayer(player.getUniqueId(), model);
+                        gp.addProgress(Jobs.MAILMAN, 1);
+                        CompletableFuture.runAsync(() -> gp.save(Jobs.MAILMAN));
+                    });
         }
         jobs.remove(player.getUniqueId());
     }

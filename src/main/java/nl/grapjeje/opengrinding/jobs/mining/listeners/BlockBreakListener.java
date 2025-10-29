@@ -10,7 +10,6 @@ import nl.grapjeje.opengrinding.jobs.mining.MiningModule;
 import nl.grapjeje.opengrinding.jobs.mining.configuration.MiningJobConfiguration;
 import nl.grapjeje.opengrinding.jobs.mining.objects.MiningOres;
 import nl.grapjeje.opengrinding.jobs.mining.objects.Ore;
-import nl.grapjeje.opengrinding.models.PlayerGrindingModel;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
@@ -23,6 +22,7 @@ import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 
 public class BlockBreakListener implements Listener {
 
@@ -89,58 +89,56 @@ public class BlockBreakListener implements Listener {
                 player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 3.0F, 0.5F);
                 return;
             }
-            Bukkit.getScheduler().runTaskAsynchronously(OpenGrinding.getInstance(), () -> {
-                PlayerGrindingModel model = GrindingPlayer.loadOrCreatePlayerModel(player, Jobs.MINING);
-                MiningJobConfiguration config = MiningModule.getConfig();
+            GrindingPlayer.loadOrCreatePlayerModelAsync(player, Jobs.MINING)
+                    .thenAccept(model -> {
+                        MiningJobConfiguration config = MiningModule.getConfig();
 
-                String oreKey = type.name().replace("_ORE", "");
-                Ore oreEnum = Ore.valueOf(oreKey);
-                MiningJobConfiguration.OreRecord oreRecord = config.getOre(oreEnum);
-                if (oreRecord == null) return;
+                        String oreKey = type.name().replace("_ORE", "");
+                        Ore oreEnum = Ore.valueOf(oreKey);
+                        MiningJobConfiguration.OreRecord oreRecord = config.getOre(oreEnum);
+                        if (oreRecord == null) return;
 
-                int unlockLevel = oreRecord.unlockLevel();
-                if (model.getLevel() < unlockLevel) {
-                    Bukkit.getScheduler().runTask(OpenGrinding.getInstance(), () -> {
-                        block.setType(type);
-                        player.sendMessage(MessageUtil.filterMessage(
-                                "<warning>⚠ Jij bent niet hoog genoeg level voor dit blok! (Nodig: " + unlockLevel + ")"
-                        ));
-                        player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 0.5F, 1.0F);
-                    });
-                    return;
-                }
+                        int unlockLevel = oreRecord.unlockLevel();
 
-                Bukkit.getScheduler().runTask(OpenGrinding.getInstance(), () -> {
-                    ItemStack custom = MiningModule.getBlockHead(type);
-                    if (custom != null) player.getInventory().addItem(custom);
-
-                    block.setType(Material.BEDROCK);
-                    MiningModule.getOres().add(new MiningOres(loc, type, System.currentTimeMillis()));
-
-                    ItemStack item = player.getInventory().getItemInMainHand();
-                    if (item != null && item.getType() != Material.AIR) {
-                        ItemMeta meta = item.getItemMeta();
-                        if (meta instanceof Damageable damageable) {
-                            int currentDamage = damageable.getDamage();
-                            int maxDurability = item.getType().getMaxDurability();
-
-                            if (currentDamage + 1 < maxDurability)
-                                damageable.setDamage(currentDamage + 1);
-                            else {
-                                item.setAmount(item.getAmount() - 1);
+                        Bukkit.getScheduler().runTask(OpenGrinding.getInstance(), () -> {
+                            if (model.getLevel() < unlockLevel) {
+                                block.setType(type);
+                                player.sendMessage(MessageUtil.filterMessage(
+                                        "<warning>⚠ Jij bent niet hoog genoeg level voor dit blok! (Nodig: " + unlockLevel + ")"
+                                ));
+                                player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 0.5F, 1.0F);
                                 return;
                             }
+                            ItemStack custom = MiningModule.getBlockHead(type);
+                            if (custom != null) player.getInventory().addItem(custom);
 
-                            item.setItemMeta(damageable);
-                        }
-                    }
-                    player.giveExp(0);
-                });
+                            block.setType(Material.BEDROCK);
+                            MiningModule.getOres().add(new MiningOres(loc, type, System.currentTimeMillis()));
 
-                GrindingPlayer gp = new GrindingPlayer(player.getUniqueId(), model);
-                gp.addProgress(Jobs.MINING, oreRecord.points());
-                gp.save(Jobs.MINING);
-            });
+                            ItemStack item = player.getInventory().getItemInMainHand();
+                            if (item != null && item.getType() != Material.AIR) {
+                                ItemMeta meta = item.getItemMeta();
+                                if (meta instanceof Damageable damageable) {
+                                    int currentDamage = damageable.getDamage();
+                                    int maxDurability = item.getType().getMaxDurability();
+
+                                    if (currentDamage + 1 < maxDurability)
+                                        damageable.setDamage(currentDamage + 1);
+                                    else
+                                        item.setAmount(item.getAmount() - 1);
+
+                                    item.setItemMeta(damageable);
+                                }
+                            }
+                            player.giveExp(0);
+
+                            CompletableFuture.runAsync(() -> {
+                                GrindingPlayer gp = new GrindingPlayer(player.getUniqueId(), model);
+                                gp.addProgress(Jobs.MINING, oreRecord.points());
+                                gp.save(Jobs.MINING);
+                            });
+                        });
+                    });
         });
     }
 

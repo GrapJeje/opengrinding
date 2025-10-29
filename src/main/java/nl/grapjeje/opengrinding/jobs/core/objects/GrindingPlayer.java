@@ -24,6 +24,7 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 public class GrindingPlayer {
+
     @Getter
     private final MinetopiaPlayer player;
     private final PlayerGrindingModel model;
@@ -39,41 +40,38 @@ public class GrindingPlayer {
                 StormDatabase.getInstance().saveStormModel(model));
     }
 
-    public static PlayerGrindingModel loadOrCreatePlayerModel(Player player, Jobs job) {
+    public static CompletableFuture<PlayerGrindingModel> loadOrCreatePlayerModelAsync(Player player, Jobs job) {
         PlayerGrindingModel cached = CoreModule.getCachedModel(player.getUniqueId(), job);
-        if (cached != null) return cached;
+        if (cached != null) return CompletableFuture.completedFuture(cached);
 
-        Optional<PlayerGrindingModel> playerModelOpt;
-        try {
-            playerModelOpt = StormDatabase.getInstance().getStorm()
-                    .buildQuery(PlayerGrindingModel.class)
-                    .where("player_uuid", Where.EQUAL, player.getUniqueId())
-                    .where("job_name", Where.EQUAL, job.name())
-                    .limit(1)
-                    .execute()
-                    .join()
-                    .stream()
-                    .findFirst();
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            Bukkit.getScheduler().runTask(OpenGrinding.getInstance(), () ->
-                    player.sendMessage(MessageUtil.filterMessage("<warning>⚠ Er is een fout opgetreden bij het ophalen van jouw spelersdata!"))
-            );
-            throw new RuntimeException(ex);
-        }
+        return CompletableFuture.supplyAsync(() -> {
+            Optional<PlayerGrindingModel> playerModelOpt;
+            try {
+                playerModelOpt = StormDatabase.getInstance().getStorm()
+                        .buildQuery(PlayerGrindingModel.class)
+                        .where("player_uuid", Where.EQUAL, player.getUniqueId())
+                        .where("job_name", Where.EQUAL, job.name())
+                        .limit(1)
+                        .execute()
+                        .join()
+                        .stream()
+                        .findFirst();
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                Bukkit.getScheduler().runTask(OpenGrinding.getInstance(), () ->
+                        player.sendMessage(MessageUtil.filterMessage("<warning>⚠ Er is een fout opgetreden bij het ophalen van jouw spelersdata!"))
+                );
+                return PlayerGrindingModel.createNew(player, job);
+            }
 
-        PlayerGrindingModel model = playerModelOpt.orElseGet(() -> {
-            PlayerGrindingModel m = new PlayerGrindingModel();
-            m.setPlayerUuid(player.getUniqueId());
-            m.setJob(job);
-            m.setLevel(0);
-            m.setValue(0.0);
-            OpenGrinding.getInstance().getLogger().info("New player grind model made for " + player.getName() + " (" + job.name() + ")");
-            return m;
+            PlayerGrindingModel model = playerModelOpt.orElseGet(() -> {
+                OpenGrinding.getInstance().getLogger().info("New player grind model made for " + player.getName() + " (" + job.name() + ")");
+                return PlayerGrindingModel.createNew(player, job);
+            });
+
+            CoreModule.putCachedModel(player.getUniqueId(), job, model);
+            return model;
         });
-
-        CoreModule.putCachedModel(player.getUniqueId(), job, model);
-        return model;
     }
 
     /* ---------- Progression ---------- */
@@ -85,6 +83,7 @@ public class GrindingPlayer {
             case MAILMAN -> config = MailmanModule.getConfig();
             default -> throw new IllegalStateException("Unknown job: " + job);
         }
+
         double oldXp = model.getValue();
         int oldLevel = model.getLevel();
         double newXp = oldXp + xp;
@@ -96,27 +95,39 @@ public class GrindingPlayer {
         int currentLevel = oldLevel;
         while (currentLevel < config.getMaxLevel()) {
             Double levelOverride = config.getLevelOverride(currentLevel);
+            double configXp = config.getXpForLevel(currentLevel);
+            Bukkit.getLogger().severe("[DEBUG] Level: " + currentLevel +
+                    ", Override: " + levelOverride +
+                    ", Config XP: " + configXp);
 
-            double xpNeeded;
-            if (levelOverride != null && levelOverride > 0)
-                xpNeeded = levelOverride;
-            else xpNeeded = config.getXpForLevel(currentLevel + 1);
+            double xpNeeded = (levelOverride != null && levelOverride > 0.0)
+                    ? levelOverride
+                    : configXp;
+
+            Bukkit.getLogger().severe("[LevelSystem] Level: " + currentLevel + ", Needed XP: " + xpNeeded +
+                    ((levelOverride != null && levelOverride > 0.0) ? " (Overridden)" : ""));
 
             if (xpNeeded <= 0) break;
+
             if (newXp >= xpNeeded) {
                 newXp -= xpNeeded;
                 currentLevel++;
 
                 int finalOldLevel = oldLevel;
                 int finalCurrentLevel = currentLevel;
-
                 Bukkit.getScheduler().runTask(OpenGrinding.getInstance(), () ->
                         new PlayerLevelChangeEvent(this, job, finalOldLevel, finalCurrentLevel).callEvent());
 
                 oldLevel = currentLevel;
-            }
+            } else break;
         }
+
         model.setLevel(currentLevel);
         model.setValue(newXp);
+
+        this.save(job).exceptionally(ex -> {
+            ex.printStackTrace();
+            return null;
+        });
     }
 }

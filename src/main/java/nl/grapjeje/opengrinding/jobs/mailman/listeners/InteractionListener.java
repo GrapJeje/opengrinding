@@ -1,11 +1,13 @@
 package nl.grapjeje.opengrinding.jobs.mailman.listeners;
 
+import nl.grapjeje.opengrinding.OpenGrinding;
 import nl.grapjeje.opengrinding.jobs.Jobs;
 import nl.grapjeje.opengrinding.jobs.core.objects.GrindingPlayer;
 import nl.grapjeje.opengrinding.jobs.core.objects.GrindingRegion;
 import nl.grapjeje.opengrinding.jobs.mailman.MailmanModule;
 import nl.grapjeje.opengrinding.jobs.mailman.events.DeliverPackageEvent;
 import nl.grapjeje.opengrinding.jobs.mailman.objects.MailmanJob;
+import org.bukkit.Bukkit;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -33,8 +35,12 @@ public class InteractionListener implements Listener {
 
         e.setCancelled(true);
 
-        GrindingPlayer gp = new GrindingPlayer(player.getUniqueId(), GrindingPlayer.loadOrCreatePlayerModel(player, Jobs.MAILMAN));
-        DeliverPackageEvent deliverEvent = new DeliverPackageEvent(gp, region);
-        deliverEvent.callEvent();
+        GrindingPlayer.loadOrCreatePlayerModelAsync(player, Jobs.MAILMAN)
+                .thenAccept(model ->
+                        Bukkit.getScheduler().runTask(OpenGrinding.getInstance(), () -> {
+                    GrindingPlayer gp = new GrindingPlayer(player.getUniqueId(), model);
+                    DeliverPackageEvent deliverEvent = new DeliverPackageEvent(gp, region);
+                    deliverEvent.callEvent();
+                }));
     }
 }

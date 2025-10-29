@@ -43,74 +43,79 @@ public class MailmanGui extends ShopMenu {
 
     @Override
     public void open(Player player) {
-        PlayerGrindingModel model = GrindingPlayer.loadOrCreatePlayerModel(player, Jobs.MAILMAN);
-        int playerLevel = model.getLevel();
+        GrindingPlayer.loadOrCreatePlayerModelAsync(player, Jobs.MAILMAN)
+                .thenAccept(model -> {
+                    int playerLevel = model.getLevel();
 
-        Gui.Builder builder;
-        if (customName != null)
-            builder = Gui.builder(InventoryType.CHEST, MessageUtil.filterMessage(customName));
-        else builder = Gui.builder(InventoryType.CHEST, Component.text("Mailman"));
-        builder.withSize(27);
+                    Bukkit.getScheduler().runTask(OpenGrinding.getInstance(), () -> {
+                        Gui.Builder builder;
+                        if (customName != null)
+                            builder = Gui.builder(InventoryType.CHEST, MessageUtil.filterMessage(customName));
+                        else builder = Gui.builder(InventoryType.CHEST, Component.text("Mailman"));
+                        builder.withSize(27);
 
-        GuiButton startBtn = GuiButton.builder()
-                .withHead(MailmanModule.getPackageUrl())
-                .withName(MessageUtil.filterMessage("<gold>Start"))
-                .withLore(MessageUtil.filterMessage("<gray>Klik om te starten"))
-                .withClickEvent((gui, p, type) -> {
-                    gui.close(p);
-                    this.start(p, playerLevel);
-                })
-                .build();
-        builder.withButton(11, startBtn);
+                        GuiButton startBtn = GuiButton.builder()
+                                .withHead(MailmanModule.getPackageUrl())
+                                .withName(MessageUtil.filterMessage("<gold>Start"))
+                                .withLore(MessageUtil.filterMessage("<gray>Klik om te starten"))
+                                .withClickEvent((gui, p, type) -> {
+                                    gui.close(p);
+                                    this.start(p, playerLevel);
+                                })
+                                .build();
+                        builder.withButton(11, startBtn);
 
-        Map<Integer, MailmanJobConfiguration.Package> packages = MailmanModule.getConfig().getPackages();
-        int maxLevel = packages.keySet().stream().max(Integer::compareTo).orElse(0);
-        int minLevel = packages.keySet().stream().min(Integer::compareTo).orElse(0);
+                        Map<Integer, MailmanJobConfiguration.Package> packages = MailmanModule.getConfig().getPackages();
+                        int maxLevel = packages.keySet().stream().max(Integer::compareTo).orElse(0);
+                        int minLevel = packages.keySet().stream().min(Integer::compareTo).orElse(0);
 
-        if (!packages.containsKey(level)) level = minLevel;
-        MailmanJobConfiguration.Package currentPackage = packages.get(level);
-        if (currentPackage == null) return;
+                        if (!packages.containsKey(level)) level = minLevel;
+                        MailmanJobConfiguration.Package currentPackage = packages.get(level);
+                        if (currentPackage == null) return;
 
-        boolean sellInTokens = CoreModule.getConfig().isSellInTokens();
-        String currencyType = sellInTokens ? " tokens" : "";
+                        boolean sellInTokens = CoreModule.getConfig().isSellInTokens();
+                        String currencyType = sellInTokens ? " tokens" : "";
 
-        MailmanJobConfiguration.Package nextPackage = packages.get(level + 1);
+                        MailmanJobConfiguration.Package nextPackage = packages.get(level + 1);
 
-        double currentPrice = sellInTokens ? currentPackage.price().grindToken() : currentPackage.price().cash();
-        double nextPrice = nextPackage != null ? (sellInTokens ? nextPackage.price().grindToken() : nextPackage.price().cash()) : 0;
+                        double currentPrice = sellInTokens ? currentPackage.price().grindToken() : currentPackage.price().cash();
+                        double nextPrice = nextPackage != null ? (sellInTokens ? nextPackage.price().grindToken() : nextPackage.price().cash()) : 0;
 
-        GuiButton lvlBtn = GuiButton.builder()
-                .withMaterial(Material.DARK_OAK_DOOR)
-                .withName(MessageUtil.filterMessage("<gold>Jij bent momenteel level <bold>" + playerLevel))
-                .withLore(
-                        MessageUtil.filterMessage("<gold>" + level + " -> " + (level + 1) + ":"),
-                        MessageUtil.filterMessage("<gray>Wachttijd: <white>" + currentPackage.waitTime() + " minuten -> " +
-                                (nextPackage != null ? nextPackage.waitTime() : currentPackage.waitTime()) + " minuten"),
-                        MessageUtil.filterMessage("<gray>Prijs: <white>" + currentPrice + currencyType + " -> " +
-                                (nextPackage != null ? nextPrice : currentPrice) + currencyType),
-                        MessageUtil.filterMessage("<gray>Aantal: <white>" + currentPackage.amount().min() + "-" + currentPackage.amount().max() +
-                                " -> " + (nextPackage != null ? nextPackage.amount().min() + "-" + nextPackage.amount().max() : currentPackage.amount().min() + "-" + currentPackage.amount().max())),
-                        MessageUtil.filterMessage(" "),
-                        MessageUtil.filterMessage("<green>Klik rechts om level omhoog!"),
-                        MessageUtil.filterMessage("<red>Klik links om level omlaag!")
-                )
-                .withClickEvent((gui, p, type) -> {
-                    if (type.isRightClick() && nextPackage != null && level < maxLevel) level++;
-                    else if (type.isLeftClick() && level > minLevel) level--;
-                    this.open(player);
-                })
-                .build();
+                        GuiButton lvlBtn = GuiButton.builder()
+                                .withMaterial(Material.DARK_OAK_DOOR)
+                                .withName(MessageUtil.filterMessage("<gold>Jij bent momenteel level <bold>" + playerLevel))
+                                .withLore(
+                                        MessageUtil.filterMessage("<gold>" + level + " -> " + (level + 1) + ":"),
+                                        MessageUtil.filterMessage("<gray>Wachttijd: <white>" + currentPackage.waitTime() + " minuten -> " +
+                                                (nextPackage != null ? nextPackage.waitTime() : currentPackage.waitTime()) + " minuten"),
+                                        MessageUtil.filterMessage("<gray>Prijs: <white>" + currentPrice + currencyType + " -> " +
+                                                (nextPackage != null ? nextPrice : currentPrice) + currencyType),
+                                        MessageUtil.filterMessage("<gray>Aantal: <white>" + currentPackage.amount().min() + "-" + currentPackage.amount().max() +
+                                                " -> " + (nextPackage != null ? nextPackage.amount().min() + "-" + nextPackage.amount().max() : currentPackage.amount().min() + "-" + currentPackage.amount().max())),
+                                        MessageUtil.filterMessage(" "),
+                                        MessageUtil.filterMessage("<green>Klik rechts om level omhoog!"),
+                                        MessageUtil.filterMessage("<red>Klik links om level omlaag!")
+                                )
+                                .withClickEvent((gui, p, type) -> {
+                                    if (type.isRightClick() && nextPackage != null && level < maxLevel) level++;
+                                    else if (type.isLeftClick() && level > minLevel) level--;
+                                    this.open(player);
+                                })
+                                .build();
 
-        builder.withButton(15, lvlBtn);
+                        builder.withButton(15, lvlBtn);
 
-        for (int i = 0; i < 27; i++) {
-            if (i != 11 && i != 15) builder.withButton(i, GuiButton.getFiller());
-        }
+                        for (int i = 0; i < 27; i++) {
+                            if (i != 11 && i != 15) builder.withButton(i, GuiButton.getFiller());
+                        }
 
-        Gui gui = builder.build();
-        this.registerGui(gui);
-        gui.open(player);
+                        Gui gui = builder.build();
+                        this.registerGui(gui);
+                        gui.open(player);
+                    });
+                });
     }
+
 
     private final List<GrindingRegion> mailManRegions = new CopyOnWriteArrayList<>();
 

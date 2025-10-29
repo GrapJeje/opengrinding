@@ -2,6 +2,7 @@ package nl.grapjeje.opengrinding.jobs.fishing.listeners;
 
 import lombok.Getter;
 import nl.grapjeje.core.text.MessageUtil;
+import nl.grapjeje.opengrinding.OpenGrinding;
 import nl.grapjeje.opengrinding.jobs.Jobs;
 import nl.grapjeje.opengrinding.jobs.core.objects.GrindingPlayer;
 import nl.grapjeje.opengrinding.jobs.core.objects.GrindingRegion;
@@ -11,6 +12,7 @@ import nl.grapjeje.opengrinding.jobs.fishing.games.ClickGame;
 import nl.grapjeje.opengrinding.jobs.fishing.games.FishingGame;
 import nl.grapjeje.opengrinding.jobs.fishing.games.MazeGame;
 import nl.grapjeje.opengrinding.jobs.fishing.objects.FishLootTable;
+import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.entity.FishHook;
@@ -76,9 +78,12 @@ public class PlayerCatchListener implements Listener {
                         playerLoot.put(player.getUniqueId(), result.item());
                     } else if (e.getCaught() instanceof Item itemEntity) {
                         itemEntity.setItemStack(result.item());
-                        GrindingPlayer gp = new GrindingPlayer(player.getUniqueId(),
-                                GrindingPlayer.loadOrCreatePlayerModel(player, Jobs.FISHING));
-                        new PlayerFishCatchEvent(gp, result.item()).callEvent();
+                        GrindingPlayer.loadOrCreatePlayerModelAsync(player, Jobs.FISHING)
+                                .thenAccept(model ->
+                                        Bukkit.getScheduler().runTask(OpenGrinding.getInstance(), () -> {
+                                            GrindingPlayer gp = new GrindingPlayer(player.getUniqueId(), model);
+                                            new PlayerFishCatchEvent(gp, result.item()).callEvent();
+                                        }));
                     }
                 }
             });

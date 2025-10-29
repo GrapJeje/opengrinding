@@ -5,6 +5,7 @@ import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import nl.grapjeje.core.gui.Gui;
 import nl.grapjeje.core.gui.GuiButton;
 import nl.grapjeje.core.text.MessageUtil;
+import nl.grapjeje.opengrinding.OpenGrinding;
 import nl.grapjeje.opengrinding.jobs.Jobs;
 import nl.grapjeje.opengrinding.jobs.core.CoreModule;
 import nl.grapjeje.opengrinding.jobs.core.objects.GrindingPlayer;
@@ -14,6 +15,7 @@ import nl.grapjeje.opengrinding.models.PlayerGrindingModel;
 import nl.grapjeje.opengrinding.utils.currency.CurrencyUtil;
 import nl.grapjeje.opengrinding.utils.currency.Price;
 import nl.grapjeje.opengrinding.utils.guis.ShopMenu;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryType;
@@ -32,68 +34,72 @@ public class AxeShopMenu extends ShopMenu {
 
     @Override
     public void open(Player player) {
-        PlayerGrindingModel model = GrindingPlayer.loadOrCreatePlayerModel(player, Jobs.LUMBER);
-        int playerLevel = model.getLevel();
+        GrindingPlayer.loadOrCreatePlayerModelAsync(player, Jobs.LUMBER)
+                .thenAccept(model ->
+                        Bukkit.getScheduler().runTask(OpenGrinding.getInstance(), () -> {
+                            int playerLevel = model.getLevel();
 
-        Gui.Builder builder = Gui.builder(InventoryType.CHEST, Component.text("Pickaxe Shop"));
-        builder.withSize(27);
+                            Gui.Builder builder = Gui.builder(InventoryType.CHEST, Component.text("Pickaxe Shop"));
+                            builder.withSize(27);
 
-        LumberJobConfiguration config = LumberModule.getConfig();
-        List<LumberJobConfiguration.Axe> unlockedAxes = this.getUnlockedAxes(playerLevel, config);
-        int[] slots = this.getSlotPositions(unlockedAxes.size());
+                            LumberJobConfiguration config = LumberModule.getConfig();
+                            List<LumberJobConfiguration.Axe> unlockedAxes = this.getUnlockedAxes(playerLevel, config);
+                            int[] slots = this.getSlotPositions(unlockedAxes.size());
 
-        for (int i = 0; i < unlockedAxes.size(); i++) {
-            LumberJobConfiguration.Axe axe = unlockedAxes.get(i);
-            Price price = axe.price();
-            double amount;
-            String currencyType;
+                            for (int i = 0; i < unlockedAxes.size(); i++) {
+                                LumberJobConfiguration.Axe axe = unlockedAxes.get(i);
+                                Price price = axe.price();
+                                double amount;
+                                String currencyType;
 
-            if (CoreModule.getConfig().isBuyInTokens()) {
-                amount = price.grindToken();
-                currencyType = " Tokens";
-            } else {
-                currencyType = "";
-                amount = price.cash();
-            }
+                                if (CoreModule.getConfig().isBuyInTokens()) {
+                                    amount = price.grindToken();
+                                    currencyType = " Tokens";
+                                } else {
+                                    currencyType = "";
+                                    amount = price.cash();
+                                }
 
-            GuiButton button = GuiButton.builder()
-                    .withMaterial(this.getMaterialFromAxe(axe.name()))
-                    .withName(this.getAxeName(axe.name()))
-                    .withLore(
-                            MessageUtil.filterMessage("<gray>Prijs: <bold>" + amount + currencyType + "<!bold>"),
-                            MessageUtil.filterMessage("<green>Klik om te kopen!")
-                    )
-                    .withClickEvent((gui, p, type) -> {
-                        ItemStack item = new ItemStack(this.getMaterialFromAxe(axe.name()));
-                        ItemMeta meta = item.getItemMeta();
-                        if (meta != null) meta.displayName(this.getAxeName(axe.name()));
-                        item.setItemMeta(meta);
+                                GuiButton button = GuiButton.builder()
+                                        .withMaterial(this.getMaterialFromAxe(axe.name()))
+                                        .withName(this.getAxeName(axe.name()))
+                                        .withLore(
+                                                MessageUtil.filterMessage("<gray>Prijs: <bold>" + amount + currencyType + "<!bold>"),
+                                                MessageUtil.filterMessage("<green>Klik om te kopen!")
+                                        )
+                                        .withClickEvent((gui, p, type) -> {
+                                            ItemStack item = new ItemStack(this.getMaterialFromAxe(axe.name()));
+                                            ItemMeta meta = item.getItemMeta();
+                                            if (meta != null) meta.displayName(this.getAxeName(axe.name()));
+                                            item.setItemMeta(meta);
 
-                        String axeName = PlainTextComponentSerializer.plainText().serialize(this.getAxeName(axe.name()));
+                                            String axeName = PlainTextComponentSerializer.plainText().serialize(this.getAxeName(axe.name()));
 
-                        CurrencyUtil.removeForBuy(p, amount, axeName).thenAccept(map -> {
-                            boolean success = !map.isEmpty();
-                            if (success) {
-                                p.getInventory().addItem(item);
-                                p.sendMessage(MessageUtil.filterMessage(
-                                        "<green>Je hebt een <bold>" + axeName + "<!bold> <green>gekocht voor <bold>" + amount + currencyType + "<!bold>!"
-                                ));
+                                            CurrencyUtil.removeForBuy(p, amount, axeName).thenAccept(map -> {
+                                                boolean success = !map.isEmpty();
+                                                if (success) {
+                                                    p.getInventory().addItem(item);
+                                                    p.sendMessage(MessageUtil.filterMessage(
+                                                            "<green>Je hebt een <bold>" + axeName + "<!bold> <green>gekocht voor <bold>" + amount + currencyType + "<!bold>!"
+                                                    ));
+                                                }
+                                            });
+                                            gui.close(p);
+                                        })
+                                        .build();
+                                builder.withButton(slots[i], button);
                             }
-                        });
-                        gui.close(p);
-                    })
-                    .build();
-            builder.withButton(slots[i], button);
-        }
 
-        for (int i = 0; i < 27; i++) {
-            if (!this.contains(slots, i)) builder.withButton(i, GuiButton.getFiller());
-        }
+                            for (int i = 0; i < 27; i++) {
+                                if (!this.contains(slots, i)) builder.withButton(i, GuiButton.getFiller());
+                            }
 
-        Gui gui = builder.build();
-        this.registerGui(gui);
-        gui.open(player);
+                            Gui gui = builder.build();
+                            this.registerGui(gui);
+                            gui.open(player);
+                        }));
     }
+
 
     private List<LumberJobConfiguration.Axe> getUnlockedAxes(int playerLevel, LumberJobConfiguration config) {
         List<LumberJobConfiguration.Axe> unlocked = new ArrayList<>();

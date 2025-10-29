@@ -5,6 +5,7 @@ import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import nl.grapjeje.core.gui.Gui;
 import nl.grapjeje.core.gui.GuiButton;
 import nl.grapjeje.core.text.MessageUtil;
+import nl.grapjeje.opengrinding.OpenGrinding;
 import nl.grapjeje.opengrinding.jobs.Jobs;
 import nl.grapjeje.opengrinding.jobs.core.CoreModule;
 import nl.grapjeje.opengrinding.jobs.core.objects.GrindingPlayer;
@@ -15,6 +16,7 @@ import nl.grapjeje.opengrinding.models.PlayerGrindingModel;
 import nl.grapjeje.opengrinding.utils.currency.CurrencyUtil;
 import nl.grapjeje.opengrinding.utils.currency.Price;
 import nl.grapjeje.opengrinding.utils.guis.ShopMenu;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryType;
@@ -31,67 +33,73 @@ public class PickaxeShopMenu extends ShopMenu {
 
     @Override
     public void open(Player player) {
-        PlayerGrindingModel model = GrindingPlayer.loadOrCreatePlayerModel(player, Jobs.MINING);
-        int playerLevel = model.getLevel();
+        GrindingPlayer.loadOrCreatePlayerModelAsync(player, Jobs.MINING)
+                .thenAccept(model -> {
+                    int playerLevel = model.getLevel();
 
-        Gui.Builder builder = Gui.builder(InventoryType.CHEST, Component.text("Pickaxe Shop"));
-        builder.withSize(27);
+                    Bukkit.getScheduler().runTask(OpenGrinding.getInstance(), () -> {
+                        Gui.Builder builder = Gui.builder(InventoryType.CHEST, Component.text("Pickaxe Shop"));
+                        builder.withSize(27);
 
-        MiningJobConfiguration config = MiningModule.getConfig();
-        List<Pickaxe> unlockedPickaxes = this.getUnlockedPickaxes(playerLevel, config);
-        int[] slots = this.getSlotPositions(unlockedPickaxes.size());
+                        MiningJobConfiguration config = MiningModule.getConfig();
+                        List<Pickaxe> unlockedPickaxes = this.getUnlockedPickaxes(playerLevel, config);
+                        int[] slots = this.getSlotPositions(unlockedPickaxes.size());
 
-        for (int i = 0; i < unlockedPickaxes.size(); i++) {
-            Pickaxe pickaxe = unlockedPickaxes.get(i);
-            Price price = pickaxe.price();
-            double amount;
-            String currencyType;
+                        for (int i = 0; i < unlockedPickaxes.size(); i++) {
+                            Pickaxe pickaxe = unlockedPickaxes.get(i);
+                            Price price = pickaxe.price();
+                            double amount;
+                            String currencyType;
 
-            if (CoreModule.getConfig().isBuyInTokens()) {
-                amount = price.grindToken();
-                currencyType = " Tokens";
-            } else {
-                currencyType = "";
-                amount = price.cash();
-            }
-
-            GuiButton button = GuiButton.builder()
-                    .withMaterial(this.getMaterialFromPickaxe(pickaxe.name()))
-                    .withName(this.getPickaxeName(pickaxe.name()))
-                    .withLore(
-                            MessageUtil.filterMessage("<gray>Prijs: <bold>" + amount + currencyType + "<!bold>"),
-                            MessageUtil.filterMessage("<green>Klik om te kopen!")
-                            )
-                    .withClickEvent((gui, p, type) -> {
-                        ItemStack item = new ItemStack(this.getMaterialFromPickaxe(pickaxe.name()));
-                        ItemMeta meta = item.getItemMeta();
-                        if (meta != null) meta.displayName(this.getPickaxeName(pickaxe.name()));
-                        item.setItemMeta(meta);
-
-                        String pickaxeName = PlainTextComponentSerializer.plainText().serialize(this.getPickaxeName(pickaxe.name()));
-
-                        CurrencyUtil.removeForBuy(p, amount, pickaxeName).thenAccept(map -> {
-                            boolean success = !map.isEmpty();
-                            if (success) {
-                                p.getInventory().addItem(item);
-                                p.sendMessage(MessageUtil.filterMessage(
-                                        "<green>Je hebt een <bold>" + pickaxeName + "<!bold> <green>gekocht voor <bold>" + amount + currencyType + "<!bold>!"
-                                ));
+                            if (CoreModule.getConfig().isBuyInTokens()) {
+                                amount = price.grindToken();
+                                currencyType = " Tokens";
+                            } else {
+                                currencyType = "";
+                                amount = price.cash();
                             }
-                        });
-                        gui.close(p);
-                    })
-                    .build();
-            builder.withButton(slots[i], button);
-        }
 
-        for (int i = 0; i < 27; i++) {
-            if (!this.contains(slots, i)) builder.withButton(i, GuiButton.getFiller());
-        }
+                            GuiButton button = GuiButton.builder()
+                                    .withMaterial(this.getMaterialFromPickaxe(pickaxe.name()))
+                                    .withName(this.getPickaxeName(pickaxe.name()))
+                                    .withLore(
+                                            MessageUtil.filterMessage("<gray>Prijs: <bold>" + amount + currencyType + "<!bold>"),
+                                            MessageUtil.filterMessage("<green>Klik om te kopen!")
+                                    )
+                                    .withClickEvent((gui, p, type) -> {
+                                        ItemStack item = new ItemStack(this.getMaterialFromPickaxe(pickaxe.name()));
+                                        ItemMeta meta = item.getItemMeta();
+                                        if (meta != null) meta.displayName(this.getPickaxeName(pickaxe.name()));
+                                        item.setItemMeta(meta);
 
-        Gui gui = builder.build();
-        this.registerGui(gui);
-        gui.open(player);
+                                        String pickaxeName = PlainTextComponentSerializer.plainText().serialize(this.getPickaxeName(pickaxe.name()));
+
+                                        CurrencyUtil.removeForBuy(p, amount, pickaxeName).thenAccept(map -> {
+                                            boolean success = !map.isEmpty();
+                                            if (success) {
+                                                Bukkit.getScheduler().runTask(OpenGrinding.getInstance(), () -> {
+                                                    p.getInventory().addItem(item);
+                                                    p.sendMessage(MessageUtil.filterMessage(
+                                                            "<green>Je hebt een <bold>" + pickaxeName + "<!bold> <green>gekocht voor <bold>" + amount + currencyType + "<!bold>!"
+                                                    ));
+                                                });
+                                            }
+                                        });
+                                        gui.close(p);
+                                    })
+                                    .build();
+                            builder.withButton(slots[i], button);
+                        }
+
+                        for (int i = 0; i < 27; i++) {
+                            if (!this.contains(slots, i)) builder.withButton(i, GuiButton.getFiller());
+                        }
+
+                        Gui gui = builder.build();
+                        this.registerGui(gui);
+                        gui.open(player);
+                    });
+                });
     }
 
     private List<Pickaxe> getUnlockedPickaxes(int playerLevel, MiningJobConfiguration config) {

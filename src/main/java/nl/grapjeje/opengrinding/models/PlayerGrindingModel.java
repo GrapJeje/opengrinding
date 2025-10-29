@@ -6,6 +6,8 @@ import com.craftmend.storm.api.markers.Table;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import nl.grapjeje.opengrinding.jobs.Jobs;
+import org.bukkit.entity.Player;
+
 import java.util.UUID;
 
 @Data
@@ -32,5 +34,14 @@ public class PlayerGrindingModel extends StormModel {
 
     public void setJob(Jobs job) {
         this.jobName = job.name();
+    }
+
+    public static PlayerGrindingModel createNew(Player player, Jobs job) {
+        PlayerGrindingModel m = new PlayerGrindingModel();
+        m.setPlayerUuid(player.getUniqueId());
+        m.setJob(job);
+        m.setLevel(0);
+        m.setValue(0.0);
+        return m;
     }
 }
