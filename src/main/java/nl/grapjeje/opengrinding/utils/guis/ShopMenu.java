@@ -4,14 +4,6 @@ import nl.grapjeje.core.text.MessageUtil;
 import nl.grapjeje.opengrinding.OpenGrinding;
 import nl.grapjeje.opengrinding.utils.JobModule;
 import nl.grapjeje.opengrinding.utils.configuration.JobConfig;
-import nl.openminetopia.OpenMinetopia;
-import nl.openminetopia.configuration.MessageConfiguration;
-import nl.openminetopia.modules.banking.BankingModule;
-import nl.openminetopia.modules.transactions.TransactionsModule;
-import nl.openminetopia.modules.transactions.enums.TransactionType;
-import nl.openminetopia.modules.transactions.events.TransactionUpdateEvent;
-import nl.openminetopia.utils.ChatUtils;
-import nl.openminetopia.utils.events.EventUtils;
 import org.bukkit.entity.Player;
 
 public abstract class ShopMenu extends Menu {

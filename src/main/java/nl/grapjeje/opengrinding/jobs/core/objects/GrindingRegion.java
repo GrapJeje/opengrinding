@@ -1,6 +1,5 @@
 package nl.grapjeje.opengrinding.jobs.core.objects;
 
-import com.craftmend.storm.api.enums.Where;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import nl.grapjeje.opengrinding.OpenGrinding;
