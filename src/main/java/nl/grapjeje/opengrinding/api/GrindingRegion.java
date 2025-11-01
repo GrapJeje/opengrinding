@@ -1,5 +1,6 @@
 package nl.grapjeje.opengrinding.api;
 
+import nl.grapjeje.opengrinding.jobs.core.objects.CraftGrindingRegion;
 import nl.grapjeje.opengrinding.models.GrindingRegionModel;
 import org.bukkit.Location;
 
@@ -35,14 +36,14 @@ public interface GrindingRegion {
     boolean hasValue();
 
     static void isInRegionWithJob(Location loc, Jobs job, Consumer<Boolean> callback) {
-        throw new UnsupportedOperationException("This must be implemented in a concrete class.");
+        CraftGrindingRegion.isInRegionWithJob(loc, job, callback);
     }
 
     static GrindingRegion getRegionAt(Location loc) {
-        throw new UnsupportedOperationException("This must be implemented in a concrete class.");
+        return CraftGrindingRegion.getRegionAt(loc);
     }
 
     static GrindingRegion getRegionAt(Location loc, Jobs job) {
-        throw new UnsupportedOperationException("This must be implemented in a concrete class.");
+        return CraftGrindingRegion.getRegionAt(loc, job);
     }
 }

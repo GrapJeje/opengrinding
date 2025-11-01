@@ -1,6 +1,7 @@
 package nl.grapjeje.opengrinding.api.player;
 
 import nl.grapjeje.opengrinding.api.Jobs;
+import nl.grapjeje.opengrinding.jobs.core.objects.CraftGrindingPlayer;
 import nl.grapjeje.opengrinding.models.PlayerGrindingModel;
 import nl.openminetopia.api.player.objects.MinetopiaPlayer;
 import org.bukkit.entity.Player;
@@ -22,6 +23,6 @@ public interface GrindingPlayer {
     boolean isInventoryFull();
 
     static CompletableFuture<PlayerGrindingModel> loadOrCreatePlayerModelAsync(Player player, Jobs job) {
-        throw new UnsupportedOperationException("This must be implemented in a concrete class.");
+        return CraftGrindingPlayer.loadOrCreatePlayerModelAsync(player, job);
     }
 }
