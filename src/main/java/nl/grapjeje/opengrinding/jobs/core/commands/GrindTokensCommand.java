@@ -4,15 +4,13 @@ import nl.grapjeje.core.command.Command;
 import nl.grapjeje.core.command.CommandSourceStack;
 import nl.grapjeje.core.text.MessageUtil;
 import nl.grapjeje.opengrinding.OpenGrinding;
+import nl.grapjeje.opengrinding.api.GrindingCurrency;
 import nl.grapjeje.opengrinding.jobs.core.CoreModule;
-import nl.grapjeje.opengrinding.jobs.core.objects.GrindingCurrency;
-import nl.grapjeje.opengrinding.models.CurrencyModel;
-import nl.grapjeje.opengrinding.utils.currency.Currency;
+import nl.grapjeje.opengrinding.jobs.core.objects.CraftGrindingCurrency;
 import nl.grapjeje.opengrinding.utils.currency.CurrencyUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
-import java.util.HashMap;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class GrindTokensCommand implements Command {
@@ -38,9 +36,9 @@ public class GrindTokensCommand implements Command {
 
         Bukkit.getScheduler().runTaskAsynchronously(OpenGrinding.getInstance(), () ->
                 CurrencyUtil.getModelAsync(player).thenApply(model -> {
-            GrindingCurrency currency = new GrindingCurrency(player.getUniqueId(), model);
-            playerTokens.set(currency.getModel().getGrindTokens());
-            double currentDayTokens = currency.getModel().getTokensFromToday();
+            GrindingCurrency currency = CraftGrindingCurrency.get(player.getUniqueId(), model);
+            playerTokens.set(currency.getGrindTokens());
+            double currentDayTokens = currency.getTokensFromToday();
             double maxTokensPerDay = CoreModule.getConfig().getTokenLimit();
             tokensLeft.set(maxTokensPerDay - currentDayTokens);
 

@@ -17,7 +17,6 @@ import nl.grapjeje.opengrinding.jobs.mining.MiningModule;
 import nl.grapjeje.opengrinding.jobs.mining.configuration.MiningJobConfiguration;
 import nl.grapjeje.opengrinding.jobs.mining.guis.PickaxeShopMenu;
 import nl.grapjeje.opengrinding.jobs.mining.objects.Ore;
-import nl.grapjeje.opengrinding.utils.currency.Currency;
 import nl.grapjeje.opengrinding.utils.currency.CurrencyUtil;
 import nl.grapjeje.opengrinding.utils.currency.Price;
 import org.bukkit.Material;
@@ -31,7 +30,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
 
 public class SellCommand implements Command {

@@ -3,9 +3,10 @@ package nl.grapjeje.opengrinding.jobs.mining.listeners;
 import net.kyori.adventure.title.TitlePart;
 import nl.grapjeje.core.text.MessageUtil;
 import nl.grapjeje.opengrinding.OpenGrinding;
-import nl.grapjeje.opengrinding.jobs.Jobs;
-import nl.grapjeje.opengrinding.jobs.core.objects.GrindingPlayer;
-import nl.grapjeje.opengrinding.jobs.core.objects.GrindingRegion;
+import nl.grapjeje.opengrinding.api.GrindingRegion;
+import nl.grapjeje.opengrinding.api.Jobs;
+import nl.grapjeje.opengrinding.api.player.GrindingPlayer;
+import nl.grapjeje.opengrinding.jobs.core.objects.CraftGrindingPlayer;
 import nl.grapjeje.opengrinding.jobs.mining.MiningModule;
 import nl.grapjeje.opengrinding.jobs.mining.configuration.MiningJobConfiguration;
 import nl.grapjeje.opengrinding.jobs.mining.objects.MiningOres;
@@ -134,7 +135,7 @@ public class BlockBreakListener implements Listener {
                             });
 
                             CompletableFuture.runAsync(() -> {
-                                GrindingPlayer gp = new GrindingPlayer(player.getUniqueId(), model);
+                                GrindingPlayer gp = CraftGrindingPlayer.get(player.getUniqueId(), model);
                                 gp.addProgress(Jobs.MINING, oreRecord.points());
                                 gp.save(Jobs.MINING);
                             });

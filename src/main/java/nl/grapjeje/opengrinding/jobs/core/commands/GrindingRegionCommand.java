@@ -9,8 +9,9 @@ import nl.grapjeje.core.command.Command;
 import nl.grapjeje.core.command.CommandSourceStack;
 import nl.grapjeje.core.text.MessageUtil;
 import nl.grapjeje.opengrinding.OpenGrinding;
-import nl.grapjeje.opengrinding.jobs.Jobs;
-import nl.grapjeje.opengrinding.jobs.core.objects.GrindingRegion;
+import nl.grapjeje.opengrinding.api.GrindingRegion;
+import nl.grapjeje.opengrinding.api.Jobs;
+import nl.grapjeje.opengrinding.jobs.core.objects.CraftGrindingRegion;
 import nl.grapjeje.opengrinding.models.GrindingRegionModel;
 import nl.openminetopia.modules.data.storm.StormDatabase;
 import org.bukkit.Bukkit;
@@ -263,7 +264,7 @@ public class GrindingRegionCommand implements Command {
                 );
                 return;
             }
-            GrindingRegion region = new GrindingRegion(regionOpt.get());
+            GrindingRegion region = CraftGrindingRegion.get(regionOpt.get());
             region.addJob(job);
             region.save();
 
@@ -314,7 +315,7 @@ public class GrindingRegionCommand implements Command {
                 );
                 return;
             }
-            GrindingRegion region = new GrindingRegion(regionOpt.get());
+            GrindingRegion region = CraftGrindingRegion.get(regionOpt.get());
             region.removeJob(job);
             region.save();
 
@@ -357,7 +358,7 @@ public class GrindingRegionCommand implements Command {
                 );
                 return;
             }
-            GrindingRegion region = new GrindingRegion(regionOpt.get());
+            GrindingRegion region = CraftGrindingRegion.get(regionOpt.get());
             region.setValue(value);
             region.save();
 
@@ -398,7 +399,7 @@ public class GrindingRegionCommand implements Command {
                 );
                 return;
             }
-            GrindingRegion region = new GrindingRegion(regionOpt.get());
+            GrindingRegion region = CraftGrindingRegion.get(regionOpt.get());
             region.setValue(null);
             region.save();
 

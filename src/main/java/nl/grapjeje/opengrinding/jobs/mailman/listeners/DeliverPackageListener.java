@@ -2,7 +2,7 @@ package nl.grapjeje.opengrinding.jobs.mailman.listeners;
 
 import nl.grapjeje.core.text.MessageUtil;
 import nl.grapjeje.opengrinding.jobs.mailman.MailmanModule;
-import nl.grapjeje.opengrinding.jobs.mailman.events.DeliverPackageEvent;
+import nl.grapjeje.opengrinding.api.player.events.mailman.PlayerDeliverPackageEvent;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -14,7 +14,7 @@ import java.util.UUID;
 public class DeliverPackageListener implements Listener {
 
     @EventHandler
-    public void onPackageDeliver(DeliverPackageEvent e) {
+    public void onPackageDeliver(PlayerDeliverPackageEvent e) {
         Player player = e.getPlayer().getPlayer().getBukkit().getPlayer();
         if (player == null) return;
 

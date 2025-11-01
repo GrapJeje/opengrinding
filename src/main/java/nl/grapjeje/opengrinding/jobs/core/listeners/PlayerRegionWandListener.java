@@ -2,8 +2,9 @@ package nl.grapjeje.opengrinding.jobs.core.listeners;
 
 import net.kyori.adventure.text.Component;
 import nl.grapjeje.core.text.MessageUtil;
+import nl.grapjeje.opengrinding.api.GrindingRegion;
 import nl.grapjeje.opengrinding.jobs.core.commands.GrindingRegionCommand;
-import nl.grapjeje.opengrinding.jobs.core.objects.GrindingRegion;
+import nl.grapjeje.opengrinding.jobs.core.objects.CraftGrindingRegion;
 import nl.grapjeje.opengrinding.models.GrindingRegionModel;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -49,7 +50,7 @@ public class PlayerRegionWandListener implements Listener {
 
         if (selection.getMin() != null && selection.getMax() != null && !selection.isFinished()) {
             selection.setFinished(true);
-            GrindingRegion region = new GrindingRegion(new GrindingRegionModel());
+            GrindingRegion region = CraftGrindingRegion.get(new GrindingRegionModel());
             region.setName(selection.getName());
             region.setMinLocation(selection.getMin());
             region.setMaxLocation(selection.getMax());

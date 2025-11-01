@@ -1,9 +1,9 @@
 package nl.grapjeje.opengrinding.jobs.core.listeners;
 
 import nl.grapjeje.core.text.MessageUtil;
-import nl.grapjeje.opengrinding.jobs.Jobs;
-import nl.grapjeje.opengrinding.jobs.core.events.PlayerLevelChangeEvent;
-import nl.grapjeje.opengrinding.jobs.core.objects.GrindingPlayer;
+import nl.grapjeje.opengrinding.api.Jobs;
+import nl.grapjeje.opengrinding.api.player.GrindingPlayer;
+import nl.grapjeje.opengrinding.api.player.events.level.PlayerLevelChangeEvent;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;

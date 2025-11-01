@@ -2,9 +2,10 @@ package nl.grapjeje.opengrinding.jobs.fishing.games;
 
 import lombok.Getter;
 import nl.grapjeje.opengrinding.OpenGrinding;
-import nl.grapjeje.opengrinding.jobs.Jobs;
-import nl.grapjeje.opengrinding.jobs.core.objects.GrindingPlayer;
-import nl.grapjeje.opengrinding.jobs.fishing.events.PlayerFishCatchEvent;
+import nl.grapjeje.opengrinding.api.Jobs;
+import nl.grapjeje.opengrinding.api.player.GrindingPlayer;
+import nl.grapjeje.opengrinding.jobs.core.objects.CraftGrindingPlayer;
+import nl.grapjeje.opengrinding.api.player.events.fishing.PlayerFishCatchEvent;
 import nl.grapjeje.opengrinding.jobs.fishing.listeners.PlayerCatchListener;
 import nl.grapjeje.opengrinding.utils.guis.Menu;
 import org.bukkit.entity.Player;
@@ -58,7 +59,7 @@ public abstract class FishingGame extends Menu {
                 GrindingPlayer.loadOrCreatePlayerModelAsync(player, Jobs.FISHING)
                         .thenAccept(model ->
                                 Bukkit.getScheduler().runTask(OpenGrinding.getInstance(), () -> {
-                                    GrindingPlayer gp = new GrindingPlayer(player.getUniqueId(), model);
+                                    GrindingPlayer gp = CraftGrindingPlayer.get(player.getUniqueId(), model);
                                     new PlayerFishCatchEvent(gp, item).callEvent();
                                 }));
             }

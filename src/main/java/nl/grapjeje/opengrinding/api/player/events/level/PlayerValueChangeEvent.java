@@ -1,9 +1,9 @@
-package nl.grapjeje.opengrinding.jobs.core.events;
+package nl.grapjeje.opengrinding.api.player.events.level;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import nl.grapjeje.opengrinding.jobs.Jobs;
-import nl.grapjeje.opengrinding.jobs.core.objects.GrindingPlayer;
+import nl.grapjeje.opengrinding.api.Jobs;
+import nl.grapjeje.opengrinding.api.player.GrindingPlayer;
 import nl.grapjeje.opengrinding.utils.event.GrindingPlayerEvent;
 import nl.grapjeje.opengrinding.utils.event.JobEvent;
 import org.bukkit.event.Event;

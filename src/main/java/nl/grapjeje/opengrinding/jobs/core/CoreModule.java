@@ -3,7 +3,7 @@ package nl.grapjeje.opengrinding.jobs.core;
 import lombok.Getter;
 import nl.grapjeje.core.modules.Module;
 import nl.grapjeje.opengrinding.OpenGrinding;
-import nl.grapjeje.opengrinding.jobs.Jobs;
+import nl.grapjeje.opengrinding.api.Jobs;
 import nl.grapjeje.opengrinding.jobs.core.commands.*;
 import nl.grapjeje.opengrinding.jobs.core.configuration.DefaultConfiguration;
 import nl.grapjeje.opengrinding.jobs.core.listeners.HeadBlockerListener;

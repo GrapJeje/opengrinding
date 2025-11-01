@@ -3,9 +3,11 @@ package nl.grapjeje.opengrinding.utils.currency;
 import com.craftmend.storm.api.enums.Where;
 import nl.grapjeje.core.text.MessageUtil;
 import nl.grapjeje.opengrinding.OpenGrinding;
+import nl.grapjeje.opengrinding.api.Currency;
+import nl.grapjeje.opengrinding.api.GrindingCurrency;
 import nl.grapjeje.opengrinding.jobs.core.CoreModule;
+import nl.grapjeje.opengrinding.jobs.core.objects.CraftGrindingCurrency;
 import nl.grapjeje.opengrinding.models.CurrencyModel;
-import nl.grapjeje.opengrinding.jobs.core.objects.GrindingCurrency;
 import nl.openminetopia.OpenMinetopia;
 import nl.openminetopia.configuration.MessageConfiguration;
 import nl.openminetopia.modules.banking.BankingModule;
@@ -21,7 +23,7 @@ import java.util.concurrent.CompletableFuture;
 
 public class CurrencyUtil {
 
-    public static CompletableFuture<Map<Currency, Double>> giveReward(Player player, double cashAmount, double grindTokens, String reason) {
+    public static CompletableFuture<Map<nl.grapjeje.opengrinding.api.Currency, Double>> giveReward(Player player, double cashAmount, double grindTokens, String reason) {
         checkIfNeedReset(player);
 
         if (CoreModule.getConfig().isSellInTokens()) {
@@ -33,28 +35,28 @@ public class CurrencyUtil {
         }
     }
 
-    public static CompletableFuture<Map<Currency, Double>> removeForBuy(Player player, double amount, String reason) {
+    public static CompletableFuture<Map<nl.grapjeje.opengrinding.api.Currency, Double>> removeForBuy(Player player, double amount, String reason) {
         if (CoreModule.getConfig().isBuyInTokens()) {
             return getModelAsync(player).thenApply(model -> {
-                GrindingCurrency currency = new GrindingCurrency(player.getUniqueId(), model);
+                GrindingCurrency currency = CraftGrindingCurrency.get(player.getUniqueId(), model);
 
-                double currentTokens = currency.getModel().getGrindTokens();
+                double currentTokens = currency.getGrindTokens();
 
                 if (currentTokens < amount) {
                     Bukkit.getScheduler().runTask(OpenGrinding.getInstance(), () -> {
                         player.sendMessage(MessageUtil.filterMessage("<warning>⚠ Je hebt niet genoeg grindtokens!"));
                         player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1.0F, 1.0F);
                     });
-                    return new HashMap<Currency, Double>();
+                    return new HashMap<nl.grapjeje.opengrinding.api.Currency, Double>();
                 }
 
-                currency.getModel().setGrindTokens(currentTokens - amount);
+                currency.setGrindTokens(currentTokens - amount);
                 currency.save();
 
-                return (Map<Currency, Double>) (Map<?, ?>) Map.of(Currency.TOKENS, amount);
+                return (Map<nl.grapjeje.opengrinding.api.Currency, Double>) (Map<?, ?>) Map.of(nl.grapjeje.opengrinding.api.Currency.TOKENS, amount);
             });
         } else {
-            CompletableFuture<Map<Currency, Double>> future = new CompletableFuture<>();
+            CompletableFuture<Map<nl.grapjeje.opengrinding.api.Currency, Double>> future = new CompletableFuture<>();
             BankingModule bankingModule = (BankingModule) OpenMinetopia.getModuleManager().get(BankingModule.class);
 
             bankingModule.getAccountByIdAsync(player.getUniqueId()).whenComplete((accountModel, throwable) -> {
@@ -62,20 +64,20 @@ public class CurrencyUtil {
                     Bukkit.getScheduler().runTask(OpenGrinding.getInstance(), () ->
                             player.sendMessage(MessageConfiguration.component("banking_account_not_found"))
                     );
-                    future.complete(new HashMap<Currency, Double>());
+                    future.complete(new HashMap<nl.grapjeje.opengrinding.api.Currency, Double>());
                 } else {
                     if (accountModel.getBalance() < amount) {
                         Bukkit.getScheduler().runTask(OpenGrinding.getInstance(), () ->
                                 player.sendMessage(ChatUtils.color("<warning>⚠ Je hebt niet genoeg saldo op je rekening."))
                         );
-                        future.complete(new HashMap<Currency, Double>());
+                        future.complete(new HashMap<nl.grapjeje.opengrinding.api.Currency, Double>());
                         return;
                     }
 
                     accountModel.setBalance(accountModel.getBalance() - amount);
                     accountModel.save();
 
-                    future.complete((Map<Currency, Double>) (Map<?, ?>) Map.of(Currency.CASH, amount));
+                    future.complete((Map<nl.grapjeje.opengrinding.api.Currency, Double>) (Map<?, ?>) Map.of(nl.grapjeje.opengrinding.api.Currency.CASH, amount));
                 }
             });
 
@@ -83,28 +85,28 @@ public class CurrencyUtil {
         }
     }
 
-    private static double getRemainingForToday(CurrencyModel model, Currency type) {
-        if (type == Currency.TOKENS) return CoreModule.getConfig().getTokenLimit() - model.getTokensFromToday();
-        else return CoreModule.getConfig().getCashLimit() - model.getCashFromToday();
+    private static double getRemainingForToday(GrindingCurrency currency, nl.grapjeje.opengrinding.api.Currency type) {
+        if (type == nl.grapjeje.opengrinding.api.Currency.TOKENS) return CoreModule.getConfig().getTokenLimit() - currency.getTokensFromToday();
+        else return CoreModule.getConfig().getCashLimit() - currency.getCashFromToday();
     }
 
-    private static CompletableFuture<Map<Currency, Double>> giveCash(Player player, double amount, String reason) {
+    private static CompletableFuture<Map<nl.grapjeje.opengrinding.api.Currency, Double>> giveCash(Player player, double amount, String reason) {
         return getModelAsync(player).thenApply(model -> {
-            GrindingCurrency currency = new GrindingCurrency(player.getUniqueId(), model);
+            GrindingCurrency currency = CraftGrindingCurrency.get(player.getUniqueId(), model);
 
             double allowed;
             if (CoreModule.getConfig().isDailyLimit()) {
-                allowed = getRemainingForToday(currency.getModel(), Currency.CASH);
+                allowed = getRemainingForToday(currency, nl.grapjeje.opengrinding.api.Currency.CASH);
                 if (allowed <= amount) {
                     Bukkit.getScheduler().runTask(OpenGrinding.getInstance(), () ->
                             player.sendMessage(MessageUtil.filterMessage("<warning>⚠ Jij hebt jouw grinding cash limiet bereikt!"))
                     );
                 } else allowed = amount;
-                if (allowed <= 0) return (Map<Currency, Double>) (Map<?, ?>) Map.of(currency, 0.0);
+                if (allowed <= 0) return (Map<nl.grapjeje.opengrinding.api.Currency, Double>) (Map<?, ?>) Map.of(currency, 0.0);
             } else allowed = amount;
 
-            currency.getModel().setCashFromToday(currency.getModel().getCashFromToday() + allowed);
-            currency.getModel().setLastUpdatedDate(LocalDate.now());
+            currency.setCashFromToday(currency.getCashFromToday() + allowed);
+            currency.setLastUpdatedDate(LocalDate.now());
             currency.save();
 
             BankingModule bankingModule = (BankingModule) OpenMinetopia.getModuleManager().get(BankingModule.class);
@@ -119,28 +121,28 @@ public class CurrencyUtil {
                 accountModel.setBalance(accountModel.getBalance() + finalAllowed);
                 accountModel.save();
             });
-            return (Map<Currency, Double>) (Map<?, ?>) Map.of(currency, allowed);
+            return (Map<nl.grapjeje.opengrinding.api.Currency, Double>) (Map<?, ?>) Map.of(currency, allowed);
         });
     }
 
-    private static CompletableFuture<Map<Currency, Double>> giveTokens(Player player, double amount) {
+    private static CompletableFuture<Map<nl.grapjeje.opengrinding.api.Currency, Double>> giveTokens(Player player, double amount) {
         return getModelAsync(player).thenApply(model -> {
-            GrindingCurrency currency = new GrindingCurrency(player.getUniqueId(), model);
+            GrindingCurrency currency = CraftGrindingCurrency.get(player.getUniqueId(), model);
 
             double allowed;
             if (CoreModule.getConfig().isDailyLimit()) {
-                allowed = getRemainingForToday(currency.getModel(), Currency.TOKENS);
+                allowed = getRemainingForToday(currency, nl.grapjeje.opengrinding.api.Currency.TOKENS);
                 if (allowed <= amount) {
                     Bukkit.getScheduler().runTask(OpenGrinding.getInstance(), () ->
                             player.sendMessage(MessageUtil.filterMessage("<warning>⚠ Jij hebt jouw grindtoken limiet bereikt!"))
                     );
                 } else allowed = amount;
-                if (allowed <= 0) return (Map<Currency, Double>) (Map<?, ?>) Map.of(currency, 0.0);
+                if (allowed <= 0) return (Map<nl.grapjeje.opengrinding.api.Currency, Double>) (Map<?, ?>) Map.of(currency, 0.0);
             } else allowed = amount;
 
-            currency.getModel().setGrindTokens(currency.getModel().getGrindTokens() + allowed);
-            currency.getModel().setTokensFromToday(currency.getModel().getTokensFromToday() + allowed);
-            currency.getModel().setLastUpdatedDate(LocalDate.now());
+            currency.setGrindTokens(currency.getGrindTokens() + allowed);
+            currency.setTokensFromToday(currency.getTokensFromToday() + allowed);
+            currency.setLastUpdatedDate(LocalDate.now());
             currency.save();
 
             return (Map<Currency, Double>) (Map<?, ?>) Map.of(currency, allowed);
@@ -183,7 +185,7 @@ public class CurrencyUtil {
 
     private static void checkIfNeedReset(Player player) {
         getModelAsync(player).thenAccept(model -> {
-            GrindingCurrency currency = new GrindingCurrency(player.getUniqueId(), model);
+            GrindingCurrency currency = CraftGrindingCurrency.get(player.getUniqueId(), model);
             currency.checkIfNeedsReset();
         });
     }

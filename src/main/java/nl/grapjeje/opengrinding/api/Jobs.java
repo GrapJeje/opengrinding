@@ -1,4 +1,4 @@
-package nl.grapjeje.opengrinding.jobs;
+package nl.grapjeje.opengrinding.api;
 
 public enum Jobs {
     MINING,

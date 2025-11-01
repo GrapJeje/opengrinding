@@ -1,27 +1,25 @@
-package nl.grapjeje.opengrinding.jobs.mailman.events;
+package nl.grapjeje.opengrinding.api.player.events.level;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import nl.grapjeje.opengrinding.jobs.core.objects.GrindingPlayer;
-import nl.grapjeje.opengrinding.jobs.core.objects.GrindingRegion;
-import nl.grapjeje.opengrinding.jobs.mailman.objects.MailmanJob;
+import nl.grapjeje.opengrinding.api.Jobs;
+import nl.grapjeje.opengrinding.api.player.GrindingPlayer;
 import nl.grapjeje.opengrinding.utils.event.GrindingPlayerEvent;
+import nl.grapjeje.opengrinding.utils.event.JobEvent;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 import org.jetbrains.annotations.NotNull;
 
 @RequiredArgsConstructor
 @Getter
-public class DeliverPackageEvent extends Event implements GrindingPlayerEvent {
+public class PlayerLevelChangeEvent extends Event implements GrindingPlayerEvent, JobEvent {
     @Getter
     private static final HandlerList HANDLERS = new HandlerList();
 
     private final GrindingPlayer player;
-    private final GrindingRegion region;
-
-    public MailmanJob getJob() {
-        return MailmanJob.getJobs().get(player.getPlayer().getUuid());
-    }
+    private final Jobs job;
+    private final int oldLevel;
+    private final int newLevel;
 
     @Override
     public @NotNull HandlerList getHandlers() {

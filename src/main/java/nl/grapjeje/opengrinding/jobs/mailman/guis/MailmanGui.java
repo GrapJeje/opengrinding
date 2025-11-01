@@ -8,15 +8,15 @@ import nl.grapjeje.core.gui.Gui;
 import nl.grapjeje.core.gui.GuiButton;
 import nl.grapjeje.core.text.MessageUtil;
 import nl.grapjeje.opengrinding.OpenGrinding;
-import nl.grapjeje.opengrinding.jobs.Jobs;
+import nl.grapjeje.opengrinding.api.GrindingRegion;
+import nl.grapjeje.opengrinding.api.Jobs;
+import nl.grapjeje.opengrinding.api.player.GrindingPlayer;
 import nl.grapjeje.opengrinding.jobs.core.CoreModule;
-import nl.grapjeje.opengrinding.jobs.core.objects.GrindingPlayer;
-import nl.grapjeje.opengrinding.jobs.core.objects.GrindingRegion;
+import nl.grapjeje.opengrinding.jobs.core.objects.CraftGrindingRegion;
 import nl.grapjeje.opengrinding.jobs.mailman.MailmanModule;
 import nl.grapjeje.opengrinding.jobs.mailman.configuration.MailmanJobConfiguration;
 import nl.grapjeje.opengrinding.jobs.mailman.objects.MailmanJob;
 import nl.grapjeje.opengrinding.models.GrindingRegionModel;
-import nl.grapjeje.opengrinding.models.PlayerGrindingModel;
 import nl.grapjeje.opengrinding.utils.guis.ShopMenu;
 import nl.openminetopia.modules.data.storm.StormDatabase;
 import org.bukkit.Bukkit;
@@ -25,7 +25,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryType;
 
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
@@ -175,7 +174,7 @@ public class MailmanGui extends ShopMenu {
                     .toList();
 
             for (GrindingRegionModel model : allRegions) {
-                GrindingRegion region = new GrindingRegion(model);
+                GrindingRegion region = CraftGrindingRegion.get(model);
                 if (!region.allowsJob(Jobs.MAILMAN)) continue;
                 if (!region.hasValue()) continue;
                 mailManRegions.add(region);

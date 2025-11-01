@@ -6,7 +6,7 @@ import com.craftmend.storm.api.markers.Table;
 import com.google.gson.Gson;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import nl.grapjeje.opengrinding.jobs.Jobs;
+import nl.grapjeje.opengrinding.api.Jobs;
 import nl.openminetopia.modules.data.storm.StormDatabase;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;

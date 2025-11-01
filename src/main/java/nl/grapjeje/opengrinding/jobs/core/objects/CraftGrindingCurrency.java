@@ -1,7 +1,10 @@
 package nl.grapjeje.opengrinding.jobs.core.objects;
 
 import lombok.Getter;
+import nl.grapjeje.core.registry.AutoRegistry;
+import nl.grapjeje.core.registry.Registry;
 import nl.grapjeje.core.text.MessageUtil;
+import nl.grapjeje.opengrinding.api.GrindingCurrency;
 import nl.grapjeje.opengrinding.jobs.core.CoreModule;
 import nl.grapjeje.opengrinding.models.CurrencyModel;
 import nl.openminetopia.api.player.PlayerManager;
@@ -14,28 +17,72 @@ import java.time.LocalDate;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
+@AutoRegistry
 @Getter
-public class GrindingCurrency {
+public class CraftGrindingCurrency implements GrindingCurrency {
     private final MinetopiaPlayer player;
     private final CurrencyModel model;
 
-    public GrindingCurrency(UUID uuid, CurrencyModel grindTokensModel) {
+    public CraftGrindingCurrency(UUID uuid, CurrencyModel grindTokensModel) {
         this.player = PlayerManager.getInstance().getOnlineMinetopiaPlayer(Bukkit.getPlayer(uuid));
         this.model = grindTokensModel;
     }
 
+    public static GrindingCurrency get(UUID uuid, CurrencyModel model) {
+        return Registry.get(
+                GrindingCurrency.class,
+                uuid.toString(),
+                (args) -> new CraftGrindingCurrency((UUID) args[0], (CurrencyModel) args[1]),
+                uuid, model
+        );
+    }
+
+    @Override
     public CompletableFuture<Void> save() {
         return CompletableFuture.runAsync(() -> StormDatabase.getInstance().saveStormModel(model));
     }
 
+    @Override
+    public Double getGrindTokens() {
+        return model.getGrindTokens();
+    }
+
+    @Override
+    public void setGrindTokens(Double grindTokens) {
+        model.setGrindTokens(grindTokens);
+    }
+
+    @Override
+    public Double getCashFromToday() {
+        return model.getCashFromToday();
+    }
+
+    @Override
+    public void setCashFromToday(Double cash) {
+        model.setCashFromToday(cash);
+    }
+
+    @Override
+    public Double getTokensFromToday() {
+        return model.getTokensFromToday();
+    }
+
+    @Override
+    public void setTokensFromToday(Double grindTokens) {
+        model.setTokensFromToday(grindTokens);
+    }
+
+    @Override
     public boolean reachedCashLimit() {
         return model.reachedCashLimit();
     }
 
+    @Override
     public boolean reachedTokenLimit() {
         return model.reachedTokenLimit();
     }
 
+    @Override
     public boolean checkIfNeedsReset() {
         LocalDate now = LocalDate.now();
         if (model.needsUpdate(now)) {
@@ -53,5 +100,20 @@ public class GrindingCurrency {
             else player.sendMessage(MessageUtil.filterMessage("<green>Jouw grinding cash limiet is gereset!"));
             return true;
         } else return false;
+    }
+
+    @Override
+    public LocalDate getLastUpdatedDate() {
+        return model.getLastUpdatedDate();
+    }
+
+    @Override
+    public void setLastUpdatedDate(LocalDate date) {
+        model.setLastUpdatedDate(date);
+    }
+
+    @Override
+    public boolean needsUpdate(LocalDate now) {
+        return model.needsUpdate(now);
     }
 }

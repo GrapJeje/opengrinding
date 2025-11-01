@@ -1,7 +1,8 @@
 package nl.grapjeje.opengrinding.jobs.core.listeners;
 
 import nl.grapjeje.opengrinding.OpenGrinding;
-import nl.grapjeje.opengrinding.jobs.core.objects.GrindingCurrency;
+import nl.grapjeje.opengrinding.api.GrindingCurrency;
+import nl.grapjeje.opengrinding.jobs.core.objects.CraftGrindingCurrency;
 import nl.grapjeje.opengrinding.utils.currency.CurrencyUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -16,7 +17,7 @@ public class PlayerJoinListener implements Listener {
         Player player = e.getPlayer();
         Bukkit.getScheduler().runTaskLater(OpenGrinding.getInstance(), () -> {
             GrindingCurrency currency = CurrencyUtil.getModelAsync(player)
-                    .thenApply(model -> new GrindingCurrency(player.getUniqueId(), model))
+                    .thenApply(model -> CraftGrindingCurrency.get(player.getUniqueId(), model))
                     .join();
             if (currency == null) return;
 

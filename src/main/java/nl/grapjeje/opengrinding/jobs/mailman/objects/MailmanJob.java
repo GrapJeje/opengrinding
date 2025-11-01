@@ -5,9 +5,10 @@ import lombok.Setter;
 import nl.grapjeje.core.SkullUtil;
 import nl.grapjeje.core.text.MessageUtil;
 import nl.grapjeje.opengrinding.OpenGrinding;
-import nl.grapjeje.opengrinding.jobs.Jobs;
+import nl.grapjeje.opengrinding.api.Jobs;
+import nl.grapjeje.opengrinding.api.player.GrindingPlayer;
 import nl.grapjeje.opengrinding.jobs.core.CoreModule;
-import nl.grapjeje.opengrinding.jobs.core.objects.GrindingPlayer;
+import nl.grapjeje.opengrinding.jobs.core.objects.CraftGrindingPlayer;
 import nl.grapjeje.opengrinding.jobs.mailman.MailmanModule;
 import nl.grapjeje.opengrinding.utils.currency.CurrencyUtil;
 import nl.grapjeje.opengrinding.utils.currency.Price;
@@ -113,7 +114,7 @@ public class MailmanJob {
 
             GrindingPlayer.loadOrCreatePlayerModelAsync(player, Jobs.MAILMAN)
                     .thenAccept(model -> {
-                        GrindingPlayer gp = new GrindingPlayer(player.getUniqueId(), model);
+                        GrindingPlayer gp = CraftGrindingPlayer.get(player.getUniqueId(), model);
                         gp.addProgress(Jobs.MAILMAN, 1);
                         CompletableFuture.runAsync(() -> gp.save(Jobs.MAILMAN));
                     });

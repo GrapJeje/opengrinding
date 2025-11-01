@@ -1,8 +1,8 @@
 package nl.grapjeje.opengrinding.jobs.lumber.listeners;
 
 import nl.grapjeje.opengrinding.OpenGrinding;
-import nl.grapjeje.opengrinding.jobs.Jobs;
-import nl.grapjeje.opengrinding.jobs.core.objects.GrindingRegion;
+import nl.grapjeje.opengrinding.api.GrindingRegion;
+import nl.grapjeje.opengrinding.api.Jobs;
 import nl.grapjeje.opengrinding.jobs.lumber.LumberModule;
 import org.bukkit.GameMode;
 import org.bukkit.entity.Player;

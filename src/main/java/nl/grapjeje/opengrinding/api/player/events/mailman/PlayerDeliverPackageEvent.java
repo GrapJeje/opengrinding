@@ -1,22 +1,27 @@
-package nl.grapjeje.opengrinding.jobs.fishing.events;
+package nl.grapjeje.opengrinding.api.player.events.mailman;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import nl.grapjeje.opengrinding.api.GrindingRegion;
+import nl.grapjeje.opengrinding.api.player.GrindingPlayer;
+import nl.grapjeje.opengrinding.jobs.mailman.objects.MailmanJob;
 import nl.grapjeje.opengrinding.utils.event.GrindingPlayerEvent;
-import nl.grapjeje.opengrinding.jobs.core.objects.GrindingPlayer;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
-import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
 @RequiredArgsConstructor
 @Getter
-public class PlayerFishCatchEvent extends Event implements GrindingPlayerEvent {
+public class PlayerDeliverPackageEvent extends Event implements GrindingPlayerEvent {
     @Getter
     private static final HandlerList HANDLERS = new HandlerList();
 
     private final GrindingPlayer player;
-    private final ItemStack item;
+    private final GrindingRegion region;
+
+    public MailmanJob getJob() {
+        return MailmanJob.getJobs().get(player.getPlayer().getUuid());
+    }
 
     @Override
     public @NotNull HandlerList getHandlers() {
