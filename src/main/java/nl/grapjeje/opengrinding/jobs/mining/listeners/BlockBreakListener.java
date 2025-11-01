@@ -85,15 +85,14 @@ public class BlockBreakListener implements Listener {
                     player.sendMessage(MessageUtil.filterMessage("<warning>⚠ Je kunt geen ores hakken in deze gamemode!"));
                     return;
                 }
-
-                if (this.isInventoryFull(player)) {
-                    player.sendTitlePart(TitlePart.TITLE, MessageUtil.filterMessage("<red>Je inventory zit vol!"));
-                    player.sendTitlePart(TitlePart.SUBTITLE, MessageUtil.filterMessage("<gold>Verkoop wat blokjes!"));
-                    player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 3.0F, 0.5F);
-                    return;
-                }
                 GrindingPlayer.loadOrCreatePlayerModelAsync(player, Jobs.MINING)
                         .thenAccept(model -> {
+                            if (CraftGrindingPlayer.get(player.getUniqueId(), model).isInventoryFull()) {
+                                player.sendTitlePart(TitlePart.TITLE, MessageUtil.filterMessage("<red>Je inventory zit vol!"));
+                                player.sendTitlePart(TitlePart.SUBTITLE, MessageUtil.filterMessage("<gold>Verkoop wat blokjes!"));
+                                player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 3.0F, 0.5F);
+                                return;
+                            }
                             MiningJobConfiguration config = MiningModule.getConfig();
 
                             String oreKey = type.name().replace("_ORE", "");
@@ -142,13 +141,5 @@ public class BlockBreakListener implements Listener {
                         });
             });
         });
-    }
-
-    private boolean isInventoryFull(Player player) {
-        for (ItemStack item : player.getInventory().getStorageContents()) {
-            if (item == null || item.getType() == Material.AIR) return false;
-            if (item.getAmount() < item.getMaxStackSize()) return false;
-        }
-        return true;
     }
 }

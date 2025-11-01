@@ -69,20 +69,20 @@ public class BlockBreakListener implements Listener {
             }
             Bukkit.getScheduler().runTask(OpenGrinding.getInstance(), () -> {
                 Material heldItem = player.getInventory().getItemInMainHand().getType();
-                if (!heldItem.name().endsWith("PICKAXE")) return;
+                if (!heldItem.name().endsWith("AXE") && heldItem.name().endsWith("PICKAXE")) return;
                 if (player.getGameMode() == GameMode.CREATIVE || player.getGameMode() == GameMode.SPECTATOR) {
                     player.sendMessage(MessageUtil.filterMessage("<warning>⚠ Je kunt geen ores hakken in deze gamemode!"));
                     return;
                 }
-
-                if (this.isInventoryFull(player)) {
-                    player.sendTitlePart(TitlePart.TITLE, MessageUtil.filterMessage("<red>Je inventory zit vol!"));
-                    player.sendTitlePart(TitlePart.SUBTITLE, MessageUtil.filterMessage("<gold>Verkoop wat blokjes!"));
-                    player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 3.0F, 0.5F);
-                    return;
-                }
                 GrindingPlayer.loadOrCreatePlayerModelAsync(player, Jobs.LUMBER)
                         .thenAccept(model -> {
+                            if (CraftGrindingPlayer.get(player.getUniqueId(), model).isInventoryFull()) {
+                                OpenGrinding.getInstance().getLogger().info("[LUMBER] Inventory of " + player.getName() + " is full!");
+                                player.sendTitlePart(TitlePart.TITLE, MessageUtil.filterMessage("<red>Je inventory zit vol!"));
+                                player.sendTitlePart(TitlePart.SUBTITLE, MessageUtil.filterMessage("<gold>Verkoop wat blokjes!"));
+                                player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 3.0F, 0.5F);
+                                return;
+                            }
                             LumberJobConfiguration config = LumberModule.getConfig();
 
                             Wood woodEnum = null;
@@ -185,13 +185,5 @@ public class BlockBreakListener implements Listener {
         }
 
         return Set.copyOf(set);
-    }
-
-    private boolean isInventoryFull(Player player) {
-        for (ItemStack item : player.getInventory().getStorageContents()) {
-            if (item == null || item.getType() == Material.AIR) return false;
-            if (item.getAmount() < item.getMaxStackSize()) return false;
-        }
-        return true;
     }
 }
