@@ -12,6 +12,7 @@ import nl.grapjeje.opengrinding.api.player.GrindingPlayer;
 import nl.grapjeje.opengrinding.api.player.events.level.PlayerLevelChangeEvent;
 import nl.grapjeje.opengrinding.api.player.events.level.PlayerValueChangeEvent;
 import nl.grapjeje.opengrinding.jobs.core.CoreModule;
+import nl.grapjeje.opengrinding.jobs.farming.FarmingModule;
 import nl.grapjeje.opengrinding.jobs.lumber.LumberModule;
 import nl.grapjeje.opengrinding.jobs.mailman.MailmanModule;
 import nl.grapjeje.opengrinding.jobs.mining.MiningModule;
@@ -69,6 +70,7 @@ public class CraftGrindingPlayer implements GrindingPlayer {
             case MINING -> config = MiningModule.getConfig();
             case LUMBER -> config = LumberModule.getConfig();
             case MAILMAN -> config = MailmanModule.getConfig();
+            case FARMING -> config = FarmingModule.getConfig();
             default -> throw new IllegalStateException("Unknown job: " + job);
         }
 

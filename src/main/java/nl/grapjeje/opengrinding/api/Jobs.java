@@ -4,5 +4,6 @@ public enum Jobs {
     MINING,
     FISHING,
     LUMBER,
-    MAILMAN
+    MAILMAN,
+    FARMING
 }

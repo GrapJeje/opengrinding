@@ -113,11 +113,8 @@ public class MailmanJobConfiguration extends JobConfig implements LevelConfig {
 
     @Override
     public double getXpForLevel(int level) {
-        if (levelOverrides.containsKey(level))
-            return levelOverrides.get(level);
         if (xpCache.containsKey(level))
             return xpCache.get(level);
-
         try {
             Expression expression = new ExpressionBuilder(formula)
                     .variable("level")

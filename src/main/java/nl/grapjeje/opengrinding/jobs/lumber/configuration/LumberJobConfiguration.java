@@ -146,10 +146,8 @@ public class LumberJobConfiguration extends JobConfig implements ShopConfig, Lev
 
     @Override
     public double getXpForLevel(int level) {
-        if (xpCache.containsKey(level)) {
-            double cachedValue = xpCache.get(level);
-            return cachedValue;
-        }
+        if (xpCache.containsKey(level))
+            return xpCache.get(level);
         try {
             Expression expression = new ExpressionBuilder(formula)
                     .variable("level")

@@ -53,7 +53,7 @@ public class SellCommand implements Command {
         switch (sub) {
             case "mining" -> this.handleMiningCommand(player);
             case "fishing" -> this.handleFishingCommand(player);
-            case "lumber" -> this.handleLumberCommand(player); // TODO: Can't sell
+            case "lumber" -> this.handleLumberCommand(player);
         }
     }
 
