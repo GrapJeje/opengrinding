@@ -3,6 +3,7 @@ package nl.grapjeje.opengrinding.jobs.farming;
 import lombok.Getter;
 import nl.grapjeje.opengrinding.OpenGrinding;
 import nl.grapjeje.opengrinding.jobs.farming.configuration.FarmingJobConfiguration;
+import nl.grapjeje.opengrinding.jobs.farming.listeners.FarmingListener;
 import nl.grapjeje.opengrinding.jobs.fishing.configuration.FishingJobConfiguration;
 import nl.grapjeje.opengrinding.utils.JobModule;
 import nl.grapjeje.opengrinding.utils.configuration.JobConfig;
@@ -18,6 +19,8 @@ public class FarmingModule extends JobModule {
     @Override
     protected void onEnable() {
         OpenGrinding.getFramework().registerConfig(config);
+
+        OpenGrinding.getFramework().registerListener(FarmingListener::new);
     }
 
     @Override
