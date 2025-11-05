@@ -13,6 +13,7 @@ import nl.grapjeje.opengrinding.jobs.farming.configuration.FarmingJobConfigurati
 import nl.grapjeje.opengrinding.jobs.farming.objects.GrowthStage;
 import nl.grapjeje.opengrinding.jobs.farming.objects.Plant;
 import nl.grapjeje.opengrinding.jobs.farming.plants.WheatPlant;
+import nl.grapjeje.opengrinding.jobs.lumber.LumberModule;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.Ageable;
@@ -30,57 +31,56 @@ import java.util.concurrent.atomic.AtomicReference;
 
 public class FarmingListener implements Listener {
     private static final Map<UUID, Long> cooldowns = new HashMap<>();
-    private static final long COOLDOWN_MS = 500;
+    private static final long COOLDOWN_MS = 50;
 
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onWheatFarm(BlockBreakEvent e) {
-        Block block = e.getBlock();
-        if (block.getType() != Material.WHEAT) return;
+        final Block block = e.getBlock();
         Player player = e.getPlayer();
+
+        if (block.getType() != Material.WHEAT) return;
         ToolType toolType = ToolType.fromItem(player.getInventory().getItemInMainHand());
+        e.setCancelled(true);
+        e.setDropItems(false);
+        e.setExpToDrop(0);
 
-        this.canHarvest(player, block, Plant.WHEAT).thenAccept(result -> {
-            boolean canHarvest = result.keySet().iterator().next();
-            boolean shouldCancel = result.values().iterator().next();
+        if (!this.canHarvestSync(player)) return;
+        this.canHarvestAsync(player, block, Plant.WHEAT, toolType)
+                .thenAccept(canHarvest -> {
+                    if (canHarvest) {
+                        UUID blockId = UUID.randomUUID();
+                        Location blockLocation = block.getLocation();
 
-            if (shouldCancel) {
-                e.setCancelled(true);
-                e.setDropItems(false);
-                e.setExpToDrop(0);
-            }
-            if (canHarvest) {
-                UUID blockId = UUID.randomUUID();
-                Location blockLocation = block.getLocation();
+                        Bukkit.getScheduler().runTaskAsynchronously(OpenGrinding.getInstance(), () -> {
+                            AtomicReference<WheatPlant> existing = new AtomicReference<>(null);
 
-                Bukkit.getScheduler().runTaskAsynchronously(OpenGrinding.getInstance(), () -> {
-                    AtomicReference<WheatPlant> existing = new AtomicReference<>(null);
+                            FarmingModule.getPlants().forEach(plant -> {
+                                if (!(plant instanceof WheatPlant)) return;
+                                if (plant.getBlock().getLocation().equals(blockLocation))
+                                    existing.set((WheatPlant) plant);
+                            });
 
-                    FarmingModule.getPlants().forEach(plant -> {
-                        if (!(plant instanceof WheatPlant)) return;
-                        if (plant.getBlock().getLocation().equals(blockLocation))
-                            existing.set((WheatPlant) plant);
-                    });
-                    Bukkit.getScheduler().runTask(OpenGrinding.getInstance(), () -> {
-                        if (existing.get() != null)
-                            existing.get().onInteract(player, toolType, block);
-                        else {
-                            WheatPlant newPlant = null;
-                            if (block.getBlockData() instanceof Ageable ageable) {
-                                if (ageable.getAge() >= ageable.getMaximumAge())
-                                    newPlant = new WheatPlant(blockId, block, GrowthStage.READY);
-                            } else newPlant = new WheatPlant(blockId, block);
-                            FarmingModule.getPlants().add(newPlant);
-                        }
-                    });
+                            Bukkit.getScheduler().runTask(OpenGrinding.getInstance(), () -> {
+                                if (existing.get() != null)
+                                    existing.get().onInteract(player, toolType, block);
+                                else {
+                                    WheatPlant newPlant = null;
+                                    if (block.getBlockData() instanceof Ageable ageable) {
+                                        if (ageable.getAge() >= ageable.getMaximumAge())
+                                            newPlant = new WheatPlant(blockId, block, GrowthStage.READY);
+                                    } else
+                                        newPlant = new WheatPlant(blockId, block);
+                                    if (newPlant == null) return;
+                                    FarmingModule.getPlants().add(newPlant);
+                                    newPlant.onInteract(player, toolType, block);
+                                }
+                            });
+                        });
+                    }
                 });
-            }
-        });
     }
 
-    // First boolean is if we can harvest it, the second one is if we need to cancel the event
-    private CompletableFuture<Map<Boolean, Boolean>> canHarvest(Player player, Block block, Plant plant) {
-        CompletableFuture<Map<Boolean, Boolean>> result = new CompletableFuture<>();
-
+    private boolean canHarvestSync(Player player) {
         FarmingModule farmingModule = OpenGrinding.getFramework().getModuleLoader()
                 .getModules().stream()
                 .filter(m -> m instanceof FarmingModule)
@@ -90,63 +90,53 @@ public class FarmingListener implements Listener {
 
         if (farmingModule == null || farmingModule.isDisabled()) {
             player.sendMessage(MessageUtil.filterMessage("<warning>⚠ De farming module is momenteel uitgeschakeld!"));
-            result.complete(Map.of(false, true));
-            return result;
+            return false;
         }
 
-        if (!(player.getGameMode() == GameMode.CREATIVE || player.getGameMode() == GameMode.SPECTATOR)) {
-            long now = System.currentTimeMillis();
-            UUID uuid = player.getUniqueId();
-            if (cooldowns.containsKey(uuid) && now - cooldowns.get(uuid) < COOLDOWN_MS) {
-                result.complete(Map.of(false, true));
-                return result;
-            }
-            cooldowns.put(uuid, now);
-        }
+        UUID uuid = player.getUniqueId();
+        long now = System.currentTimeMillis();
+        if (cooldowns.containsKey(uuid) && now - cooldowns.get(uuid) < COOLDOWN_MS)
+            return false;
+        cooldowns.put(uuid, now);
 
-        Location location = block.getLocation();
-        GrindingRegion.isInRegionWithJob(location, Jobs.FARMING, inRegion -> {
+        if (player.getGameMode() == GameMode.CREATIVE || player.getGameMode() == GameMode.SPECTATOR) {
+            player.sendMessage(MessageUtil.filterMessage("<warning>⚠ Je kunt niet farmen in deze gamemode!"));
+            return false;
+        }
+        return true;
+    }
+
+    private CompletableFuture<Boolean> canHarvestAsync(Player player, Block block, Plant plant, ToolType toolType) {
+        CompletableFuture<Boolean> result = new CompletableFuture<>();
+
+        GrindingRegion.isInRegionWithJob(block.getLocation(), Jobs.FARMING, inRegion -> {
             if (!inRegion) {
-                block.breakNaturally(player.getInventory().getItemInMainHand());
-                result.complete(Map.of(false, false));
+                result.complete(false);
                 return;
             }
+            GrindingPlayer.loadOrCreatePlayerModelAsync(player, Jobs.FARMING)
+                    .thenAccept(model -> {
+                        GrindingPlayer craftPlayer = CraftGrindingPlayer.get(player.getUniqueId(), model);
 
-            Bukkit.getScheduler().runTask(OpenGrinding.getInstance(), () -> {
-                if (player.getGameMode() == GameMode.CREATIVE || player.getGameMode() == GameMode.SPECTATOR) {
-                    player.sendMessage(MessageUtil.filterMessage("<warning>⚠ Je kunt niet farmen in deze gamemode!"));
-                    result.complete(Map.of(false, false));
-                    return;
-                }
-
-                GrindingPlayer.loadOrCreatePlayerModelAsync(player, Jobs.FARMING)
-                        .thenAccept(model -> {
-                            if (CraftGrindingPlayer.get(player.getUniqueId(), model).isInventoryFull()) {
-                                player.sendTitlePart(TitlePart.TITLE, MessageUtil.filterMessage("<red>Je inventory zit vol!"));
-                                player.sendTitlePart(TitlePart.SUBTITLE, MessageUtil.filterMessage("<gold>Verkoop wat blokjes!"));
-                                player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 3.0F, 0.5F);
-                                result.complete(Map.of(false, true));
-                                return;
-                            }
-
-                            FarmingJobConfiguration config = FarmingModule.getConfig();
-                            FarmingJobConfiguration.PlantRecord plantRecord = config.getPlants().get(plant);
-                            if (plantRecord == null) {
-                                result.complete(Map.of(true, false));
-                                return;
-                            }
-
-                            int unlockLevel = plantRecord.unlockLevel();
-                            if (model.getLevel() < unlockLevel) {
-                                player.sendMessage(MessageUtil.filterMessage("<warning>⚠ Jij bent niet hoog genoeg level voor dit blok! (Nodig: " + unlockLevel + ")"));
-                                player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 0.5F, 1.0F);
-                                result.complete(Map.of(false, true));
-                                return;
-                            }
-
-                            result.complete(Map.of(true, false));
-                        });
-            });
+                        if (craftPlayer.isInventoryFull()) {
+                            player.sendTitlePart(TitlePart.TITLE, MessageUtil.filterMessage("<red>Je inventory zit vol!"));
+                            player.sendTitlePart(TitlePart.SUBTITLE, MessageUtil.filterMessage("<gold>Verkoop wat blokjes!"));
+                            player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 3.0F, 0.5F);
+                            result.complete(false);
+                            return;
+                        }
+                        FarmingJobConfiguration.PlantRecord record = FarmingModule.getConfig().getPlants().get(plant);
+                        if (record == null || model.getLevel() < record.unlockLevel()) {
+                            player.sendMessage(MessageUtil.filterMessage("<warning>⚠ Je bent niet hoog genoeg level voor dit blok!"));
+                            result.complete(false);
+                            return;
+                        }
+                        result.complete(true);
+                    }).exceptionally(ex -> {
+                        ex.printStackTrace();
+                        result.complete(false);
+                        return null;
+                    });
         });
         return result;
     }
