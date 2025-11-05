@@ -20,7 +20,6 @@
     <build>
         <defaultGoal>clean package</defaultGoal>
         <plugins>
-            <!-- Compiler plugin -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -29,7 +28,6 @@
                     <source>${java.version}</source>
                     <target>${java.version}</target>
                     <annotationProcessorPaths>
-                        <!-- Lombok annotation processor -->
                         <path>
                             <groupId>org.projectlombok</groupId>
                             <artifactId>lombok</artifactId>
@@ -39,7 +37,6 @@
                 </configuration>
             </plugin>
 
-            <!-- Shade plugin -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
@@ -50,10 +47,15 @@
                         <goals>
                             <goal>shade</goal>
                         </goals>
+                        <configuration>
+                            <shadedArtifactAttached>false</shadedArtifactAttached>
+                            <createDependencyReducedPom>false</createDependencyReducedPom>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>
         </plugins>
+
         <resources>
             <resource>
                 <directory>src/main/resources</directory>
@@ -66,6 +68,11 @@
         <repository>
             <id>papermc-repo</id>
             <url>https://repo.papermc.io/repository/maven-public/</url>
+        </repository>
+
+        <repository>
+            <id>libs-local</id>
+            <url>file://${project.basedir}/libs</url>
         </repository>
 
         <repository>
@@ -100,8 +107,6 @@
             <groupId>nl.grapjeje</groupId>
             <artifactId>grapjeje-core</artifactId>
             <version>1.0</version>
-            <scope>system</scope>
-            <systemPath>${project.basedir}/libs/grapjeje-core-1.0.jar</systemPath>
         </dependency>
 
         <dependency>
@@ -123,5 +128,4 @@
             <version>2.11.0</version>
         </dependency>
     </dependencies>
-
 </project>

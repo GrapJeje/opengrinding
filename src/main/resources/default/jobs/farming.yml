@@ -9,7 +9,7 @@ economy:
 
 plants:
   wheat:
-    sellprice:
+    sell-price:
       cash: 5.0
       tokens: 0.5
     points: 1
