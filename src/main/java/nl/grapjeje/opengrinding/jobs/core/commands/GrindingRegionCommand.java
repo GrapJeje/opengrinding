@@ -271,6 +271,9 @@ public class GrindingRegionCommand implements Command {
             Bukkit.getScheduler().runTask(OpenGrinding.getInstance(), () ->
                     player.sendMessage(MessageUtil.filterMessage("<green>Job <bold>" + jobName + "<!bold> toegevoegd aan region <bold>" + regionName + "<!bold>"))
             );
+            Bukkit.getScheduler().runTaskLater(OpenGrinding.getInstance(), () ->
+                    player.sendMessage(MessageUtil.filterMessage("<warning>⚠ Om het beste gebruik te maken van je regio, raden wij een reload aan. (/opengrinding reload)")),
+                    1);
         });
     }
 

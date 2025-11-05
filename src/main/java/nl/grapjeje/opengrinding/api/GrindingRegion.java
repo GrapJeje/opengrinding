@@ -1,7 +1,6 @@
 package nl.grapjeje.opengrinding.api;
 
 import nl.grapjeje.opengrinding.jobs.core.objects.CraftGrindingRegion;
-import nl.grapjeje.opengrinding.models.GrindingRegionModel;
 import org.bukkit.Location;
 
 import java.util.List;
@@ -35,8 +34,12 @@ public interface GrindingRegion {
     boolean allowsJob(Jobs job);
     boolean hasValue();
 
-    static void isInRegionWithJob(Location loc, Jobs job, Consumer<Boolean> callback) {
-        CraftGrindingRegion.isInRegionWithJob(loc, job, callback);
+    static void isInRegionWithJobAsync(Location loc, Jobs job, Consumer<Boolean> callback) {
+        CraftGrindingRegion.isInRegionWithJobAsync(loc, job, callback);
+    }
+
+    static boolean isInRegionWithJobSync(Location loc, Jobs job) {
+        return CraftGrindingRegion.isInRegionWithJobSync(loc, job);
     }
 
     static GrindingRegion getRegionAt(Location loc) {

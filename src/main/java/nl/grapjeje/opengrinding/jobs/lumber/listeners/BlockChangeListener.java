@@ -26,7 +26,7 @@ public class BlockChangeListener implements Listener {
         if (lumberModule == null || lumberModule.isDisabled()) return;
         if (player.getGameMode() == GameMode.CREATIVE || player.getGameMode() == GameMode.SPECTATOR) return;
 
-        GrindingRegion.isInRegionWithJob(e.getBlock().getLocation(), Jobs.LUMBER, inRegion -> {
+        GrindingRegion.isInRegionWithJobAsync(e.getBlock().getLocation(), Jobs.LUMBER, inRegion -> {
             if (!inRegion) return;
             e.setCancelled(true);
         });

@@ -133,7 +133,7 @@ public class CraftGrindingRegion implements GrindingRegion {
         return this.getValue() != null && !this.getValue().isEmpty();
     }
 
-    public static void isInRegionWithJob(Location loc, Jobs job, Consumer<Boolean> callback) {
+    public static void isInRegionWithJobAsync(Location loc, Jobs job, Consumer<Boolean> callback) {
         Bukkit.getScheduler().runTaskAsynchronously(OpenGrinding.getInstance(), () -> {
             boolean result = false;
             try {
@@ -158,6 +158,10 @@ public class CraftGrindingRegion implements GrindingRegion {
             boolean finalResult = result;
             Bukkit.getScheduler().runTask(OpenGrinding.getInstance(), () -> callback.accept(finalResult));
         });
+    }
+
+    public static boolean isInRegionWithJobSync(Location loc, Jobs job) {
+        return true;
     }
 
     public static GrindingRegion getRegionAt(Location loc) {

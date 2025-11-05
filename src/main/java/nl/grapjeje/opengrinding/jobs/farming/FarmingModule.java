@@ -4,17 +4,24 @@ import lombok.Getter;
 import nl.grapjeje.core.SkullUtil;
 import nl.grapjeje.core.text.MessageUtil;
 import nl.grapjeje.opengrinding.OpenGrinding;
+import nl.grapjeje.opengrinding.api.GrindingRegion;
+import nl.grapjeje.opengrinding.api.Jobs;
 import nl.grapjeje.opengrinding.api.Plant;
+import nl.grapjeje.opengrinding.jobs.core.objects.CraftGrindingRegion;
 import nl.grapjeje.opengrinding.jobs.farming.configuration.FarmingJobConfiguration;
 import nl.grapjeje.opengrinding.jobs.farming.listeners.FarmingListener;
+import nl.grapjeje.opengrinding.jobs.farming.listeners.TrampleListener;
 import nl.grapjeje.opengrinding.jobs.mining.objects.Ore;
+import nl.grapjeje.opengrinding.models.GrindingRegionModel;
 import nl.grapjeje.opengrinding.utils.JobModule;
 import nl.grapjeje.opengrinding.utils.configuration.JobConfig;
+import nl.openminetopia.modules.data.storm.StormDatabase;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.SkullMeta;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -22,6 +29,8 @@ import java.util.concurrent.ConcurrentHashMap;
 public class FarmingModule extends JobModule {
     @Getter
     private static final List<Plant> plants = new ArrayList<>();
+    @Getter
+    private static final List<GrindingRegion> farmingRegions = new ArrayList<>();
     @Getter
     private final static FarmingJobConfiguration config = new FarmingJobConfiguration(OpenGrinding.getInstance().getDataFolder());
 
@@ -34,6 +43,9 @@ public class FarmingModule extends JobModule {
         OpenGrinding.getFramework().registerConfig(config);
 
         OpenGrinding.getFramework().registerListener(FarmingListener::new);
+        OpenGrinding.getFramework().registerListener(TrampleListener::new);
+
+        this.getAllFarmingRegions();
     }
 
     @Override
@@ -49,6 +61,24 @@ public class FarmingModule extends JobModule {
             head.setItemMeta(meta);
         }
         return head;
+    }
+
+    private void getAllFarmingRegions() {
+        farmingRegions.clear();
+        try {
+            Collection<GrindingRegionModel> allRegions = StormDatabase.getInstance().getStorm()
+                    .buildQuery(GrindingRegionModel.class)
+                    .execute()
+                    .join();
+
+            for (GrindingRegionModel model : allRegions) {
+                GrindingRegion region = CraftGrindingRegion.get(model);
+                if (region.getJobs().contains(Jobs.FARMING))
+                    farmingRegions.add(region);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @Override

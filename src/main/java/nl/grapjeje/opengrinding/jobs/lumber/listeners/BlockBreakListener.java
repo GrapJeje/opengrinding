@@ -59,7 +59,7 @@ public class BlockBreakListener implements Listener {
             cooldowns.put(uuid, now);
         }
         final Location location = block.getLocation();
-        GrindingRegion.isInRegionWithJob(location, Jobs.LUMBER, inRegion -> {
+        GrindingRegion.isInRegionWithJobAsync(location, Jobs.LUMBER, inRegion -> {
             if (!inRegion) {
                 block.breakNaturally(player.getInventory().getItemInMainHand());
                 return;

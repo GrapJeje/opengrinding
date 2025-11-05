@@ -13,7 +13,6 @@ import nl.grapjeje.opengrinding.jobs.farming.configuration.FarmingJobConfigurati
 import nl.grapjeje.opengrinding.jobs.farming.objects.GrowthStage;
 import nl.grapjeje.opengrinding.jobs.farming.objects.Plant;
 import nl.grapjeje.opengrinding.jobs.farming.plants.WheatPlant;
-import nl.grapjeje.opengrinding.jobs.lumber.LumberModule;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.Ageable;
@@ -109,7 +108,7 @@ public class FarmingListener implements Listener {
     private CompletableFuture<Boolean> canHarvestAsync(Player player, Block block, Plant plant, ToolType toolType) {
         CompletableFuture<Boolean> result = new CompletableFuture<>();
 
-        GrindingRegion.isInRegionWithJob(block.getLocation(), Jobs.FARMING, inRegion -> {
+        GrindingRegion.isInRegionWithJobAsync(block.getLocation(), Jobs.FARMING, inRegion -> {
             if (!inRegion) {
                 result.complete(false);
                 return;
