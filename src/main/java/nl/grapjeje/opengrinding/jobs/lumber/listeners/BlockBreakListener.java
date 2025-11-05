@@ -50,16 +50,13 @@ public class BlockBreakListener implements Listener {
         if (!WHITELIST.contains(type)) return;
 
         if (!(player.getGameMode() == GameMode.CREATIVE || player.getGameMode() == GameMode.SPECTATOR)) {
-            long now = System.currentTimeMillis();
-            if (cooldowns.containsKey(uuid) && now - cooldowns.get(uuid) < COOLDOWN_MS) {
-                e.setCancelled(true);
-                return;
-            }
-            cooldowns.put(uuid, now);
-
             e.setCancelled(true);
             e.setDropItems(false);
             e.setExpToDrop(0);
+            long now = System.currentTimeMillis();
+            if (cooldowns.containsKey(uuid) && now - cooldowns.get(uuid) < COOLDOWN_MS)
+                return;
+            cooldowns.put(uuid, now);
         }
         final Location location = block.getLocation();
         GrindingRegion.isInRegionWithJob(location, Jobs.LUMBER, inRegion -> {
@@ -77,7 +74,6 @@ public class BlockBreakListener implements Listener {
                 GrindingPlayer.loadOrCreatePlayerModelAsync(player, Jobs.LUMBER)
                         .thenAccept(model -> {
                             if (CraftGrindingPlayer.get(player.getUniqueId(), model).isInventoryFull()) {
-                                OpenGrinding.getInstance().getLogger().info("[LUMBER] Inventory of " + player.getName() + " is full!");
                                 player.sendTitlePart(TitlePart.TITLE, MessageUtil.filterMessage("<red>Je inventory zit vol!"));
                                 player.sendTitlePart(TitlePart.SUBTITLE, MessageUtil.filterMessage("<gold>Verkoop wat blokjes!"));
                                 player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 3.0F, 0.5F);

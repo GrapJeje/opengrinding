@@ -9,6 +9,8 @@ import java.util.UUID;
 public interface Plant {
     UUID getId();
 
+    Block getBlock();
+
     List<ToolType> whitelistedToolTypes();
 
     boolean canHarvest();

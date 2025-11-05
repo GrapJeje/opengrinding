@@ -1,0 +1,44 @@
+enabled: true
+
+economy:
+  sell:
+    enabled: true
+    open-buy-shop: false
+  buy:
+    enabled: true
+
+plants:
+  wheat:
+    sellprice:
+      cash: 5.0
+      tokens: 0.5
+    points: 1
+
+hoes:
+  stone:
+    price:
+      cash: 25.0
+      tokens: 2.5
+    unlock-level: 0
+  iron:
+    price:
+      cash: 60.0
+      tokens: 6.0
+    unlock-level: 5
+  diamond:
+    price:
+      cash: 180.0
+      tokens: 18.0
+    unlock-level: 20
+  netherite:
+    price:
+      cash: 550.0
+      tokens: 55.0
+    unlock-level: 35
+
+level:
+  max: 35
+  formula: "(75 * level * level) + (100 * level) + 50"
+  overrides:
+    '0': 1
+    '1': 0

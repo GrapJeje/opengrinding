@@ -62,15 +62,13 @@ public class BlockBreakListener implements Listener {
 
         if (!(player.getGameMode() == GameMode.CREATIVE || player.getGameMode() == GameMode.SPECTATOR)) {
             long now = System.currentTimeMillis();
-            if (cooldowns.containsKey(uuid) && now - cooldowns.get(uuid) < COOLDOWN_MS) {
-                e.setCancelled(true);
-                return;
-            }
-            cooldowns.put(uuid, now);
-
             e.setCancelled(true);
             e.setDropItems(false);
             e.setExpToDrop(0);
+
+            if (cooldowns.containsKey(uuid) && now - cooldowns.get(uuid) < COOLDOWN_MS)
+                return;
+            cooldowns.put(uuid, now);
         }
         final Location location = block.getLocation();
         GrindingRegion.isInRegionWithJob(location, Jobs.MINING, inRegion -> {

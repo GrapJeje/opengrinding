@@ -1,4 +1,4 @@
-package nl.grapjeje.opengrinding.jobs.farming.growth;
+package nl.grapjeje.opengrinding.jobs.farming.objects;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;

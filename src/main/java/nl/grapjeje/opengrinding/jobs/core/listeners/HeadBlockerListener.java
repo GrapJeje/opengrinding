@@ -1,6 +1,7 @@
 package nl.grapjeje.opengrinding.jobs.core.listeners;
 
 import nl.grapjeje.opengrinding.jobs.core.CoreModule;
+import nl.grapjeje.opengrinding.jobs.farming.objects.Plant;
 import nl.grapjeje.opengrinding.jobs.lumber.objects.Wood;
 import nl.grapjeje.opengrinding.jobs.mailman.MailmanModule;
 import nl.grapjeje.opengrinding.jobs.mining.objects.Ore;
@@ -71,6 +72,14 @@ public class HeadBlockerListener implements Listener {
             e.setCancelled(true);
             if (shiftClick) player.getInventory().setItem(e.getSlot(), itemToCheck);
             return;
+        }
+
+        for (Plant plant : Plant.values()) {
+            if (meta.getPlayerProfile().getId().equals(plant.getUuid())) {
+                e.setCancelled(true);
+                if (shiftClick) player.getInventory().setItem(e.getSlot(), itemToCheck);
+                return;
+            }
         }
 
         // Add more for loops if add more heads
