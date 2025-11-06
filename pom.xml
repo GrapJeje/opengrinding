@@ -107,6 +107,8 @@
             <groupId>nl.grapjeje</groupId>
             <artifactId>grapjeje-core</artifactId>
             <version>1.0</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/libs/grapjeje-core-1.0.jar</systemPath>
         </dependency>
 
         <dependency>
