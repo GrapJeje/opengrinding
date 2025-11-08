@@ -7,24 +7,20 @@ import nl.grapjeje.opengrinding.OpenGrinding;
 import nl.grapjeje.opengrinding.api.GrindingRegion;
 import nl.grapjeje.opengrinding.api.Jobs;
 import nl.grapjeje.opengrinding.api.Plant;
-import nl.grapjeje.opengrinding.jobs.core.objects.CraftGrindingRegion;
+import nl.grapjeje.opengrinding.core.objects.CraftGrindingRegion;
 import nl.grapjeje.opengrinding.jobs.farming.configuration.FarmingJobConfiguration;
 import nl.grapjeje.opengrinding.jobs.farming.listeners.FarmingListener;
 import nl.grapjeje.opengrinding.jobs.farming.listeners.TrampleListener;
-import nl.grapjeje.opengrinding.jobs.mining.objects.Ore;
 import nl.grapjeje.opengrinding.models.GrindingRegionModel;
 import nl.grapjeje.opengrinding.utils.JobModule;
 import nl.grapjeje.opengrinding.utils.configuration.JobConfig;
 import nl.openminetopia.modules.data.storm.StormDatabase;
-import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.SkullMeta;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 public class FarmingModule extends JobModule {
     @Getter

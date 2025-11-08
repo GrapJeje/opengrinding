@@ -1,4 +1,4 @@
-package nl.grapjeje.opengrinding.jobs.core.objects;
+package nl.grapjeje.opengrinding.core.objects;
 
 import com.craftmend.storm.api.enums.Where;
 import lombok.Getter;
@@ -11,7 +11,7 @@ import nl.grapjeje.opengrinding.api.Jobs;
 import nl.grapjeje.opengrinding.api.player.GrindingPlayer;
 import nl.grapjeje.opengrinding.api.player.events.level.PlayerLevelChangeEvent;
 import nl.grapjeje.opengrinding.api.player.events.level.PlayerValueChangeEvent;
-import nl.grapjeje.opengrinding.jobs.core.CoreModule;
+import nl.grapjeje.opengrinding.core.CoreModule;
 import nl.grapjeje.opengrinding.jobs.farming.FarmingModule;
 import nl.grapjeje.opengrinding.jobs.lumber.LumberModule;
 import nl.grapjeje.opengrinding.jobs.mailman.MailmanModule;
@@ -29,7 +29,6 @@ import org.bukkit.inventory.ItemStack;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.Consumer;
 
 @AutoRegistry
 public class CraftGrindingPlayer implements GrindingPlayer {

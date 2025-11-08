@@ -1,6 +1,6 @@
 package nl.grapjeje.opengrinding.api;
 
-import nl.grapjeje.opengrinding.jobs.core.objects.CraftGrindingRegion;
+import nl.grapjeje.opengrinding.core.objects.CraftGrindingRegion;
 import org.bukkit.Location;
 
 import java.util.List;

@@ -1,4 +1,4 @@
-package nl.grapjeje.opengrinding.jobs.core.configuration;
+package nl.grapjeje.opengrinding.core.configuration;
 
 import lombok.Getter;
 import nl.grapjeje.core.Config;

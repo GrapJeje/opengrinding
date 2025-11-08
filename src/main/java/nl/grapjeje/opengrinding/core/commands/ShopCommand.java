@@ -1,4 +1,4 @@
-package nl.grapjeje.opengrinding.jobs.core.commands;
+package nl.grapjeje.opengrinding.core.commands;
 
 import nl.grapjeje.core.command.Command;
 import nl.grapjeje.core.command.CommandSourceStack;

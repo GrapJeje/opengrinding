@@ -1,16 +1,13 @@
-package nl.grapjeje.opengrinding.jobs.core.objects;
+package nl.grapjeje.opengrinding.core.objects;
 
 import lombok.AccessLevel;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import nl.grapjeje.core.registry.AutoRegistry;
 import nl.grapjeje.core.registry.Registry;
 import nl.grapjeje.opengrinding.OpenGrinding;
 import nl.grapjeje.opengrinding.api.GrindingRegion;
 import nl.grapjeje.opengrinding.api.Jobs;
-import nl.grapjeje.opengrinding.api.player.GrindingPlayer;
 import nl.grapjeje.opengrinding.models.GrindingRegionModel;
-import nl.grapjeje.opengrinding.models.PlayerGrindingModel;
 import nl.openminetopia.modules.data.storm.StormDatabase;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;

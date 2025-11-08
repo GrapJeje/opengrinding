@@ -1,12 +1,12 @@
-package nl.grapjeje.opengrinding.jobs.core.commands;
+package nl.grapjeje.opengrinding.core.commands;
 
 import nl.grapjeje.core.command.Command;
 import nl.grapjeje.core.command.CommandSourceStack;
 import nl.grapjeje.core.text.MessageUtil;
 import nl.grapjeje.opengrinding.OpenGrinding;
 import nl.grapjeje.opengrinding.api.GrindingCurrency;
-import nl.grapjeje.opengrinding.jobs.core.CoreModule;
-import nl.grapjeje.opengrinding.jobs.core.objects.CraftGrindingCurrency;
+import nl.grapjeje.opengrinding.core.CoreModule;
+import nl.grapjeje.opengrinding.core.objects.CraftGrindingCurrency;
 import nl.grapjeje.opengrinding.utils.currency.CurrencyUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;

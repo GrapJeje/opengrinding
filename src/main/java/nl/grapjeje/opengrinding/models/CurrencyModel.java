@@ -5,7 +5,7 @@ import com.craftmend.storm.api.markers.Column;
 import com.craftmend.storm.api.markers.Table;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import nl.grapjeje.opengrinding.jobs.core.CoreModule;
+import nl.grapjeje.opengrinding.core.CoreModule;
 
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;

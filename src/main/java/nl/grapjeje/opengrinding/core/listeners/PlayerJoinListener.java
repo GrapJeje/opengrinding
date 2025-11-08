@@ -1,8 +1,8 @@
-package nl.grapjeje.opengrinding.jobs.core.listeners;
+package nl.grapjeje.opengrinding.core.listeners;
 
 import nl.grapjeje.opengrinding.OpenGrinding;
 import nl.grapjeje.opengrinding.api.GrindingCurrency;
-import nl.grapjeje.opengrinding.jobs.core.objects.CraftGrindingCurrency;
+import nl.grapjeje.opengrinding.core.objects.CraftGrindingCurrency;
 import nl.grapjeje.opengrinding.utils.currency.CurrencyUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;

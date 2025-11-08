@@ -7,7 +7,7 @@ import nl.grapjeje.opengrinding.api.GrindingRegion;
 import nl.grapjeje.opengrinding.api.Jobs;
 import nl.grapjeje.opengrinding.api.ToolType;
 import nl.grapjeje.opengrinding.api.player.GrindingPlayer;
-import nl.grapjeje.opengrinding.jobs.core.objects.CraftGrindingPlayer;
+import nl.grapjeje.opengrinding.core.objects.CraftGrindingPlayer;
 import nl.grapjeje.opengrinding.jobs.farming.FarmingModule;
 import nl.grapjeje.opengrinding.jobs.farming.configuration.FarmingJobConfiguration;
 import nl.grapjeje.opengrinding.jobs.farming.objects.GrowthStage;

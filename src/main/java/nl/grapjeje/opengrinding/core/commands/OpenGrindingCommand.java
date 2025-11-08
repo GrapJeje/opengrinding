@@ -9,7 +9,7 @@
  * attribution to "GrapJeje".
  */
 
-package nl.grapjeje.opengrinding.jobs.core.commands;
+package nl.grapjeje.opengrinding.core.commands;
 
 import nl.grapjeje.core.Framework;
 import nl.grapjeje.core.command.CreditCommand;

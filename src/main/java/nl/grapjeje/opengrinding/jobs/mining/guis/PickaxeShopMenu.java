@@ -8,7 +8,7 @@ import nl.grapjeje.core.text.MessageUtil;
 import nl.grapjeje.opengrinding.OpenGrinding;
 import nl.grapjeje.opengrinding.api.Jobs;
 import nl.grapjeje.opengrinding.api.player.GrindingPlayer;
-import nl.grapjeje.opengrinding.jobs.core.CoreModule;
+import nl.grapjeje.opengrinding.core.CoreModule;
 import nl.grapjeje.opengrinding.jobs.mining.MiningModule;
 import nl.grapjeje.opengrinding.jobs.mining.configuration.MiningJobConfiguration;
 import nl.grapjeje.opengrinding.jobs.mining.configuration.MiningJobConfiguration.Pickaxe;

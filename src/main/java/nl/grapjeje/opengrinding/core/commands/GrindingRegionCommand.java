@@ -1,4 +1,4 @@
-package nl.grapjeje.opengrinding.jobs.core.commands;
+package nl.grapjeje.opengrinding.core.commands;
 
 import com.craftmend.storm.api.enums.Where;
 import lombok.Getter;
@@ -11,7 +11,7 @@ import nl.grapjeje.core.text.MessageUtil;
 import nl.grapjeje.opengrinding.OpenGrinding;
 import nl.grapjeje.opengrinding.api.GrindingRegion;
 import nl.grapjeje.opengrinding.api.Jobs;
-import nl.grapjeje.opengrinding.jobs.core.objects.CraftGrindingRegion;
+import nl.grapjeje.opengrinding.core.objects.CraftGrindingRegion;
 import nl.grapjeje.opengrinding.models.GrindingRegionModel;
 import nl.openminetopia.modules.data.storm.StormDatabase;
 import org.bukkit.Bukkit;

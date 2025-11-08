@@ -6,7 +6,7 @@ import nl.grapjeje.opengrinding.OpenGrinding;
 import nl.grapjeje.opengrinding.api.GrindingRegion;
 import nl.grapjeje.opengrinding.api.Jobs;
 import nl.grapjeje.opengrinding.api.player.GrindingPlayer;
-import nl.grapjeje.opengrinding.jobs.core.objects.CraftGrindingPlayer;
+import nl.grapjeje.opengrinding.core.objects.CraftGrindingPlayer;
 import nl.grapjeje.opengrinding.jobs.lumber.LumberModule;
 import nl.grapjeje.opengrinding.jobs.lumber.configuration.LumberJobConfiguration;
 import nl.grapjeje.opengrinding.jobs.lumber.objects.Wood;

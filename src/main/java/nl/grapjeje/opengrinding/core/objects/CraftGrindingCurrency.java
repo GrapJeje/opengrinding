@@ -1,11 +1,11 @@
-package nl.grapjeje.opengrinding.jobs.core.objects;
+package nl.grapjeje.opengrinding.core.objects;
 
 import lombok.Getter;
 import nl.grapjeje.core.registry.AutoRegistry;
 import nl.grapjeje.core.registry.Registry;
 import nl.grapjeje.core.text.MessageUtil;
 import nl.grapjeje.opengrinding.api.GrindingCurrency;
-import nl.grapjeje.opengrinding.jobs.core.CoreModule;
+import nl.grapjeje.opengrinding.core.CoreModule;
 import nl.grapjeje.opengrinding.models.CurrencyModel;
 import nl.openminetopia.api.player.PlayerManager;
 import nl.openminetopia.api.player.objects.MinetopiaPlayer;

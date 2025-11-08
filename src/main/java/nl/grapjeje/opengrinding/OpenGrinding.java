@@ -5,7 +5,7 @@ import lombok.Getter;
 import nl.grapjeje.core.Framework;
 import nl.grapjeje.core.Main;
 import nl.grapjeje.core.StormDatabase;
-import nl.grapjeje.opengrinding.jobs.core.CoreModule;
+import nl.grapjeje.opengrinding.core.CoreModule;
 import nl.grapjeje.opengrinding.jobs.farming.FarmingModule;
 import nl.grapjeje.opengrinding.jobs.fishing.FishingModule;
 import nl.grapjeje.opengrinding.jobs.lumber.LumberModule;

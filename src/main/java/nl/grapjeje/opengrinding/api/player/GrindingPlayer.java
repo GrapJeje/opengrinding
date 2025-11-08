@@ -1,7 +1,7 @@
 package nl.grapjeje.opengrinding.api.player;
 
 import nl.grapjeje.opengrinding.api.Jobs;
-import nl.grapjeje.opengrinding.jobs.core.objects.CraftGrindingPlayer;
+import nl.grapjeje.opengrinding.core.objects.CraftGrindingPlayer;
 import nl.grapjeje.opengrinding.models.PlayerGrindingModel;
 import nl.openminetopia.api.player.objects.MinetopiaPlayer;
 import org.bukkit.entity.Player;

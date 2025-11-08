@@ -1,4 +1,4 @@
-package nl.grapjeje.opengrinding.jobs.core.commands;
+package nl.grapjeje.opengrinding.core.commands;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;

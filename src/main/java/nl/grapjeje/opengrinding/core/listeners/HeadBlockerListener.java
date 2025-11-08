@@ -1,6 +1,6 @@
-package nl.grapjeje.opengrinding.jobs.core.listeners;
+package nl.grapjeje.opengrinding.core.listeners;
 
-import nl.grapjeje.opengrinding.jobs.core.CoreModule;
+import nl.grapjeje.opengrinding.core.CoreModule;
 import nl.grapjeje.opengrinding.jobs.farming.objects.Plant;
 import nl.grapjeje.opengrinding.jobs.lumber.objects.Wood;
 import nl.grapjeje.opengrinding.jobs.mailman.MailmanModule;

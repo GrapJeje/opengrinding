@@ -4,7 +4,7 @@ import net.kyori.adventure.text.Component;
 import nl.grapjeje.core.gui.Gui;
 import nl.grapjeje.core.gui.GuiButton;
 import nl.grapjeje.core.text.MessageUtil;
-import nl.grapjeje.opengrinding.jobs.core.CoreModule;
+import nl.grapjeje.opengrinding.core.CoreModule;
 import nl.grapjeje.opengrinding.jobs.fishing.FishingModule;
 import nl.grapjeje.opengrinding.jobs.fishing.configuration.FishingJobConfiguration;
 import nl.grapjeje.opengrinding.utils.currency.CurrencyUtil;

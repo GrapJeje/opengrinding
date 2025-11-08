@@ -1,15 +1,15 @@
-package nl.grapjeje.opengrinding.jobs.core;
+package nl.grapjeje.opengrinding.core;
 
 import lombok.Getter;
 import nl.grapjeje.core.modules.Module;
 import nl.grapjeje.opengrinding.OpenGrinding;
 import nl.grapjeje.opengrinding.api.Jobs;
-import nl.grapjeje.opengrinding.jobs.core.commands.*;
-import nl.grapjeje.opengrinding.jobs.core.configuration.DefaultConfiguration;
-import nl.grapjeje.opengrinding.jobs.core.listeners.HeadBlockerListener;
-import nl.grapjeje.opengrinding.jobs.core.listeners.PlayerJoinListener;
-import nl.grapjeje.opengrinding.jobs.core.listeners.PlayerLevelUpListener;
-import nl.grapjeje.opengrinding.jobs.core.listeners.PlayerRegionWandListener;
+import nl.grapjeje.opengrinding.core.commands.*;
+import nl.grapjeje.opengrinding.core.configuration.DefaultConfiguration;
+import nl.grapjeje.opengrinding.core.listeners.HeadBlockerListener;
+import nl.grapjeje.opengrinding.core.listeners.PlayerJoinListener;
+import nl.grapjeje.opengrinding.core.listeners.PlayerLevelUpListener;
+import nl.grapjeje.opengrinding.core.listeners.PlayerRegionWandListener;
 import nl.grapjeje.opengrinding.models.GrindingRegionModel;
 import nl.grapjeje.opengrinding.models.PlayerGrindingModel;
 import nl.openminetopia.modules.data.storm.StormDatabase;

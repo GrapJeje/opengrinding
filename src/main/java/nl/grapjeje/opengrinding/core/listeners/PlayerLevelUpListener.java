@@ -1,4 +1,4 @@
-package nl.grapjeje.opengrinding.jobs.core.listeners;
+package nl.grapjeje.opengrinding.core.listeners;
 
 import nl.grapjeje.core.text.MessageUtil;
 import nl.grapjeje.opengrinding.api.Jobs;

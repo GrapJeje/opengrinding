@@ -8,7 +8,7 @@ import nl.grapjeje.core.text.MessageUtil;
 import nl.grapjeje.opengrinding.OpenGrinding;
 import nl.grapjeje.opengrinding.api.Jobs;
 import nl.grapjeje.opengrinding.api.player.GrindingPlayer;
-import nl.grapjeje.opengrinding.jobs.core.CoreModule;
+import nl.grapjeje.opengrinding.core.CoreModule;
 import nl.grapjeje.opengrinding.jobs.lumber.LumberModule;
 import nl.grapjeje.opengrinding.jobs.lumber.configuration.LumberJobConfiguration;
 import nl.grapjeje.opengrinding.utils.currency.CurrencyUtil;

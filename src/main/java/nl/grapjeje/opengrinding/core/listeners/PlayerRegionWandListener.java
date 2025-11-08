@@ -1,10 +1,10 @@
-package nl.grapjeje.opengrinding.jobs.core.listeners;
+package nl.grapjeje.opengrinding.core.listeners;
 
 import net.kyori.adventure.text.Component;
 import nl.grapjeje.core.text.MessageUtil;
 import nl.grapjeje.opengrinding.api.GrindingRegion;
-import nl.grapjeje.opengrinding.jobs.core.commands.GrindingRegionCommand;
-import nl.grapjeje.opengrinding.jobs.core.objects.CraftGrindingRegion;
+import nl.grapjeje.opengrinding.core.commands.GrindingRegionCommand;
+import nl.grapjeje.opengrinding.core.objects.CraftGrindingRegion;
 import nl.grapjeje.opengrinding.models.GrindingRegionModel;
 import org.bukkit.Location;
 import org.bukkit.Material;
