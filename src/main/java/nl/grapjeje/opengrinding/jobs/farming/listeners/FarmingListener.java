@@ -12,6 +12,7 @@ import nl.grapjeje.opengrinding.jobs.farming.FarmingModule;
 import nl.grapjeje.opengrinding.jobs.farming.configuration.FarmingJobConfiguration;
 import nl.grapjeje.opengrinding.jobs.farming.objects.GrowthStage;
 import nl.grapjeje.opengrinding.jobs.farming.objects.Plant;
+import nl.grapjeje.opengrinding.jobs.farming.plants.BeetRootPlant;
 import nl.grapjeje.opengrinding.jobs.farming.plants.WheatPlant;
 import org.bukkit.*;
 import org.bukkit.block.Block;
@@ -69,6 +70,53 @@ public class FarmingListener implements Listener {
                                             newPlant = new WheatPlant(blockId, block, GrowthStage.READY);
                                     } else
                                         newPlant = new WheatPlant(blockId, block);
+                                    if (newPlant == null) return;
+                                    FarmingModule.getPlants().add(newPlant);
+                                    newPlant.onInteract(player, toolType, block);
+                                }
+                            });
+                        });
+                    }
+                });
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onBeetRootFarm(BlockBreakEvent e) {
+        final Block block = e.getBlock();
+        Player player = e.getPlayer();
+
+        if (block.getType() != Material.BEETROOT) return;
+        ToolType toolType = ToolType.fromItem(player.getInventory().getItemInMainHand());
+        e.setCancelled(true);
+        e.setDropItems(false);
+        e.setExpToDrop(0);
+
+        if (!this.canHarvestSync(player)) return;
+        this.canHarvestAsync(player, block, Plant.BEETROOT, toolType)
+                .thenAccept(canHarvest -> {
+                    if (canHarvest) {
+                        UUID blockId = UUID.randomUUID();
+                        Location blockLocation = block.getLocation();
+
+                        Bukkit.getScheduler().runTaskAsynchronously(OpenGrinding.getInstance(), () -> {
+                            AtomicReference<BeetRootPlant> existing = new AtomicReference<>(null);
+
+                            FarmingModule.getPlants().forEach(plant -> {
+                                if (!(plant instanceof BeetRootPlant)) return;
+                                if (plant.getBlock().getLocation().equals(blockLocation))
+                                    existing.set((BeetRootPlant) plant);
+                            });
+
+                            Bukkit.getScheduler().runTask(OpenGrinding.getInstance(), () -> {
+                                if (existing.get() != null)
+                                    existing.get().onInteract(player, toolType, block);
+                                else {
+                                    BeetRootPlant newPlant = null;
+                                    if (block.getBlockData() instanceof Ageable ageable) {
+                                        if (ageable.getAge() >= ageable.getMaximumAge())
+                                            newPlant = new BeetRootPlant(blockId, block, GrowthStage.READY);
+                                    } else
+                                        newPlant = new BeetRootPlant(blockId, block);
                                     if (newPlant == null) return;
                                     FarmingModule.getPlants().add(newPlant);
                                     newPlant.onInteract(player, toolType, block);

@@ -8,11 +8,18 @@ economy:
     enabled: true
 
 plants:
-  wheat:
+  beetroot:
     sell-price:
       cash: 5.0
       tokens: 0.5
     points: 1
+    unlock-level: 0
+  wheat:
+    sell-price:
+      cash: 10.0
+      tokens: 1.0
+    points: 2
+    unlock-level: 5
 
 hoes:
   stone:
