@@ -13,6 +13,7 @@ import nl.grapjeje.opengrinding.jobs.farming.configuration.FarmingJobConfigurati
 import nl.grapjeje.opengrinding.jobs.farming.objects.GrowthStage;
 import nl.grapjeje.opengrinding.jobs.farming.objects.Plant;
 import nl.grapjeje.opengrinding.jobs.farming.plants.BeetRootPlant;
+import nl.grapjeje.opengrinding.jobs.farming.plants.CarrotPlant;
 import nl.grapjeje.opengrinding.jobs.farming.plants.WheatPlant;
 import org.bukkit.*;
 import org.bukkit.block.Block;
@@ -32,6 +33,53 @@ import java.util.concurrent.atomic.AtomicReference;
 public class FarmingListener implements Listener {
     private static final Map<UUID, Long> cooldowns = new HashMap<>();
     private static final long COOLDOWN_MS = 50;
+
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onBeetRootFarm(BlockBreakEvent e) {
+        final Block block = e.getBlock();
+        Player player = e.getPlayer();
+
+        if (block.getType() != Material.BEETROOT) return;
+        ToolType toolType = ToolType.fromItem(player.getInventory().getItemInMainHand());
+        e.setCancelled(true);
+        e.setDropItems(false);
+        e.setExpToDrop(0);
+
+        if (!this.canHarvestSync(player)) return;
+        this.canHarvestAsync(player, block, Plant.BEETROOT, toolType)
+                .thenAccept(canHarvest -> {
+                    if (canHarvest) {
+                        UUID blockId = UUID.randomUUID();
+                        Location blockLocation = block.getLocation();
+
+                        Bukkit.getScheduler().runTaskAsynchronously(OpenGrinding.getInstance(), () -> {
+                            AtomicReference<BeetRootPlant> existing = new AtomicReference<>(null);
+
+                            FarmingModule.getPlants().forEach(plant -> {
+                                if (!(plant instanceof BeetRootPlant)) return;
+                                if (plant.getBlock().getLocation().equals(blockLocation))
+                                    existing.set((BeetRootPlant) plant);
+                            });
+
+                            Bukkit.getScheduler().runTask(OpenGrinding.getInstance(), () -> {
+                                if (existing.get() != null)
+                                    existing.get().onInteract(player, toolType, block);
+                                else {
+                                    BeetRootPlant newPlant = null;
+                                    if (block.getBlockData() instanceof Ageable ageable) {
+                                        if (ageable.getAge() >= ageable.getMaximumAge())
+                                            newPlant = new BeetRootPlant(blockId, block, GrowthStage.READY);
+                                    } else
+                                        newPlant = new BeetRootPlant(blockId, block);
+                                    if (newPlant == null) return;
+                                    FarmingModule.getPlants().add(newPlant);
+                                    newPlant.onInteract(player, toolType, block);
+                                }
+                            });
+                        });
+                    }
+                });
+    }
 
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onWheatFarm(BlockBreakEvent e) {
@@ -81,42 +129,42 @@ public class FarmingListener implements Listener {
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
-    public void onBeetRootFarm(BlockBreakEvent e) {
+    public void onCarrotFarm(BlockBreakEvent e) {
         final Block block = e.getBlock();
         Player player = e.getPlayer();
 
-        if (block.getType() != Material.BEETROOT) return;
+        if (block.getType() != Material.CARROT) return;
         ToolType toolType = ToolType.fromItem(player.getInventory().getItemInMainHand());
         e.setCancelled(true);
         e.setDropItems(false);
         e.setExpToDrop(0);
 
         if (!this.canHarvestSync(player)) return;
-        this.canHarvestAsync(player, block, Plant.BEETROOT, toolType)
+        this.canHarvestAsync(player, block, Plant.CARROT, toolType)
                 .thenAccept(canHarvest -> {
                     if (canHarvest) {
                         UUID blockId = UUID.randomUUID();
                         Location blockLocation = block.getLocation();
 
                         Bukkit.getScheduler().runTaskAsynchronously(OpenGrinding.getInstance(), () -> {
-                            AtomicReference<BeetRootPlant> existing = new AtomicReference<>(null);
+                            AtomicReference<CarrotPlant> existing = new AtomicReference<>(null);
 
                             FarmingModule.getPlants().forEach(plant -> {
-                                if (!(plant instanceof BeetRootPlant)) return;
+                                if (!(plant instanceof CarrotPlant)) return;
                                 if (plant.getBlock().getLocation().equals(blockLocation))
-                                    existing.set((BeetRootPlant) plant);
+                                    existing.set((CarrotPlant) plant);
                             });
 
                             Bukkit.getScheduler().runTask(OpenGrinding.getInstance(), () -> {
                                 if (existing.get() != null)
                                     existing.get().onInteract(player, toolType, block);
                                 else {
-                                    BeetRootPlant newPlant = null;
+                                    CarrotPlant newPlant = null;
                                     if (block.getBlockData() instanceof Ageable ageable) {
                                         if (ageable.getAge() >= ageable.getMaximumAge())
-                                            newPlant = new BeetRootPlant(blockId, block, GrowthStage.READY);
+                                            newPlant = new CarrotPlant(blockId, block, GrowthStage.READY);
                                     } else
-                                        newPlant = new BeetRootPlant(blockId, block);
+                                        newPlant = new CarrotPlant(blockId, block);
                                     if (newPlant == null) return;
                                     FarmingModule.getPlants().add(newPlant);
                                     newPlant.onInteract(player, toolType, block);

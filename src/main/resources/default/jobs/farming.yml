@@ -20,6 +20,12 @@ plants:
       tokens: 1.0
     points: 2
     unlock-level: 5
+  carrot:
+    sell-price:
+      cash: 20.0
+      tokens: 2.0
+    points: 3
+    unlock-level: 10
 
 hoes:
   stone:
