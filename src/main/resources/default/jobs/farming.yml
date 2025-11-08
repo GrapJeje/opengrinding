@@ -26,6 +26,12 @@ plants:
       tokens: 2.0
     points: 3
     unlock-level: 10
+  potato:
+    sell-price:
+      cash: 30.0
+      tokens: 3.0
+    points: 4
+    unlock-level: 15
 
 hoes:
   stone:

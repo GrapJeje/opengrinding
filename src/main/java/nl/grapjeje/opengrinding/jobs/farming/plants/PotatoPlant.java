@@ -21,15 +21,15 @@ import java.util.List;
 import java.util.UUID;
 
 @Getter
-public class CarrotPlant extends GrowablePlant {
+public class PotatoPlant extends GrowablePlant {
     private final UUID id;
 
-    public CarrotPlant(UUID id, Block block, GrowthStage stage) {
+    public PotatoPlant(UUID id, Block block, GrowthStage stage) {
         super(block, stage, 8, 60000);
         this.id = id;
     }
 
-    public CarrotPlant(UUID id, Block block) {
+    public PotatoPlant(UUID id, Block block) {
         this(id, block, GrowthStage.SEED);
     }
 
@@ -55,7 +55,7 @@ public class CarrotPlant extends GrowablePlant {
 
     @Override
     public void onHarvest(Player player, ToolType tool) {
-        ItemStack custom = FarmingModule.getBlockHead(Plant.CARROT);
+        ItemStack custom = FarmingModule.getBlockHead(Plant.POTATO);
         if (custom != null) player.getInventory().addItem(custom);
 
         if (this.getBlock().getBlockData() instanceof Ageable ageable) {
