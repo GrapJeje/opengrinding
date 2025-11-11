@@ -32,6 +32,12 @@ plants:
       tokens: 3.0
     points: 4
     unlock-level: 15
+  sugar_cane:
+    sell-price:
+      cash: 20.0
+      tokens: 2.0
+    points: 3
+    unlock-level: 20
 
 hoes:
   stone:

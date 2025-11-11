@@ -1,6 +1,7 @@
 package nl.grapjeje.opengrinding.jobs.farming.listeners;
 
 import net.kyori.adventure.title.TitlePart;
+import nl.grapjeje.core.items.Item;
 import nl.grapjeje.core.text.MessageUtil;
 import nl.grapjeje.opengrinding.OpenGrinding;
 import nl.grapjeje.opengrinding.api.GrindingRegion;
@@ -12,22 +13,19 @@ import nl.grapjeje.opengrinding.jobs.farming.FarmingModule;
 import nl.grapjeje.opengrinding.jobs.farming.configuration.FarmingJobConfiguration;
 import nl.grapjeje.opengrinding.jobs.farming.objects.GrowthStage;
 import nl.grapjeje.opengrinding.jobs.farming.objects.Plant;
-import nl.grapjeje.opengrinding.jobs.farming.plants.BeetRootPlant;
-import nl.grapjeje.opengrinding.jobs.farming.plants.CarrotPlant;
-import nl.grapjeje.opengrinding.jobs.farming.plants.PotatoPlant;
-import nl.grapjeje.opengrinding.jobs.farming.plants.WheatPlant;
+import nl.grapjeje.opengrinding.jobs.farming.plants.*;
 import org.bukkit.*;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.Ageable;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockDropItemEvent;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -47,7 +45,7 @@ public class FarmingListener implements Listener {
         e.setExpToDrop(0);
 
         if (!this.canHarvestSync(player)) return;
-        this.canHarvestAsync(player, block, Plant.BEETROOT, toolType)
+        this.canHarvestAsync(player, block, Plant.BEETROOT)
                 .thenAccept(canHarvest -> {
                     if (canHarvest) {
                         UUID blockId = UUID.randomUUID();
@@ -94,7 +92,7 @@ public class FarmingListener implements Listener {
         e.setExpToDrop(0);
 
         if (!this.canHarvestSync(player)) return;
-        this.canHarvestAsync(player, block, Plant.WHEAT, toolType)
+        this.canHarvestAsync(player, block, Plant.WHEAT)
                 .thenAccept(canHarvest -> {
                     if (canHarvest) {
                         UUID blockId = UUID.randomUUID();
@@ -141,7 +139,7 @@ public class FarmingListener implements Listener {
         e.setExpToDrop(0);
 
         if (!this.canHarvestSync(player)) return;
-        this.canHarvestAsync(player, block, Plant.CARROT, toolType)
+        this.canHarvestAsync(player, block, Plant.CARROT)
                 .thenAccept(canHarvest -> {
                     if (canHarvest) {
                         UUID blockId = UUID.randomUUID();
@@ -188,7 +186,7 @@ public class FarmingListener implements Listener {
         e.setExpToDrop(0);
 
         if (!this.canHarvestSync(player)) return;
-        this.canHarvestAsync(player, block, Plant.POTATO, toolType)
+        this.canHarvestAsync(player, block, Plant.POTATO)
                 .thenAccept(canHarvest -> {
                     if (canHarvest) {
                         UUID blockId = UUID.randomUUID();
@@ -223,6 +221,81 @@ public class FarmingListener implements Listener {
                 });
     }
 
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onSugarCaneFarm(BlockBreakEvent e) {
+        final Block block = e.getBlock();
+        Player player = e.getPlayer();
+
+        if (block.getType() != Material.SUGAR_CANE) return;
+
+        ToolType toolType = ToolType.fromItem(player.getInventory().getItemInMainHand());
+        e.setCancelled(true);
+        e.setDropItems(false);
+        e.setExpToDrop(0);
+
+        if (!this.canHarvestSync(player)) return;
+
+        this.canHarvestAsync(player, block, Plant.SUGAR_CANE)
+                .thenAccept(canHarvest -> {
+                    if (!canHarvest) return;
+
+                    UUID blockId = UUID.randomUUID();
+
+                    Bukkit.getScheduler().runTaskAsynchronously(OpenGrinding.getInstance(), () -> {
+                        AtomicReference<SugarCanePlant> existing = new AtomicReference<>(null);
+
+                        FarmingModule.getPlants().forEach(plant -> {
+                            if (!(plant instanceof SugarCanePlant)) return;
+                            if (plant.getBlock().getLocation().equals(block.getLocation())) {
+                                existing.set((SugarCanePlant) plant);
+                            }
+                        });
+                        List<Block> caneBlocks = new ArrayList<>();
+
+                        Block bottomBlock = block;
+                        while (bottomBlock.getRelative(BlockFace.DOWN).getType() == Material.SUGAR_CANE) {
+                            bottomBlock = bottomBlock.getRelative(BlockFace.DOWN);
+                        }
+
+                        Block current = bottomBlock.getRelative(BlockFace.UP);
+                        while (current.getType() == Material.SUGAR_CANE) {
+                            caneBlocks.add(current);
+                            current = current.getRelative(BlockFace.UP);
+                        }
+                        int count = caneBlocks.size();
+
+                        Block finalBottomBlock = bottomBlock;
+                        Bukkit.getScheduler().runTask(OpenGrinding.getInstance(), () -> {
+                            if (existing.get() != null) {
+                                existing.get().setCount(count);
+                                existing.get().onInteract(player, toolType, finalBottomBlock);
+                            } else {
+                                SugarCanePlant newPlant = new SugarCanePlant(blockId, finalBottomBlock, count);
+                                FarmingModule.getPlants().add(newPlant);
+                                newPlant.onInteract(player, toolType, finalBottomBlock);
+                            }
+
+                            caneBlocks.forEach(b -> b.breakNaturally(false, true));
+                            finalBottomBlock.setType(Material.SUGAR_CANE, false);
+                        });
+                    });
+                });
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onBlockDropItem(BlockDropItemEvent e) {
+        final Block block = e.getBlock();
+        if (block.getType() == Material.SUGAR_CANE)
+            e.setCancelled(true);
+
+        GrindingRegion.isInRegionWithJobAsync(block.getLocation(), Jobs.FARMING, inRegion -> {
+            if (!inRegion) {
+                Bukkit.getScheduler().runTask(OpenGrinding.getInstance(), () ->
+                        block.breakNaturally(false, true));
+            }
+        });
+    }
+
     private boolean canHarvestSync(Player player) {
         FarmingModule farmingModule = OpenGrinding.getFramework().getModuleLoader()
                 .getModules().stream()
@@ -249,7 +322,7 @@ public class FarmingListener implements Listener {
         return true;
     }
 
-    private CompletableFuture<Boolean> canHarvestAsync(Player player, Block block, Plant plant, ToolType toolType) {
+    private CompletableFuture<Boolean> canHarvestAsync(Player player, Block block, Plant plant) {
         CompletableFuture<Boolean> result = new CompletableFuture<>();
 
         GrindingRegion.isInRegionWithJobAsync(block.getLocation(), Jobs.FARMING, inRegion -> {
