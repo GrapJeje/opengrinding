@@ -62,9 +62,7 @@ public class BeetRootPlant extends GrowablePlant {
         }
 
         ItemStack custom = FarmingModule.getBlockHead(Plant.BEETROOT);
-        if (custom != null) {
-            player.getInventory().addItem(custom);
-        }
+        if (custom != null) player.getInventory().addItem(custom);
 
         if (this.getBlock().getBlockData() instanceof Ageable ageable) {
             ageable.setAge(0);

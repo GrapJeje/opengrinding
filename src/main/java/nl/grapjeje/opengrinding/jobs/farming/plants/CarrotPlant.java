@@ -1,6 +1,7 @@
 package nl.grapjeje.opengrinding.jobs.farming.plants;
 
 import lombok.Getter;
+import nl.grapjeje.opengrinding.OpenGrinding;
 import nl.grapjeje.opengrinding.api.Jobs;
 import nl.grapjeje.opengrinding.api.ToolType;
 import nl.grapjeje.opengrinding.api.player.GrindingPlayer;
@@ -55,6 +56,11 @@ public class CarrotPlant extends GrowablePlant {
 
     @Override
     public void onHarvest(Player player, ToolType tool) {
+        for (nl.grapjeje.opengrinding.api.Plant plant : FarmingModule.getPlants()) {
+            if (plant.getBlock() != this.getBlock()) continue;
+            FarmingModule.getPlants().remove(plant);
+        }
+
         ItemStack custom = FarmingModule.getBlockHead(Plant.CARROT);
         if (custom != null) player.getInventory().addItem(custom);
 
@@ -78,12 +84,28 @@ public class CarrotPlant extends GrowablePlant {
         }
         player.giveExp(0);
 
+        this.setStage(GrowthStage.SEED);
+        FarmingModule.getPlants().add(this.getPlant(CarrotPlant.this));
+
         GrindingPlayer.loadOrCreatePlayerModelAsync(player, Jobs.FARMING)
                 .thenAccept(model -> {
-                    FarmingJobConfiguration.PlantRecord plantRecord = FarmingModule.getConfig().getPlants().get(Plant.BEETROOT);
+                    FarmingJobConfiguration.PlantRecord plantRecord = FarmingModule.getConfig().getPlants().get(Plant.CARROT);
                     GrindingPlayer gp = CraftGrindingPlayer.get(player.getUniqueId(), model);
-                    gp.addProgress(Jobs.FARMING, plantRecord.points());
-                    gp.save(Jobs.FARMING);
+
+                    try {
+                        gp.addProgress(Jobs.FARMING, plantRecord.points());
+                        gp.save(Jobs.FARMING)
+                                .exceptionally(ex -> {
+                                    OpenGrinding.getInstance().getLogger().severe("Failed to save player model: " + ex.getMessage());
+                                    ex.printStackTrace();
+                                    return null;
+                                });
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                    }
+                }).exceptionally(ex -> {
+                    ex.printStackTrace();
+                    return null;
                 });
     }
 

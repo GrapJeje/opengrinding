@@ -134,7 +134,7 @@ public class FarmingListener implements Listener {
         final Block block = e.getBlock();
         Player player = e.getPlayer();
 
-        if (block.getType() != Material.CARROT) return;
+        if (block.getType() != Material.CARROTS) return;
         ToolType toolType = ToolType.fromItem(player.getInventory().getItemInMainHand());
         e.setCancelled(true);
         e.setDropItems(false);
@@ -181,7 +181,7 @@ public class FarmingListener implements Listener {
         final Block block = e.getBlock();
         Player player = e.getPlayer();
 
-        if (block.getType() != Material.POTATO) return;
+        if (block.getType() != Material.POTATOES) return;
         ToolType toolType = ToolType.fromItem(player.getInventory().getItemInMainHand());
         e.setCancelled(true);
         e.setDropItems(false);
