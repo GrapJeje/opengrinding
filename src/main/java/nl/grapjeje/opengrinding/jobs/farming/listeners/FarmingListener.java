@@ -39,8 +39,8 @@ public class FarmingListener implements Listener {
     public void onBeetRootFarm(BlockBreakEvent e) {
         final Block block = e.getBlock();
         Player player = e.getPlayer();
+        if (block.getType() != Material.BEETROOTS) return;
 
-        if (block.getType() != Material.BEETROOT) return;
         ToolType toolType = ToolType.fromItem(player.getInventory().getItemInMainHand());
         e.setCancelled(true);
         e.setDropItems(false);
@@ -70,9 +70,9 @@ public class FarmingListener implements Listener {
                                     if (block.getBlockData() instanceof Ageable ageable) {
                                         if (ageable.getAge() >= ageable.getMaximumAge())
                                             newPlant = new BeetRootPlant(blockId, block, GrowthStage.READY);
-                                    } else
-                                        newPlant = new BeetRootPlant(blockId, block);
+                                    } else newPlant = new BeetRootPlant(blockId, block);
                                     if (newPlant == null) return;
+
                                     FarmingModule.getPlants().add(newPlant);
                                     newPlant.onInteract(player, toolType, block);
                                 }

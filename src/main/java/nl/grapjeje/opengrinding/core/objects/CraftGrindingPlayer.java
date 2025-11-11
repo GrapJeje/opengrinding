@@ -26,9 +26,11 @@ import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 
 @AutoRegistry
 public class CraftGrindingPlayer implements GrindingPlayer {
@@ -125,39 +127,37 @@ public class CraftGrindingPlayer implements GrindingPlayer {
         return true;
     }
 
+    private static final Map<UUID, CompletableFuture<PlayerGrindingModel>> loadingFutures = new ConcurrentHashMap<>();
+
     public static CompletableFuture<PlayerGrindingModel> loadOrCreatePlayerModelAsync(Player player, Jobs job) {
         PlayerGrindingModel cached = CoreModule.getCachedModel(player.getUniqueId(), job);
         if (cached != null) return CompletableFuture.completedFuture(cached);
 
-        return CompletableFuture.supplyAsync(() -> {
-            Optional<PlayerGrindingModel> playerModelOpt;
-            try {
-                playerModelOpt = StormDatabase.getInstance().getStorm()
-                        .buildQuery(PlayerGrindingModel.class)
-                        .where("player_uuid", Where.EQUAL, player.getUniqueId())
-                        .where("job_name", Where.EQUAL, job.name())
-                        .limit(1)
-                        .execute()
-                        .join()
-                        .stream()
-                        .findFirst();
-            } catch (Exception ex) {
-                ex.printStackTrace();
-                Bukkit.getScheduler().runTask(OpenGrinding.getInstance(), () ->
-                        player.sendMessage(MessageUtil.filterMessage("<warning>⚠ Er is een fout opgetreden bij het ophalen van jouw spelersdata!"))
-                );
-                return PlayerGrindingModel.createNew(player, job);
-            }
+        return loadingFutures.computeIfAbsent(player.getUniqueId(), uuid ->
+                CompletableFuture.supplyAsync(() -> {
+                    Optional<PlayerGrindingModel> playerModelOpt;
+                    try {
+                        playerModelOpt = StormDatabase.getInstance().getStorm()
+                                .buildQuery(PlayerGrindingModel.class)
+                                .where("player_uuid", Where.EQUAL, player.getUniqueId())
+                                .where("job_name", Where.EQUAL, job.name())
+                                .limit(1)
+                                .execute()
+                                .join()
+                                .stream()
+                                .findFirst();
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                        Bukkit.getScheduler().runTask(OpenGrinding.getInstance(), () ->
+                                player.sendMessage(MessageUtil.filterMessage("<warning>⚠ Er is een fout opgetreden bij het ophalen van jouw spelersdata!"))
+                        );
+                        return PlayerGrindingModel.createNew(player, job);
+                    }
+                    PlayerGrindingModel model = playerModelOpt.orElseGet(() -> PlayerGrindingModel.createNew(player, job));
 
-            player.getScoreboard();
-
-            PlayerGrindingModel model = playerModelOpt.orElseGet(() -> {
-                OpenGrinding.getInstance().getLogger().info("New player grind model made for " + player.getName() + " (" + job.name() + ")");
-                return PlayerGrindingModel.createNew(player, job);
-            });
-
-            CoreModule.putCachedModel(player.getUniqueId(), job, model);
-            return model;
-        });
+                    CoreModule.putCachedModel(player.getUniqueId(), job, model);
+                    return model;
+                }).whenComplete((model, ex) -> loadingFutures.remove(player.getUniqueId()))
+        );
     }
 }

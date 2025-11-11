@@ -21,10 +21,11 @@ import org.bukkit.inventory.meta.SkullMeta;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class FarmingModule extends JobModule {
     @Getter
-    private static final List<Plant> plants = new ArrayList<>();
+    private static final List<Plant> plants = new CopyOnWriteArrayList<>();
     @Getter
     private static final List<GrindingRegion> farmingRegions = new ArrayList<>();
     @Getter

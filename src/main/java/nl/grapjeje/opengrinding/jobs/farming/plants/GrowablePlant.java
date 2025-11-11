@@ -2,12 +2,14 @@ package nl.grapjeje.opengrinding.jobs.farming.plants;
 
 import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.Setter;
 import nl.grapjeje.opengrinding.api.Plant;
 import nl.grapjeje.opengrinding.jobs.farming.objects.GrowthStage;
 import org.bukkit.block.Block;
 
 @Getter(AccessLevel.PROTECTED)
 public abstract class GrowablePlant implements Plant {
+    @Setter(AccessLevel.PROTECTED)
     private GrowthStage stage;
     @Getter
     private final Block block;
@@ -40,5 +42,9 @@ public abstract class GrowablePlant implements Plant {
 
     public String getStringId() {
         return this.getId().toString();
+    }
+
+    protected Plant getPlant(GrowablePlant plant) {
+        return plant != null ? (Plant) plant : null;
     }
 }
