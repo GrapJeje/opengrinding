@@ -38,6 +38,12 @@ plants:
       tokens: 2.0
     points: 3
     unlock-level: 20
+  sweet_berry:
+    sell-price:
+      cash: 40.0
+      tokens: 4.0
+    points: 4
+    unlock-level: 25
 
 hoes:
   stone:

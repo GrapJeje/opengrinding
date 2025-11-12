@@ -24,6 +24,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockDropItemEvent;
+import org.bukkit.event.player.PlayerHarvestBlockEvent;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -294,6 +295,52 @@ public class FarmingListener implements Listener {
                         block.breakNaturally(false, true));
             }
         });
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onSweetBerryFarm(PlayerHarvestBlockEvent e) {
+        final Block block = e.getHarvestedBlock();
+        if (block.getType() == Material.SWEET_BERRY_BUSH)
+            e.setCancelled(true);
+
+        final Player player = e.getPlayer();
+
+        ToolType toolType = ToolType.fromItem(player.getInventory().getItemInMainHand());
+
+        if (!this.canHarvestSync(player)) return;
+        this.canHarvestAsync(player, block, Plant.SWEET_BERRY)
+                .thenAccept(canHarvest -> {
+                    if (!canHarvest) return;
+
+                    UUID blockId = UUID.randomUUID();
+                    Location blockLocation = block.getLocation();
+
+                    Bukkit.getScheduler().runTaskAsynchronously(OpenGrinding.getInstance(), () -> {
+                        AtomicReference<SweetBerryPlant> existing = new AtomicReference<>(null);
+
+                        FarmingModule.getPlants().forEach(plant -> {
+                            if (!(plant instanceof SweetBerryPlant)) return;
+                            if (plant.getBlock().getLocation().equals(blockLocation))
+                                existing.set((SweetBerryPlant) plant);
+                        });
+
+                        Bukkit.getScheduler().runTask(OpenGrinding.getInstance(), () -> {
+                            if (existing.get() != null)
+                                existing.get().onInteract(player, toolType, block);
+                            else {
+                                SweetBerryPlant newPlant = null;
+                                if (block.getBlockData() instanceof Ageable ageable) {
+                                    if (ageable.getAge() >= ageable.getMaximumAge())
+                                        newPlant = new SweetBerryPlant(blockId, block, GrowthStage.READY);
+                                } else
+                                    newPlant = new SweetBerryPlant(blockId, block);
+                                if (newPlant == null) return;
+                                FarmingModule.getPlants().add(newPlant);
+                                newPlant.onInteract(player, toolType, block);
+                            }
+                        });
+                    });
+                });
     }
 
     private boolean canHarvestSync(Player player) {

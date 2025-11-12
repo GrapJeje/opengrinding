@@ -1,7 +1,6 @@
 package nl.grapjeje.opengrinding.jobs.farming.plants;
 
 import lombok.Getter;
-import lombok.Setter;
 import nl.grapjeje.opengrinding.OpenGrinding;
 import nl.grapjeje.opengrinding.api.Jobs;
 import nl.grapjeje.opengrinding.api.ToolType;
@@ -13,30 +12,26 @@ import nl.grapjeje.opengrinding.jobs.farming.objects.GrowthStage;
 import nl.grapjeje.opengrinding.jobs.farming.objects.Plant;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
+import org.bukkit.block.data.Ageable;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.List;
-import java.util.Random;
 import java.util.UUID;
 
-public class SugarCanePlant extends GrowablePlant {
+public class SweetBerryPlant extends GrowablePlant {
     @Getter
     private final UUID id;
-    private int height = new Random().nextInt(3, 5);
-    @Setter
-    private int count;
 
-    public SugarCanePlant(UUID id, Block block, GrowthStage stage, int count) {
-        super(block, stage, 4, 60000);
+    public SweetBerryPlant(UUID id, Block block, GrowthStage stage) {
+        super(block, stage, 7, 60000);
         this.id = id;
-        this.count = count;
     }
 
-    public SugarCanePlant(UUID id, Block block, int count) {
-        this(id, block, GrowthStage.SEED, count);
+    public SweetBerryPlant(UUID id, Block block) {
+        this(id, block, GrowthStage.SEED);
     }
 
     @Override
@@ -51,9 +46,13 @@ public class SugarCanePlant extends GrowablePlant {
             FarmingModule.getPlants().remove(plant);
         }
 
-        ItemStack custom = FarmingModule.getBlockHead(Plant.SUGAR_CANE);
-        custom.setAmount(count);
+        ItemStack custom = FarmingModule.getBlockHead(Plant.SWEET_BERRY);
         if (custom != null) player.getInventory().addItem(custom);
+
+        if (this.getBlock().getBlockData() instanceof Ageable ageable) {
+            ageable.setAge(0);
+            this.getBlock().setBlockData(ageable);
+        }
 
         ItemStack item = player.getInventory().getItemInMainHand();
         if (item != null && item.getType() != Material.AIR) {
@@ -71,12 +70,11 @@ public class SugarCanePlant extends GrowablePlant {
         player.giveExp(0);
 
         this.setStage(GrowthStage.SEED);
-        this.randomHeight();
-        FarmingModule.getPlants().add(this.getPlant(SugarCanePlant.this));
+        FarmingModule.getPlants().add(this.getPlant(SweetBerryPlant.this));
 
         GrindingPlayer.loadOrCreatePlayerModelAsync(player, Jobs.FARMING)
                 .thenAccept(model -> {
-                    FarmingJobConfiguration.PlantRecord plantRecord = FarmingModule.getConfig().getPlants().get(Plant.SUGAR_CANE);
+                    FarmingJobConfiguration.PlantRecord plantRecord = FarmingModule.getConfig().getPlants().get(Plant.SWEET_BERRY);
                     GrindingPlayer gp = CraftGrindingPlayer.get(player.getUniqueId(), model);
 
                     try {
@@ -97,19 +95,11 @@ public class SugarCanePlant extends GrowablePlant {
     }
 
     @Override
-    public boolean canHarvest() {
-        return true;
-    }
-
-    @Override
     public void onInteract(Player player, ToolType tool, Block block) {
         if (block.getLocation().equals(this.getBlock().getLocation())
                 && block.getType() == this.getBlock().getType()
-                && this.whitelistedToolTypes().contains(tool))
+                && this.whitelistedToolTypes().contains(tool)
+                && this.getStage().isMax())
             this.onHarvest(player, tool);
-    }
-
-    private void randomHeight() {
-        this.height = new Random().nextInt(3, 5);
     }
 }
