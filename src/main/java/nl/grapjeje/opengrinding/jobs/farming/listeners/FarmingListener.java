@@ -276,7 +276,7 @@ public class FarmingListener implements Listener {
                                 newPlant.onInteract(player, toolType, finalBottomBlock);
                             }
 
-                            caneBlocks.forEach(b -> b.breakNaturally(false, true));
+                            caneBlocks.forEach(b -> b.setType(Material.AIR, false));
                             finalBottomBlock.setType(Material.SUGAR_CANE, false);
                         });
                     });
