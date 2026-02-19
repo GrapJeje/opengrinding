@@ -1,4 +1,5 @@
 jobskullsonplayerhead: false
+jobs-command: true
 
 currency:
   buy-in-tokens: false

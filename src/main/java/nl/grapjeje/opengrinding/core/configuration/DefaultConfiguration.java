@@ -9,6 +9,7 @@ import java.io.File;
 @Getter
 public class DefaultConfiguration extends Config {
     private boolean jobSkullsOnPlayerhead;
+    private boolean jobsCommand;
 
     private boolean buyInTokens;
     private boolean sellInTokens;
@@ -24,6 +25,7 @@ public class DefaultConfiguration extends Config {
     @Override
     public void values() {
         this.jobSkullsOnPlayerhead = config.getBoolean("jobskullsonplayerhead", false);
+        this.jobsCommand = config.getBoolean("jobs-command", true);
 
         ConfigurationSection tokenSection = config.getConfigurationSection("currency");
         this.buyInTokens = tokenSection != null && tokenSection.getBoolean("buy-in-tokens", false);

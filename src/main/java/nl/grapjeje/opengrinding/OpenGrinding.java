@@ -5,6 +5,7 @@ import lombok.Getter;
 import nl.grapjeje.core.Framework;
 import nl.grapjeje.core.Main;
 import nl.grapjeje.core.StormDatabase;
+import nl.grapjeje.opengrinding.api.Jobs;
 import nl.grapjeje.opengrinding.core.CoreModule;
 import nl.grapjeje.opengrinding.jobs.farming.FarmingModule;
 import nl.grapjeje.opengrinding.jobs.fishing.FishingModule;
@@ -17,6 +18,9 @@ import nl.grapjeje.opengrinding.models.GrindingRegionModel;
 import nl.grapjeje.opengrinding.models.PlayerGrindingModel;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public final class OpenGrinding extends JavaPlugin {
 
@@ -119,5 +123,12 @@ public final class OpenGrinding extends JavaPlugin {
             framework.getModuleLoader().disableModules();
         if (!StormDatabase.getInstance().isUsingExternalStorm() && Main.getDb() != null)
             Main.getDb().close();
+    }
+
+    public Map<Jobs, Boolean> getJobEnableStatuses() {
+        Map<Jobs, Boolean> enabledJobs = new HashMap<>();
+        framework.getModuleLoader().getModules().forEach(module ->
+                enabledJobs.put(Jobs.getByModule(module), module.isEnabled()));
+        return enabledJobs;
     }
 }
