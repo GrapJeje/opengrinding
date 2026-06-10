@@ -1,0 +1,89 @@
+enabled: true # Zet de job aan/uit
+
+economy:
+  sell:
+    enabled: true # Zet verkopen aan/uit
+    open-buy-shop: true # Bepaal of dat je wilt dat de buy-shop opent met de sell commando
+  buy:
+    enabled: true # Zet kopen aan/uit
+
+ores:
+  coal:
+    sell-price:
+      cash: 5.0
+      tokens: 0.5
+    points: 1
+    unlock-level: 0
+  iron:
+    sell-price:
+      cash: 10.0
+      tokens: 1.0
+    points: 2
+    unlock-level: 5
+  copper:
+    sell-price:
+      cash: 8.0
+      tokens: 0.8
+    points: 3
+    unlock-level: 10
+  gold:
+    sell-price:
+      cash: 15.0
+      tokens: 1.5
+    points: 3
+    unlock-level: 15
+  redstone:
+    sell-price:
+      cash: 12.0
+      tokens: 1.2
+    points: 4
+    unlock-level: 20
+  lapis:
+    sell-price:
+      cash: 12.0
+      tokens: 1.2
+    points: 4
+    unlock-level: 25
+  diamond:
+    sell-price:
+      cash: 25.0
+      tokens: 2.5
+    points: 5
+    unlock-level: 30
+  emerald:
+    sell-price:
+      cash: 30.0
+      tokens: 3.0
+    points: 6
+    unlock-level: 35
+
+pickaxes:
+  stone:
+    price:
+      cash: 20.0
+      tokens: 2.0
+    unlock-level: 0
+  iron:
+    price:
+      cash: 50.0
+      tokens: 5.0
+    unlock-level: 5
+  diamond:
+    price:
+      cash: 150.0
+      tokens: 15.0
+    unlock-level: 20
+  netherite:
+    price:
+      cash: 500.0
+      tokens: 50.0
+    unlock-level: 35
+
+level:
+  max: 40 # Max level dat spelers kunnen bereiken
+  formula: "(75 * level * level) + (100 * level) + 50" # Baseline berekening voor XP per level
+  overrides: # Specifieke overrides per level (indien aanwezig, overschrijft de formula)
+    '0': 1
+    '1': 0
+    '2': 0
+    '10': 5000 # voorbeeld: level 10 heeft exact 5000 xp nodig

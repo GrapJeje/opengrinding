@@ -1,0 +1,29 @@
+enabled: true
+enable-games: true
+
+economy:
+  sell:
+    enabled: true
+    open-buy-shop: true
+  buy:
+    enabled: true
+
+fishes:
+  cod:
+    sell-price: # Per KG
+      cash: 3.0
+      tokens: 0.3
+  salmon:
+    sell-price:
+      cash: 5.0
+      tokens: 0.5
+  tropical_fish:
+    sell-price:
+      cash: 35.0
+      tokens: 3.5
+
+rods:
+  fishing_rod:
+    price:
+      cash: 200.0
+      tokens: 20.0

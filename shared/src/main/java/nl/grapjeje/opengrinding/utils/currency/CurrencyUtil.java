@@ -1,0 +1,255 @@
+package nl.grapjeje.opengrinding.utils.currency;
+
+import com.craftmend.storm.api.enums.Where;
+import nl.grapjeje.core.text.MessageUtil;
+import nl.grapjeje.opengrinding.OpenGrinding;
+import nl.grapjeje.opengrinding.api.Currency;
+import nl.grapjeje.opengrinding.api.GrindingCurrency;
+import nl.grapjeje.opengrinding.core.CoreModule;
+import nl.grapjeje.opengrinding.core.objects.CraftGrindingCurrency;
+import nl.grapjeje.opengrinding.models.CurrencyModel;
+import nl.openminetopia.OpenMinetopia;
+import nl.openminetopia.configuration.MessageConfiguration;
+import nl.openminetopia.modules.banking.BankingModule;
+import nl.openminetopia.modules.data.storm.StormDatabase;
+import nl.openminetopia.modules.transactions.TransactionsModule;
+import nl.openminetopia.modules.transactions.enums.TransactionType;
+import nl.openminetopia.modules.transactions.events.TransactionUpdateEvent;
+import nl.openminetopia.utils.ChatUtils;
+import nl.openminetopia.utils.events.EventUtils;
+import org.bukkit.Bukkit;
+import org.bukkit.Sound;
+import org.bukkit.entity.Player;
+
+import java.time.LocalDate;
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
+
+public class CurrencyUtil {
+
+    public static CompletableFuture<Map<nl.grapjeje.opengrinding.api.Currency, Double>> giveReward(Player player, double cashAmount, double grindTokens, String reason) {
+        checkIfNeedReset(player);
+
+        if (CoreModule.getConfig().isSellInTokens()) {
+            grindTokens = Math.floor(grindTokens * 1000) / 1000.0;
+            return giveTokens(player, grindTokens);
+        } else {
+            cashAmount = Math.floor(cashAmount * 100) / 100.0;
+            return giveCash(player, cashAmount, reason);
+        }
+    }
+
+    public static CompletableFuture<Map<nl.grapjeje.opengrinding.api.Currency, Double>> removeForBuy(Player player, double amount, String reason) {
+        if (CoreModule.getConfig().isBuyInTokens()) {
+            return getModelAsync(player).thenApply(model -> {
+                GrindingCurrency currency = CraftGrindingCurrency.get(player.getUniqueId(), model);
+
+                double currentTokens = currency.getGrindTokens();
+
+                if (currentTokens < amount) {
+                    Bukkit.getScheduler().runTask(OpenGrinding.getInstance(), () -> {
+                        player.sendMessage(MessageUtil.filterMessage("<warning>⚠ Je hebt niet genoeg grindtokens!"));
+                        player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1.0F, 1.0F);
+                    });
+                    return new HashMap<nl.grapjeje.opengrinding.api.Currency, Double>();
+                }
+
+                currency.setGrindTokens(currentTokens - amount);
+                currency.save();
+
+                return (Map<nl.grapjeje.opengrinding.api.Currency, Double>) (Map<?, ?>) Map.of(nl.grapjeje.opengrinding.api.Currency.TOKENS, amount);
+            });
+        } else {
+            CompletableFuture<Map<nl.grapjeje.opengrinding.api.Currency, Double>> future = new CompletableFuture<>();
+            BankingModule bankingModule = (BankingModule) OpenMinetopia.getModuleManager().get(BankingModule.class);
+
+            bankingModule.getAccountByIdAsync(player.getUniqueId()).whenComplete((accountModel, throwable) -> {
+                if (accountModel == null) {
+                    Bukkit.getScheduler().runTask(OpenGrinding.getInstance(), () ->
+                            player.sendMessage(MessageConfiguration.component("banking_account_not_found"))
+                    );
+                    future.complete(new HashMap<nl.grapjeje.opengrinding.api.Currency, Double>());
+                } else {
+                    TransactionUpdateEvent event = new TransactionUpdateEvent(
+                            player.getUniqueId(),
+                            player.getName(),
+                            TransactionType.WITHDRAW,
+                            amount,
+                            accountModel,
+                            "Bought " + reason,
+                            System.currentTimeMillis()
+                    );
+
+                    if (EventUtils.callCancellable(event)) {
+                        Bukkit.getScheduler().runTask(OpenGrinding.getInstance(), () ->
+                                player.sendMessage(ChatUtils.color("<warning>⚠ De transactie is geannuleerd door een plugin."))
+                        );
+                        future.complete(new HashMap<Currency, Double>());
+                    } else {
+
+                        if (accountModel.getBalance() < amount) {
+                            Bukkit.getScheduler().runTask(OpenGrinding.getInstance(), () ->
+                                    player.sendMessage(ChatUtils.color("<warning>⚠ Je hebt niet genoeg saldo op je rekening."))
+                            );
+                            future.complete(new HashMap<nl.grapjeje.opengrinding.api.Currency, Double>());
+                            return;
+                        }
+
+                        accountModel.setBalance(accountModel.getBalance() - amount);
+                        accountModel.save();
+
+                        TransactionsModule transactionsModule =
+                                (TransactionsModule) OpenMinetopia.getModuleManager().get(TransactionsModule.class);
+                        transactionsModule.createTransactionLog(
+                                System.currentTimeMillis(),
+                                player.getUniqueId(),
+                                player.getName(),
+                                TransactionType.WITHDRAW,
+                                amount,
+                                accountModel.getUniqueId(),
+                                "Bought " + reason
+                        );
+
+                        future.complete((Map<nl.grapjeje.opengrinding.api.Currency, Double>) (Map<?, ?>) Map.of(nl.grapjeje.opengrinding.api.Currency.CASH, amount));
+                    }
+                }
+            });
+
+            return future;
+        }
+    }
+
+    private static double getRemainingForToday(GrindingCurrency currency, nl.grapjeje.opengrinding.api.Currency type) {
+        if (type == nl.grapjeje.opengrinding.api.Currency.TOKENS) return CoreModule.getConfig().getTokenLimit() - currency.getTokensFromToday();
+        else return CoreModule.getConfig().getCashLimit() - currency.getCashFromToday();
+    }
+
+    private static CompletableFuture<Map<nl.grapjeje.opengrinding.api.Currency, Double>> giveCash(Player player, double amount, String reason) {
+        return getModelAsync(player).thenApply(model -> {
+            GrindingCurrency currency = CraftGrindingCurrency.get(player.getUniqueId(), model);
+
+            double allowed;
+            if (CoreModule.getConfig().isDailyLimit()) {
+                allowed = getRemainingForToday(currency, nl.grapjeje.opengrinding.api.Currency.CASH);
+                if (allowed <= amount) {
+                    Bukkit.getScheduler().runTask(OpenGrinding.getInstance(), () ->
+                            player.sendMessage(MessageUtil.filterMessage("<warning>⚠ Jij hebt jouw grinding cash limiet bereikt!"))
+                    );
+                } else allowed = amount;
+                if (allowed <= 0) return (Map<nl.grapjeje.opengrinding.api.Currency, Double>) (Map<?, ?>) Map.of(currency, 0.0);
+            } else allowed = amount;
+
+            currency.setCashFromToday(currency.getCashFromToday() + allowed);
+            currency.setLastUpdatedDate(LocalDate.now());
+            currency.save();
+
+            BankingModule bankingModule = (BankingModule) OpenMinetopia.getModuleManager().get(BankingModule.class);
+            double finalAllowed = allowed;
+            bankingModule.getAccountByIdAsync(player.getUniqueId()).whenComplete((accountModel, throwable) -> {
+                if (accountModel == null) {
+                    Bukkit.getScheduler().runTask(OpenGrinding.getInstance(), () ->
+                            player.sendMessage(MessageConfiguration.component("banking_account_not_found"))
+                    );
+                    return;
+                }
+
+                TransactionUpdateEvent event = new TransactionUpdateEvent(
+                        player.getUniqueId(),
+                        player.getName(),
+                        TransactionType.DEPOSIT,
+                        finalAllowed,
+                        accountModel,
+                        reason,
+                        System.currentTimeMillis()
+                );
+
+                if (EventUtils.callCancellable(event)) {
+                    Bukkit.getScheduler().runTask(OpenGrinding.getInstance(), () ->
+                            player.sendMessage(ChatUtils.color("<warning>⚠ De transactie is geannuleerd door een plugin."))
+                    );
+                    return;
+                }
+                accountModel.setBalance(accountModel.getBalance() + finalAllowed);
+                accountModel.save();
+
+                TransactionsModule transactionsModule =
+                        (TransactionsModule) OpenMinetopia.getModuleManager().get(TransactionsModule.class);
+                transactionsModule.createTransactionLog(
+                        System.currentTimeMillis(),
+                        player.getUniqueId(),
+                        player.getName(),
+                        TransactionType.DEPOSIT,
+                        finalAllowed,
+                        accountModel.getUniqueId(),
+                        reason
+                );
+            });
+            return (Map<nl.grapjeje.opengrinding.api.Currency, Double>) (Map<?, ?>) Map.of(currency, allowed);
+        });
+    }
+
+    private static CompletableFuture<Map<nl.grapjeje.opengrinding.api.Currency, Double>> giveTokens(Player player, double amount) {
+        return getModelAsync(player).thenApply(model -> {
+            GrindingCurrency currency = CraftGrindingCurrency.get(player.getUniqueId(), model);
+
+            double allowed;
+            if (CoreModule.getConfig().isDailyLimit()) {
+                allowed = getRemainingForToday(currency, nl.grapjeje.opengrinding.api.Currency.TOKENS);
+                if (allowed <= amount) {
+                    Bukkit.getScheduler().runTask(OpenGrinding.getInstance(), () ->
+                            player.sendMessage(MessageUtil.filterMessage("<warning>⚠ Jij hebt jouw grindtoken limiet bereikt!"))
+                    );
+                } else allowed = amount;
+                if (allowed <= 0) return (Map<nl.grapjeje.opengrinding.api.Currency, Double>) (Map<?, ?>) Map.of(currency, 0.0);
+            } else allowed = amount;
+
+            currency.setGrindTokens(currency.getGrindTokens() + allowed);
+            currency.setTokensFromToday(currency.getTokensFromToday() + allowed);
+            currency.setLastUpdatedDate(LocalDate.now());
+            currency.save();
+
+            return (Map<Currency, Double>) (Map<?, ?>) Map.of(currency, allowed);
+        });
+    }
+
+    public static CompletableFuture<CurrencyModel> getModelAsync(Player player) {
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                Optional<CurrencyModel> optionalModel = StormDatabase.getInstance().getStorm()
+                        .buildQuery(CurrencyModel.class)
+                        .where("player_uuid", Where.EQUAL, player.getUniqueId())
+                        .limit(1)
+                        .execute()
+                        .join()
+                        .stream()
+                        .findFirst();
+
+                if (optionalModel.isPresent())
+                    return optionalModel.get();
+
+                CurrencyModel newModel = new CurrencyModel();
+                newModel.setPlayerUuid(player.getUniqueId());
+                newModel.setGrindTokens(0.0);
+                newModel.setTokensFromToday(0.0);
+                newModel.setCashFromToday(0.0);
+                newModel.setLastUpdatedDate(LocalDate.now());
+
+                StormDatabase.getInstance().saveStormModel(newModel);
+                return newModel;
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                Bukkit.getScheduler().runTask(OpenGrinding.getInstance(), () ->
+                        player.sendMessage(MessageUtil.filterMessage("<warning>⚠ Er is een fout opgetreden bij het ophalen van jouw player data!"))
+                );
+                return null;
+            }
+        });
+    }
+
+    private static void checkIfNeedReset(Player player) {
+        getModelAsync(player).thenAccept(model -> {
+            GrindingCurrency currency = CraftGrindingCurrency.get(player.getUniqueId(), model);
+            currency.checkIfNeedsReset();
+        });
+    }
+}
