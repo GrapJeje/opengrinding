@@ -79,6 +79,10 @@
             <id>local-maven</id>
             <url>file://${user.home}/.m2/repository</url>
         </repository>
+        <repository>
+            <id>jitpack.io</id>
+            <url>https://jitpack.io</url>
+        </repository>
     </repositories>
 
     <dependencies>
@@ -90,8 +94,8 @@
         </dependency>
 
         <dependency>
-            <groupId>nl.openminetopia</groupId>
-            <artifactId>api</artifactId>
+            <groupId>com.github.OpenMinetopia</groupId>
+            <artifactId>openminetopia</artifactId>
             <version>1.5.0</version>
             <scope>provided</scope>
         </dependency>
