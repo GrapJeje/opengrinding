@@ -5,6 +5,7 @@
     <groupId>nl.grapjeje</groupId>
     <artifactId>opengrinding</artifactId>
     <version>1.0.0</version>
+    <relativePath>../pom.xml</relativePath>
   </parent>
 
   <groupId>nl.grapjeje.opengrinding</groupId>
@@ -19,6 +20,39 @@
   </properties>
 
   <dependencies>
+    <dependency>
+      <groupId>io.papermc.paper</groupId>
+      <artifactId>paper-api</artifactId>
+    </dependency>
 
+    <dependency>
+      <groupId>com.github.OpenMinetopia</groupId>
+      <artifactId>openminetopia</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.projectlombok</groupId>
+      <artifactId>lombok</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>nl.grapjeje</groupId>
+      <artifactId>grapjeje-core</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>st.orm</groupId>
+      <artifactId>storm</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>net.objecthunter</groupId>
+      <artifactId>exp4j</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>com.google.code.gson</groupId>
+      <artifactId>gson</artifactId>
+    </dependency>
   </dependencies>
 </project>

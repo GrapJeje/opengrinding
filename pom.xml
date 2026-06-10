@@ -13,6 +13,7 @@
 
     <modules>
         <module>shared</module>
+        <module>v1_21</module>
     </modules>
 
     <properties>
@@ -22,22 +23,23 @@
 
     <repositories>
         <repository>
+            <id>jitpack.io</id>
+            <url>https://jitpack.io</url>
+        </repository>
+
+        <repository>
             <id>papermc-repo</id>
             <url>https://repo.papermc.io/repository/maven-public/</url>
         </repository>
 
         <repository>
             <id>libs-local</id>
-            <url>file://${project.basedir}/libs</url>
+            <url>file://${maven.multiModuleProjectDirectory}/libs</url>
         </repository>
 
         <repository>
             <id>local-maven</id>
             <url>file://${user.home}/.m2/repository</url>
-        </repository>
-        <repository>
-            <id>jitpack.io</id>
-            <url>https://jitpack.io</url>
         </repository>
     </repositories>
 

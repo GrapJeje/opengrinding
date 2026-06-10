@@ -16,6 +16,7 @@ import nl.grapjeje.opengrinding.models.CurrencyModel;
 import nl.grapjeje.opengrinding.models.FishLootTableModel;
 import nl.grapjeje.opengrinding.models.GrindingRegionModel;
 import nl.grapjeje.opengrinding.models.PlayerGrindingModel;
+import nl.grapjeje.opengrinding.version.VersionManager;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -33,6 +34,20 @@ public final class OpenGrinding extends JavaPlugin {
     public void onEnable() {
         instance = this;
         framework = Framework.init(this);
+
+        // Detect and log Minecraft version
+        VersionManager.MinecraftVersion version = VersionManager.getDetectedVersion();
+        this.getLogger().info("╔═══════════════════════════════════╗");
+        this.getLogger().info("║     OpenGrinding Plugin Loading   ║");
+        this.getLogger().info("║   Detected Minecraft Version: " + String.format("%-8s", version.getVersionString()) + "║");
+        this.getLogger().info("╚═══════════════════════════════════╝");
+
+        if (!VersionManager.isSupportedVersion()) {
+            this.getLogger().severe("⚠ UNSUPPORTED MINECRAFT VERSION! Supported: 1.21 - 1.21.10");
+            this.getLogger().severe("Plugin will be disabled.");
+            Bukkit.getPluginManager().disablePlugin(this);
+            return;
+        }
 
         if (Bukkit.getPluginManager().isPluginEnabled("OpenMinetopia")) {
             this.getLogger().info("Detected OpenMinetopia enabled. Waiting for Storm to initialize...");
