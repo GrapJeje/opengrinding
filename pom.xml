@@ -15,6 +15,7 @@
         <module>shared</module>
         <module>v1_21</module>
         <module>v1_21_4</module>
+        <module>bundle</module>
     </modules>
 
     <properties>
@@ -47,7 +48,6 @@
                 <version>1.21-R0.1-SNAPSHOT</version>
                 <scope>provided</scope>
             </dependency>
-
 
             <dependency>
                 <groupId>org.projectlombok</groupId>
