@@ -25,10 +25,6 @@
       <artifactId>paper-api</artifactId>
     </dependency>
 
-    <dependency>
-      <groupId>com.github.OpenMinetopia</groupId>
-      <artifactId>openminetopia</artifactId>
-    </dependency>
 
     <dependency>
       <groupId>org.projectlombok</groupId>
@@ -43,6 +39,11 @@
     <dependency>
       <groupId>st.orm</groupId>
       <artifactId>storm</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>nl.openminetopia</groupId>
+      <artifactId>api</artifactId>
     </dependency>
 
     <dependency>

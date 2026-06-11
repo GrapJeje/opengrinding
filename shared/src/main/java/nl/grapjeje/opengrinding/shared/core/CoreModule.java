@@ -1,0 +1,78 @@
+package nl.grapjeje.opengrinding.shared.core;
+
+import lombok.Getter;
+import nl.grapjeje.core.modules.Module;
+import nl.grapjeje.opengrinding.shared.OpenGrinding;
+import nl.grapjeje.opengrinding.shared.api.Jobs;
+import nl.grapjeje.opengrinding.shared.core.commands.*;
+import nl.grapjeje.opengrinding.shared.core.configuration.DefaultConfiguration;
+import nl.grapjeje.opengrinding.shared.core.listeners.HeadBlockerListener;
+import nl.grapjeje.opengrinding.shared.core.listeners.PlayerJoinListener;
+import nl.grapjeje.opengrinding.shared.core.listeners.PlayerLevelUpListener;
+import nl.grapjeje.opengrinding.shared.core.listeners.PlayerRegionWandListener;
+import nl.grapjeje.opengrinding.shared.models.GrindingRegionModel;
+import nl.grapjeje.opengrinding.shared.models.PlayerGrindingModel;
+import nl.openminetopia.modules.data.storm.StormDatabase;
+
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+
+public class CoreModule extends Module {
+    @Getter
+    private static final Map<UUID, Map<Jobs, PlayerGrindingModel>> playerCache = new ConcurrentHashMap<>();
+    @Getter
+    private static final DefaultConfiguration config = new DefaultConfiguration(OpenGrinding.getInstance().getDataFolder());
+
+    public CoreModule() {
+        super("core", true);
+    }
+
+    @Override
+    protected void onEnable() {
+        OpenGrinding.getInstance().getLogger().info("Clearing playerCache...");
+        playerCache.clear();
+        OpenGrinding.getFramework().registerConfig(config);
+
+        OpenGrinding.getFramework().registerCommand(OpenGrindingCommand::new);
+        OpenGrinding.getFramework().registerCommand(GrindingRegionCommand::new);
+        OpenGrinding.getFramework().registerCommand(SellCommand::new);
+        OpenGrinding.getFramework().registerCommand(ShopCommand::new);
+        OpenGrinding.getFramework().registerCommand(FixSkullCommand::new);
+        OpenGrinding.getFramework().registerCommand(GrindTokensCommand::new);
+        OpenGrinding.getFramework().registerCommand(DailyLimitCommand::new);
+        OpenGrinding.getFramework().registerCommand(JobsCommand::new);
+
+        OpenGrinding.getFramework().registerListener(PlayerRegionWandListener::new);
+        OpenGrinding.getFramework().registerListener(HeadBlockerListener::new);
+        OpenGrinding.getFramework().registerListener(PlayerLevelUpListener::new);
+        OpenGrinding.getFramework().registerListener(PlayerJoinListener::new);
+
+        try {
+            OpenGrinding.getInstance().getLogger().info("Loading grinding regions...");
+            List<GrindingRegionModel> models = StormDatabase.getInstance().getStorm()
+                    .buildQuery(GrindingRegionModel.class)
+                    .execute()
+                    .join()
+                    .stream()
+                    .toList();
+            OpenGrinding.getInstance().getLogger().info("Loaded " + models.size() + " grinding regions.");
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    protected void onDisable() {
+
+    }
+
+    public static PlayerGrindingModel getCachedModel(UUID uuid, Jobs job) {
+        return playerCache.getOrDefault(uuid, new ConcurrentHashMap<>()).get(job);
+    }
+
+    public static void putCachedModel(UUID uuid, Jobs job, PlayerGrindingModel model) {
+        playerCache.computeIfAbsent(uuid, k -> new ConcurrentHashMap<>()).put(job, model);
+    }
+}

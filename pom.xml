@@ -23,11 +23,6 @@
 
     <repositories>
         <repository>
-            <id>jitpack.io</id>
-            <url>https://jitpack.io</url>
-        </repository>
-
-        <repository>
             <id>papermc-repo</id>
             <url>https://repo.papermc.io/repository/maven-public/</url>
         </repository>
@@ -52,12 +47,6 @@
                 <scope>provided</scope>
             </dependency>
 
-            <dependency>
-                <groupId>com.github.OpenMinetopia</groupId>
-                <artifactId>openminetopia</artifactId>
-                <version>1.5.0</version>
-                <scope>provided</scope>
-            </dependency>
 
             <dependency>
                 <groupId>org.projectlombok</groupId>
@@ -70,6 +59,13 @@
                 <groupId>nl.grapjeje</groupId>
                 <artifactId>grapjeje-core</artifactId>
                 <version>1.0</version>
+            </dependency>
+
+            <dependency>
+                <groupId>nl.openminetopia</groupId>
+                <artifactId>api</artifactId>
+                <version>1.5.0</version>
+                <scope>provided</scope>
             </dependency>
 
             <dependency>

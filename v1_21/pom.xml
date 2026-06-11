@@ -8,7 +8,7 @@
         <relativePath>../pom.xml</relativePath>
     </parent>
 
-    <groupId>nl.grapjeje.opengrinding.version</groupId>
+    <groupId>nl.grapjeje.opengrinding.shared.version</groupId>
     <artifactId>v1_21</artifactId>
     <packaging>jar</packaging>
 
@@ -23,6 +23,7 @@
         <dependency>
             <groupId>nl.grapjeje.opengrinding</groupId>
             <artifactId>shared</artifactId>
+            <version>${project.version}</version>
         </dependency>
 
         <dependency>
@@ -30,11 +31,6 @@
             <artifactId>paper-api</artifactId>
             <version>1.21-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>com.github.OpenMinetopia</groupId>
-            <artifactId>openminetopia</artifactId>
         </dependency>
 
         <dependency>
