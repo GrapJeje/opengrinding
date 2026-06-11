@@ -14,6 +14,7 @@
     <modules>
         <module>shared</module>
         <module>v1_21</module>
+        <module>v1_21_4</module>
     </modules>
 
     <properties>

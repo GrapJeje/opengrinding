@@ -9,10 +9,10 @@
   </parent>
 
   <groupId>nl.grapjeje.opengrinding.shared.version</groupId>
-  <artifactId>v1_21</artifactId>
+  <artifactId>v1_21_4</artifactId>
   <packaging>jar</packaging>
 
-  <name>V1_21</name>
+  <name>V1_21_4</name>
   <url>http://maven.apache.org</url>
 
   <properties>
@@ -29,7 +29,7 @@
     <dependency>
       <groupId>io.papermc.paper</groupId>
       <artifactId>paper-api</artifactId>
-      <version>1.21-R0.1-SNAPSHOT</version>
+      <version>1.21.4-R0.1-SNAPSHOT</version>
       <scope>provided</scope>
     </dependency>
 

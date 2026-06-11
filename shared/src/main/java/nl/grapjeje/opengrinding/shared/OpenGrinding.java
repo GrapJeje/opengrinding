@@ -16,6 +16,7 @@ import nl.grapjeje.opengrinding.shared.models.CurrencyModel;
 import nl.grapjeje.opengrinding.shared.models.FishLootTableModel;
 import nl.grapjeje.opengrinding.shared.models.GrindingRegionModel;
 import nl.grapjeje.opengrinding.shared.models.PlayerGrindingModel;
+import nl.grapjeje.opengrinding.shared.version.VersionHandler;
 import nl.grapjeje.opengrinding.shared.version.VersionManager;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -30,6 +31,8 @@ public final class OpenGrinding extends JavaPlugin {
     @Getter
     private static Framework framework;
 
+    private VersionHandler versionHandler;
+
     @Override
     public void onEnable() {
         instance = this;
@@ -39,7 +42,7 @@ public final class OpenGrinding extends JavaPlugin {
         VersionManager.MinecraftVersion version = VersionManager.getDetectedVersion();
         this.getLogger().info("╔═══════════════════════════════════╗");
         this.getLogger().info("║     OpenGrinding Plugin Loading   ║");
-        this.getLogger().info("║   Detected Minecraft Version: " + String.format("%-8s", version.getVersionString()) + "║");
+        this.getLogger().info("║   Detected Minecraft Version: " + String.format("%-8s", version.getMcVersion() == null ? "unknown" : version.getMcVersion()) + "║");
         this.getLogger().info("╚═══════════════════════════════════╝");
 
         if (!VersionManager.isSupportedVersion()) {
@@ -49,6 +52,15 @@ public final class OpenGrinding extends JavaPlugin {
             return;
         }
 
+        // Get the correct version handler
+        versionHandler = VersionManager.createVersionHandler();
+        if (versionHandler == null) {
+            this.getLogger().severe("No version handler found for " + version.getMcVersion());
+            Bukkit.getPluginManager().disablePlugin(this);
+            return;
+        }
+
+        // Initialize Storm database
         if (Bukkit.getPluginManager().isPluginEnabled("OpenMinetopia")) {
             this.getLogger().info("Detected OpenMinetopia enabled. Waiting for Storm to initialize...");
             this.waitForStormReady();
@@ -118,8 +130,10 @@ public final class OpenGrinding extends JavaPlugin {
         try {
             framework.initializeStorm(storm);
             this.registerModels();
-
             this.registerModules();
+
+            versionHandler.initialize(this);
+
             framework.getModuleLoader().enableModules();
 
             if (storm != null) this.getLogger().info("OpenGrinding fully initialized using OpenMinetopia Storm connection.");

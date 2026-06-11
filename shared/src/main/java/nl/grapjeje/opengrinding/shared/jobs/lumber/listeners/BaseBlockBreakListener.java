@@ -24,8 +24,9 @@ import org.bukkit.inventory.meta.ItemMeta;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
-public class BlockBreakListener implements Listener {
-    private static final Set<Material> WHITELIST = createWhitelist();
+public abstract class BaseBlockBreakListener implements Listener {
+    protected abstract Set<Material> getWhitelist();
+
     private static final Map<UUID, Long> cooldowns = new HashMap<>();
     private static final long COOLDOWN_MS = 500;
 
@@ -47,7 +48,7 @@ public class BlockBreakListener implements Listener {
             return;
         }
 
-        if (!WHITELIST.contains(type)) return;
+        if (!this.getWhitelist().contains(type)) return;
 
         if (!(player.getGameMode() == GameMode.CREATIVE || player.getGameMode() == GameMode.SPECTATOR)) {
             e.setCancelled(true);
@@ -149,37 +150,5 @@ public class BlockBreakListener implements Listener {
                         });
             });
         });
-    }
-
-    private static Set<Material> createWhitelist() {
-        Set<Material> set = new HashSet<>();
-        set.add(Material.OAK_WOOD);
-        set.add(Material.STRIPPED_OAK_WOOD);
-        set.add(Material.SPRUCE_WOOD);
-        set.add(Material.STRIPPED_SPRUCE_WOOD);
-        set.add(Material.BIRCH_WOOD);
-        set.add(Material.STRIPPED_BIRCH_WOOD);
-        set.add(Material.JUNGLE_WOOD);
-        set.add(Material.STRIPPED_JUNGLE_WOOD);
-        set.add(Material.ACACIA_WOOD);
-        set.add(Material.STRIPPED_ACACIA_WOOD);
-        set.add(Material.DARK_OAK_WOOD);
-        set.add(Material.STRIPPED_DARK_OAK_WOOD);
-        set.add(Material.MANGROVE_WOOD);
-        set.add(Material.STRIPPED_MANGROVE_WOOD);
-        set.add(Material.CHERRY_WOOD);
-        set.add(Material.STRIPPED_CHERRY_WOOD);
-        set.add(Material.CRIMSON_HYPHAE);
-        set.add(Material.STRIPPED_CRIMSON_HYPHAE);
-        set.add(Material.WARPED_HYPHAE);
-        set.add(Material.STRIPPED_WARPED_HYPHAE);
-
-        try {
-            set.add(Material.valueOf("PALE_OAK_WOOD"));
-            set.add(Material.valueOf("STRIPPED_PALE_OAK_WOOD"));
-        } catch (IllegalArgumentException ignored) {
-        }
-
-        return Set.copyOf(set);
     }
 }
