@@ -13,3 +13,7 @@ versions
 cache
 libraries
 crash-reports
+commands.yml
+help.yml
+plugins
+config
